@@ -1,8 +1,7 @@
 const API_URL =
-  (import.meta as ImportMeta & { env?: { VITE_API_URL?: string } }).env
-    ?.VITE_API_URL || 'http://localhost:5000';
+  import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export const BASE_URL = `${API_URL}/api`;
+export const BASE_URL = API_URL;
 
 export async function apiFetch(
   endpoint: string,
@@ -18,23 +17,21 @@ export async function apiFetch(
   };
 
   const url = `${BASE_URL}${
-    endpoint.startsWith('/') ? endpoint : '/' + endpoint
+    endpoint.startsWith('/') ? endpoint : `/${endpoint}`
   }`;
 
   const response = await fetch(url, {
     ...options,
     headers,
-
-    // Cookie HttpOnly envoyé automatiquement
     credentials: 'include',
   });
 
-  let data: any;
+  let data: any = {};
 
   try {
     data = await response.json();
   } catch {
-    data = {};
+    // Réponse sans JSON
   }
 
   if (!response.ok) {
