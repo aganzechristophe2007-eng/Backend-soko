@@ -14,10 +14,13 @@ import Boutique from './pages/Boutique';
 import Productdetails from './pages/Productdetails';
 import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
+import { CallProvider } from './context/CallContext';
+import CallModal from './components/CallModal';
 export default function App() {
   return (
     <ThemeProvider> {/* <-- ThemeProvider placé en haut de l'arbre */}
       <AuthProvider>
+        <CallProvider>
         <Router>
           <Routes>
             {/* Authentification */}
@@ -44,7 +47,10 @@ export default function App() {
             <Route path="*" element={<Home />} />
           </Routes>
         </Router>
+        <CallModal />
+        </CallProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 }
+   
