@@ -24,8 +24,8 @@ interface Category {
   name: string;
 }
 
-// URL du backend (en local pour le moment ; à remplacer par l'URL Render au déploiement)
-const API_URL = 'http://localhost:5000';
+// URL du backend (Render en prod, VITE_API_URL en local via .env)
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 // Suggestion renvoyée par l'assistant IA (POST /api/products/analyze)
 interface AiSuggestion {
