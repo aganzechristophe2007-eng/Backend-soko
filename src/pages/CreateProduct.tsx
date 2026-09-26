@@ -115,7 +115,7 @@ export default function CreateProduct() {
 
   // Chargement dynamique des catégories avec les cookies de session inclus
   useEffect(() => {
-    fetch(`${API_URL}/api/categories`, {
+    fetch(`${API_URL}/categories`, {
       credentials: 'include'
     })
       .then(res => res.json())
@@ -211,7 +211,7 @@ export default function CreateProduct() {
       const resized = await Promise.all(photoFiles.slice(0, 3).map(file => resizeForAnalysis(file)));
       resized.forEach((blob, i) => data.append('images', blob, `photo-${i}.jpg`));
 
-      const response = await fetch(`${API_URL}/api/products/analyze`, {
+      const response = await fetch(`${API_URL}/products/analyze`, {
         method: 'POST',
         credentials: 'include',
         body: data,
@@ -327,7 +327,7 @@ export default function CreateProduct() {
         data.append(key, value);
       });
 
-      const response = await fetch(`${API_URL}/api/products`, {
+      const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         credentials: 'include',
         body: data,

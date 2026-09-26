@@ -62,7 +62,7 @@ export default function MessagingPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const loadConversations = useCallback(async () => {
-    const res = await fetch(`${API_BASE}/api/messages/conversations`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/messages/conversations`, { credentials: 'include' });
     if (!res.ok) return;
     const { data } = await res.json();
     setConversations(data);
@@ -74,13 +74,13 @@ export default function MessagingPage() {
 
   const openConversation = useCallback(async (partner: Sender) => {
     setSelectedPartner(partner);
-    const res = await fetch(`${API_BASE}/api/messages/${partner.id}`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/messages/${partner.id}`, { credentials: 'include' });
     if (res.ok) {
       const { data } = await res.json();
       setMessages(data);
     }
     getSocket().emit('conversation:open', { with: partner.id });
-    fetch(`${API_BASE}/api/messages/${partner.id}/read`, { method: 'POST', credentials: 'include' }).then(() =>
+    fetch(`${API_BASE}/messages/${partner.id}/read`, { method: 'POST', credentials: 'include' }).then(() =>
       setConversations((prev) => prev.map((c) => (c.partner.id === partner.id ? { ...c, unreadCount: 0 } : c)))
     );
   }, []);
@@ -102,7 +102,7 @@ export default function MessagingPage() {
       setSelectedPartner((current) => {
         if (current && (message.senderId === current.id || message.receiverId === current.id)) {
           setMessages((prev) => [...prev, message]);
-          fetch(`${API_BASE}/api/messages/${current.id}/read`, { method: 'POST', credentials: 'include' });
+          fetch(`${API_BASE}/messages/${current.id}/read`, { method: 'POST', credentials: 'include' });
         }
         return current;
       });
@@ -136,7 +136,7 @@ export default function MessagingPage() {
     setSending(true);
     setText('');
     try {
-      const res = await fetch(`${API_BASE}/api/messages`, {
+      const res = await fetch(`${API_BASE}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -161,7 +161,7 @@ export default function MessagingPage() {
       form.append('type', type);
       if (duration) form.append('duration', String(duration));
 
-      const res = await fetch(`${API_BASE}/api/messages/media`, { method: 'POST', credentials: 'include', body: form });
+      const res = await fetch(`${API_BASE}/messages/media`, { method: 'POST', credentials: 'include', body: form });
       if (res.ok) {
         const { data } = await res.json();
         setMessages((prev) => [...prev, data]);
