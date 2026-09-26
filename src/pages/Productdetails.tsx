@@ -195,7 +195,11 @@ export default function ProductDetails() {
           <button type="button" onClick={goBack} className={iconBtn} aria-label="Retour">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="min-w-0 flex-1 truncate text-base font-bold tracking-tight">{product?.title ?? 'Produit'}</h1>
+          <Link to="/" className="flex-1 truncate text-center text-xl font-black tracking-wider sm:text-2xl" aria-label="CBFSOKO, accueil">
+            <span className="text-[#10b981]">CBF</span>
+            <span className="text-[#f97316]">SOKO</span>
+          </Link>
+          <span className="h-10 w-10 flex-shrink-0" aria-hidden="true" />
         </div>
       </header>
 
