@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, Images, MapPin, Minus, Plus, Store, Info } from 'lucide-react';
+import { ArrowLeft, Images, MapPin, Minus, Plus, Store, Info, Star, MessageCircle } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
@@ -39,13 +39,38 @@ interface ProductItem {
   priceCDF: number;
   category?: { id: string; name: string };
   images: string[];
-  seller?: { id: string; name: string; avatar?: string };
+  seller?: { id: string; name: string; avatar?: string; ratingAvg?: number; ratingCount?: number };
   location?: string;
   state?: string;
   quantity?: number;
   type?: string;
   videoUrl?: string | null;
   createdAt?: string;
+  similar?: SimilarProduct[];
+}
+
+interface SimilarProduct {
+  id: string;
+  title: string;
+  priceUSD: number;
+  priceCDF: number;
+  images: string[];
+}
+
+/** Étoiles en lecture seule pour la note moyenne du vendeur. */
+function SellerStars({ avg, count }: { avg: number; count: number }) {
+  if (!count) return null;
+  const rounded = Math.round(avg);
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`${avg.toFixed(1)} sur 5, ${count} avis`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star
+          key={n}
+          className={`h-3.5 w-3.5 ${n <= rounded ? 'fill-orange-500 text-orange-500' : 'text-neutral-300'}`}
+        />
+      ))}
+    </div>
+  );
 }
 
 type ThemeMode = 'dark' | 'light' | 'system';
@@ -295,17 +320,57 @@ export default function ProductDetails() {
               )}
 
               {product.seller && (
-                <div className={`flex items-center gap-3 rounded-2xl p-3 ${t.border} ${t.surface}`}>
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-500 text-white">
-                    {product.seller.avatar ? (
-                      <img src={getMediaUrl(product.seller.avatar)} alt={product.seller.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <Store className="h-5 w-5" />
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className={`text-xs ${t.muted}`}>Vendu par</p>
-                    <p className="truncate text-sm font-bold">{product.seller.name}</p>
+                <div className={`space-y-3 rounded-2xl p-4 ${t.border} ${t.surface}`}>
+                  <h3 className={`text-xs font-bold uppercase tracking-wide ${t.muted}`}>Identité du vendeur</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-500 text-white">
+                      {product.seller.avatar ? (
+                        <img src={getMediaUrl(product.seller.avatar)} alt={product.seller.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <Store className="h-5 w-5" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold">{product.seller.name}</p>
+                      {product.location && (
+                        <p className={`flex items-center gap-1 text-xs ${t.muted}`}>
+                          <MapPin className="h-3 w-3" />
+                          {product.location}
+                        </p>
+                      )}
+                      <SellerStars avg={product.seller.ratingAvg ?? 0} count={product.seller.ratingCount ?? 0} />
+                    </div>
+                  </div>
+                  {/* Contact uniquement par message : pas d'appel, sur demande explicite */}
+                  <Link
+                    to={`/messages/${product.seller.id}`}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Contacter le vendeur
+                  </Link>
+                </div>
+              )}
+
+              {product.similar && product.similar.length > 0 && (
+                <div>
+                  <h3 className="mb-2 text-sm font-bold">Produits similaires</h3>
+                  <div className="scrollbar-hide -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+                    {product.similar.map((p) => (
+                      <Link
+                        key={p.id}
+                        to={`/products/${p.id}`}
+                        className={`w-32 flex-shrink-0 overflow-hidden rounded-xl ${t.border} ${t.surface}`}
+                      >
+                        <div className="aspect-square w-full overflow-hidden bg-neutral-100">
+                          <img src={getMediaUrl(p.images?.[0])} alt={p.title} className="h-full w-full object-cover" />
+                        </div>
+                        <div className="p-2">
+                          <p className="truncate text-xs font-semibold">{p.title}</p>
+                          <p className="text-xs font-bold text-orange-600">{p.priceCDF > 0 ? `${p.priceCDF.toLocaleString('fr-FR')} FC` : `${p.priceUSD} $`}</p>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}
