@@ -86,6 +86,11 @@ export default function CreateProduct() {
   // Article publié : rempli après une création réussie, avec le code renvoyé par le backend (stocké en base)
   const [createdProduct, setCreatedProduct] = useState<{ id?: string; sku?: string } | null>(null);
 
+  // Dernière suggestion de l'IA (prix/poids) : sert de référence pour détecter une saisie irrationnelle
+  const [aiSuggestion, setAiSuggestion] = useState<AiSuggestion | null>(null);
+  // Taux du jour USD -> CDF, récupéré depuis le backend (mis en cache côté serveur)
+  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -125,6 +130,18 @@ export default function CreateProduct() {
         }
       })
       .catch(err => console.error('Erreur lors du chargement des catégories:', err));
+  }, []);
+
+  // Taux de change du jour (USD -> CDF), pour la conversion automatique des prix
+  useEffect(() => {
+    fetch(`${API_URL}/exchange-rate`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && typeof data.rate === 'number') {
+          setExchangeRate(data.rate);
+        }
+      })
+      .catch(err => console.error('Erreur lors du chargement du taux de change:', err));
   }, []);
 
   const handlePhotoSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +203,19 @@ export default function CreateProduct() {
       return;
     }
 
+    // Conversion automatique USD <-> CDF au taux du jour. Si le taux n'est pas encore
+    // chargé (API indisponible), les deux champs restent simplement indépendants.
+    if (name === 'priceUSD') {
+      const priceCDF = exchangeRate && value ? String(Math.round(Number(value) * exchangeRate)) : (value ? formData.priceCDF : '');
+      setFormData(prev => ({ ...prev, priceUSD: value, priceCDF }));
+      return;
+    }
+    if (name === 'priceCDF') {
+      const priceUSD = exchangeRate && value ? (Number(value) / exchangeRate).toFixed(2) : (value ? formData.priceUSD : '');
+      setFormData(prev => ({ ...prev, priceCDF: value, priceUSD }));
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -232,22 +262,54 @@ export default function CreateProduct() {
       }
 
       const s: AiSuggestion = result.suggestion;
-      setFormData(prev => ({
-        ...prev,
-        title: s.title || prev.title,
-        description: s.description || prev.description,
-        categoryId: s.categoryId || prev.categoryId,
-        state: s.state && VALID_STATES.includes(s.state) ? s.state : prev.state,
+      setAiSuggestion(s);
+      setFormData(prev => {
         // Le prix et le poids ne sont jamais écrasés s'ils sont déjà remplis
-        priceUSD: prev.priceUSD || (s.priceUSD != null ? String(s.priceUSD) : ''),
-        weight: prev.weight || (s.weightKg != null ? String(s.weightKg) : ''),
-      }));
+        const priceUSD = prev.priceUSD || (s.priceUSD != null ? String(s.priceUSD) : '');
+        const priceCDF = prev.priceCDF || (exchangeRate && priceUSD ? String(Math.round(Number(priceUSD) * exchangeRate)) : prev.priceCDF);
+        return {
+          ...prev,
+          title: s.title || prev.title,
+          description: s.description || prev.description,
+          categoryId: s.categoryId || prev.categoryId,
+          state: s.state && VALID_STATES.includes(s.state) ? s.state : prev.state,
+          priceUSD,
+          priceCDF,
+          weight: prev.weight || (s.weightKg != null ? String(s.weightKg) : ''),
+        };
+      });
       setAiNotice('Fiche pré-remplie par l’IA. Vérifiez le titre, la catégorie et surtout le prix et le poids, qui ne sont que des estimations.');
     } catch (err: any) {
       setError(err.message || "L'assistant IA est indisponible. Remplissez les champs manuellement.");
     } finally {
       setAiLoading(false);
     }
+  };
+
+  // Écart maximal toléré face à l'estimation de l'IA (x5 ou /5) avant blocage.
+  // Ne s'applique que si l'IA a été utilisée : sans elle, aucune référence pour juger.
+  const RATIO_THRESHOLD = 5;
+
+  const checkPriceRationality = (): string | null => {
+    if (!aiSuggestion?.priceUSD || !formData.priceUSD) return null;
+    const userPrice = Number(formData.priceUSD);
+    if (!userPrice) return null;
+    const ratio = userPrice / aiSuggestion.priceUSD;
+    if (ratio > RATIO_THRESHOLD || ratio < 1 / RATIO_THRESHOLD) {
+      return `Le prix saisi ($${userPrice}) est très éloigné de l'estimation de l'IA à partir des photos ($${aiSuggestion.priceUSD}). Corrigez le prix ou vérifiez la catégorie avant de continuer.`;
+    }
+    return null;
+  };
+
+  const checkWeightRationality = (): string | null => {
+    if (!aiSuggestion?.weightKg || !formData.weight) return null;
+    const userWeight = Number(formData.weight);
+    if (!userWeight) return null;
+    const ratio = userWeight / aiSuggestion.weightKg;
+    if (ratio > RATIO_THRESHOLD || ratio < 1 / RATIO_THRESHOLD) {
+      return `Le poids saisi (${userWeight} kg) est très éloigné de l'estimation de l'IA à partir des photos (${aiSuggestion.weightKg} kg). Corrigez le poids avant de continuer.`;
+    }
+    return null;
   };
 
   // Étape 1 -> 2
@@ -270,6 +332,11 @@ export default function CreateProduct() {
       setError('Veuillez sélectionner une catégorie valide.');
       return;
     }
+    const priceIssue = checkPriceRationality();
+    if (priceIssue) {
+      setError(priceIssue);
+      return;
+    }
     setError('');
     setStep('stock');
   };
@@ -278,6 +345,11 @@ export default function CreateProduct() {
   const handleValidateStock = () => {
     if (!formData.weight || Number(formData.weight) <= 0) {
       setError('Le poids de l’article est requis et doit être supérieur à 0.');
+      return;
+    }
+    const weightIssue = checkWeightRationality();
+    if (weightIssue) {
+      setError(weightIssue);
       return;
     }
     setError('');
@@ -682,6 +754,11 @@ export default function CreateProduct() {
 
             <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-3">
               <h2 className="font-bold text-white">Prix et devises</h2>
+              {exchangeRate && (
+                <p className="text-[11px] text-neutral-400">
+                  Taux du jour : 1 $ ≈ {Math.round(exchangeRate).toLocaleString('fr-FR')} Fc — conversion automatique.
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-neutral-300 mb-1.5">Prix (USD)</label>
