@@ -939,7 +939,7 @@ export default function Home() {
           {loadingProducts ? (
             <div className="flex gap-3 overflow-x-hidden pb-1">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[9/16] w-28 flex-shrink-0 animate-pulse rounded-lg bg-neutral-800 sm:w-32" />
+                <div key={i} className="aspect-[9/16] w-36 flex-shrink-0 animate-pulse rounded-lg bg-neutral-800 sm:w-44 md:w-52 lg:w-56" />
               ))}
             </div>
           ) : displayedReels.length === 0 ? (
@@ -949,7 +949,7 @@ export default function Home() {
               {displayedReels.map((reel) => (
                 <div
                   key={reel.id}
-                  className="group relative aspect-[9/16] w-28 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-lg border border-neutral-500 bg-black transition-colors duration-200 hover:border-[#f97316] sm:w-32"
+                  className="group relative aspect-[9/16] w-36 flex-shrink-0 cursor-pointer snap-start snap-always overflow-hidden rounded-lg border border-neutral-500 bg-black transition-colors duration-200 hover:border-[#f97316] hover:scale-[1.02] sm:w-44 md:w-52 lg:w-56"
                   onClick={() => openFullscreenReelById(reel.id)}
                 >
                   <video
@@ -969,7 +969,7 @@ export default function Home() {
                         <UserIcon className="h-full w-full p-0.5 text-white" />
                       )}
                     </span>
-                    <span className="truncate text-xs font-bold text-white">
+                    <span className="truncate text-xs font-bold text-white sm:text-sm">
                       {reel.seller?.name || 'Vendeur'}
                     </span>
                   </div>
@@ -1076,7 +1076,7 @@ export default function Home() {
               {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
               {displayedProducts.map((product) => {
                 const photoCount = product.images?.length ?? 0;
                 const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
@@ -1085,7 +1085,7 @@ export default function Home() {
                   <article
                     key={product.id}
                     onClick={() => goToProductDetails(product.id)}
-                    className="group cursor-pointer rounded-2xl border border-neutral-700 bg-[#0d0d0d] p-2.5 transition-colors duration-200 hover:border-[#f97316]"
+                    className="group cursor-pointer rounded-2xl border border-neutral-700 bg-[#0d0d0d] p-3 transition-colors duration-200 hover:border-[#f97316] lg:p-4"
                   >
                     <div className="relative aspect-square w-full">
                       <div className="h-full w-full overflow-hidden rounded-xl bg-neutral-900">
@@ -1098,7 +1098,7 @@ export default function Home() {
                       </div>
 
                       {product.category?.name && (
-                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-md border border-neutral-500 bg-black px-2 py-1 text-[11px] font-bold text-white">
+                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-md border border-neutral-500 bg-black px-2 py-1 text-[11px] font-bold text-white sm:text-xs">
                           {product.category.name}
                         </span>
                       )}
@@ -1154,7 +1154,7 @@ export default function Home() {
                     </div>
 
                     <div className="mt-3 min-w-0 px-0.5">
-                      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-200">
+                      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-200 sm:text-sm">
                         <span className="truncate">{product.seller?.name || 'Vendeur'}</span>
                         {product.location && (
                           <span className="flex flex-shrink-0 items-center gap-1">
@@ -1163,16 +1163,16 @@ export default function Home() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1.5 truncate text-base font-extrabold text-white">{product.title}</p>
-                      <p className="text-lg font-extrabold text-[#f97316]">{product.priceUSD} $</p>
+                      <p className="mt-1.5 line-clamp-2 text-[15px] font-extrabold leading-snug text-white sm:text-base lg:text-lg">{product.title}</p>
+                      <p className="mt-0.5 text-xl font-extrabold text-[#f97316] sm:text-2xl">{product.priceUSD} $</p>
                       {product.priceCDF > 0 && (
-                        <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
+                        <p className="text-xs font-semibold text-neutral-400 sm:text-sm">≈ {formatCDF(product.priceCDF)} CDF</p>
                       )}
                     </div>
 
                     <button
                       type="button"
-                      className="mt-3 h-10 w-full rounded-xl border border-[#7c2d12] bg-[#1c0f08] text-sm font-bold text-[#f97316] transition-colors hover:bg-[#2a150a]"
+                      className="mt-3 h-11 w-full rounded-xl border border-[#7c2d12] bg-[#1c0f08] text-sm font-bold text-[#f97316] transition-colors hover:bg-[#2a150a] sm:h-12 sm:text-base"
                     >
                       Voir
                     </button>
