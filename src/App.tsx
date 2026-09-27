@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/Authcontext';
-import { ThemeProvider } from './context/Themecontext'; // <-- Import ajouté
+import { ThemeProvider } from './context/Themecontext';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -16,13 +16,16 @@ import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
 import UserPage from './pages/userpage';
 import About from './pages/About';
+import PayPage from './pages/Paypage'; // <-- Assurez-vous que l'import est correct
+
+import { io, Socket } from 'socket.io-client';
+import { BASE_URL } from './api/client';
+import { getSocket } from './lib/socket';
 import { CallProvider } from './context/CallContext';
 import CallModal from './components/CallModal';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from './lib/textPrefs';
 
 export default function App() {
-  // Taille et police de texte (réglées depuis Paramètres) : appliquées ici, à la racine,
-  // pour couvrir TOUTES les pages — et pas seulement Home/Settings comme avant.
   useEffect(() => {
     applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
     const syncTextPrefs = () => applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
@@ -35,38 +38,41 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider> {/* <-- ThemeProvider placé en haut de l'arbre */}
+    <ThemeProvider>
       <AuthProvider>
         <CallProvider>
-        <Router>
-          <Routes>
-            {/* Authentification */}
-            
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
-            {/* Pages principales */}
-            <Route path="/" element={<Home />} />
-            <Route path="/accueil" element={<Home />} />
-            <Route path="/create-product" element={<CreateProduct />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/messages" element={<MessagingPage />} />
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/products/:id" element={<Productdetails />} />
-            <Route path="/products/:id/renseignement" element={<ProductRenseignement />} />
-            
-            {/* Boutiques */}
-            <Route path="/boutique" element={<Boutique />} />
-            <Route path="/shops/:slug" element={<Boutique />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/users/:id" element={<UserPage />} />
-            <Route path="/a-propos" element={<About />} />
+          <Router>
+            <Routes>
+              {/* Authentification */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* Pages principales */}
+              <Route path="/" element={<Home />} />
+              <Route path="/accueil" element={<Home />} />
+              <Route path="/create-product" element={<CreateProduct />} />
+              <Route path="/orders" element={<Orders />} />
+              
+              {/* === ROUTE AJOUTÉE POUR LE PAIEMENT === */}
+              <Route path="/pay/:id" element={<PayPage />} />
 
-            {/* Redirection globale par défaut */}
-            <Route path="*" element={<Home />} />
-          </Routes>
-        </Router>
-        <CallModal />
+              <Route path="/messages" element={<MessagingPage />} />
+              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/products/:id" element={<Productdetails />} />
+              <Route path="/products/:id/renseignement" element={<ProductRenseignement />} />
+              
+              {/* Boutiques */}
+              <Route path="/boutique" element={<Boutique />} />
+              <Route path="/shops/:slug" element={<Boutique />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/users/:id" element={<UserPage />} />
+              <Route path="/a-propos" element={<About />} />
+
+              {/* Redirection globale par défaut */}
+              <Route path="*" element={<Home />} />
+            </Routes>
+          </Router>
+          <CallModal />
         </CallProvider>
       </AuthProvider>
     </ThemeProvider>
