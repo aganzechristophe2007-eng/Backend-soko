@@ -32,7 +32,6 @@ interface PaymentSummary {
   grandTotalUSD: number;
 }
 
-/** Ligne "Libellé ......... Montant", sans encadré, juste du texte aligné. */
 function SummaryRow({
   icon,
   label,
@@ -61,7 +60,8 @@ function SummaryRow({
 }
 
 export default function PayPage() {
-  const { orderId } = useParams<{ orderId: string }>();
+  // CORRECTION ICI : on récupère "id" au lieu de "orderId" pour correspondre à /pay/:id
+  const { id: orderId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,9 +167,6 @@ export default function PayPage() {
               />
             </div>
 
-            {/* Le calcul des frais est branché et fiable (calculé côté serveur). L'encaissement
-                réel (mobile money / carte) n'est pas encore intégré ici — à connecter séparément
-                dès que tu as choisi ton prestataire de paiement. */}
             <button
               type="button"
               disabled={!address.trim()}
