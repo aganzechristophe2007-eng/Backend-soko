@@ -14,6 +14,8 @@ import Boutique from './pages/Boutique';
 import Productdetails from './pages/Productdetails';
 import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
+import UserPage from './pages/userpage';
+import About from './pages/About';
 import { CallProvider } from './context/CallContext';
 import CallModal from './components/CallModal';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from './lib/textPrefs';
@@ -57,6 +59,8 @@ export default function App() {
             <Route path="/boutique" element={<Boutique />} />
             <Route path="/shops/:slug" element={<Boutique />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/users/:id" element={<UserPage />} />
+            <Route path="/a-propos" element={<About />} />
 
             {/* Redirection globale par défaut */}
             <Route path="*" element={<Home />} />
