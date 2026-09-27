@@ -13,10 +13,19 @@ interface IncomingCall {
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
-    // Ajoute ici un serveur TURN pour fiabiliser les appels en 4G/CGNAT :
+    // IMPORTANT : ajoute un serveur TURN ici. Sans TURN, les appels échouent dès que l'un des
+    // deux utilisateurs est derrière un NAT symétrique/CGNAT (très fréquent sur la 4G en RDC) —
+    // le STUN seul ne suffit pas dans ce cas, même avec la correction ci-dessous.
     // { urls: 'turn:TON_SERVEUR_TURN:3478', username: '...', credential: '...' },
   ],
 };
+
+function mediaConstraints(type: CallType): MediaStreamConstraints {
+  return {
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    video: type === 'VIDEO' ? { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24 } } : false,
+  };
+}
 
 export function useCall() {
   const [callState, setCallState] = useState<CallState>('idle');
@@ -29,6 +38,10 @@ export function useCall() {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  // Candidats ICE reçus avant que la description distante (offer/answer) ne soit posée sur le
+  // RTCPeerConnection. Sans cette file d'attente, ces candidats sont perdus silencieusement —
+  // c'était la cause principale des appels qui ne s'établissaient pas.
+  const iceQueueRef = useRef<RTCIceCandidateInit[]>([]);
 
   const logCall = useCallback(async (receiverId: string, type: CallType, status: 'MISSED' | 'ANSWERED' | 'DECLINED') => {
     const duration = startedAtRef.current ? Math.round((Date.now() - startedAtRef.current) / 1000) : 0;
@@ -44,11 +57,24 @@ export function useCall() {
     }
   }, []);
 
+  const flushIceQueue = useCallback(async () => {
+    const queued = iceQueueRef.current;
+    iceQueueRef.current = [];
+    for (const candidate of queued) {
+      try {
+        await pcRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch {
+        // candidat obsolète (appel déjà terminé), sans gravité
+      }
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
     pcRef.current?.close();
     pcRef.current = null;
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
+    iceQueueRef.current = [];
     setLocalStream(null);
     setRemoteStream(null);
     setIncomingCall(null);
@@ -63,16 +89,23 @@ export function useCall() {
       if (e.candidate) getSocket().emit('call:ice-candidate', { to, candidate: e.candidate });
     };
     pc.ontrack = (e) => setRemoteStream(e.streams[0]);
+    pc.onconnectionstatechange = () => {
+      // La connexion réseau est tombée (ICE échoué/perdu) : on referme proprement au lieu de
+      // rester bloqué en "in-call" avec un flux mort.
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        cleanup();
+      }
+    };
     pcRef.current = pc;
     return pc;
-  }, []);
+  }, [cleanup]);
 
   const startCall = useCallback(
     async (to: string, type: CallType) => {
       setCallType(type);
       setRemoteUserId(to);
       setCallState('calling');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'VIDEO' });
+      const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints(type));
       localStreamRef.current = stream;
       setLocalStream(stream);
       const pc = createPeerConnection(to);
@@ -89,19 +122,20 @@ export function useCall() {
     const { from, callType: type, offer } = incomingCall;
     setCallType(type);
     setRemoteUserId(from);
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: type === 'VIDEO' });
+    const stream = await navigator.mediaDevices.getUserMedia(mediaConstraints(type));
     localStreamRef.current = stream;
     setLocalStream(stream);
     const pc = createPeerConnection(from);
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    await flushIceQueue(); // applique les candidats de l'appelant reçus pendant la sonnerie
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     getSocket().emit('call:answer', { to: from, answer });
     setCallState('in-call');
     startedAtRef.current = Date.now();
     setIncomingCall(null);
-  }, [incomingCall, createPeerConnection]);
+  }, [incomingCall, createPeerConnection, flushIceQueue]);
 
   const declineCall = useCallback(() => {
     if (!incomingCall) return;
@@ -128,20 +162,26 @@ export function useCall() {
     };
     const onAnswered = async ({ answer }: { answer: RTCSessionDescriptionInit }) => {
       await pcRef.current?.setRemoteDescription(new RTCSessionDescription(answer));
+      await flushIceQueue(); // applique les candidats du destinataire reçus pendant qu'on attendait sa réponse
       setCallState('in-call');
       startedAtRef.current = Date.now();
     };
-    const onIceCandidate = async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
-      try {
-        await pcRef.current?.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch {
-        // candidat en retard, sans gravité
+    const onIceCandidate = ({ candidate }: { candidate: RTCIceCandidateInit }) => {
+      // Tant que la description distante n'est pas posée (offer côté appelé avant "accepter",
+      // ou answer côté appelant avant réception de la réponse), on ne peut pas appliquer le
+      // candidat immédiatement — on le met en file d'attente au lieu de le perdre.
+      if (pcRef.current?.remoteDescription) {
+        pcRef.current.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+      } else {
+        iceQueueRef.current.push(candidate);
       }
     };
     const onDeclined = () => cleanup();
     const onCancelled = () => cleanup();
     const onEnded = () => cleanup();
     const onUnavailable = () => cleanup();
+    // Personne n'a répondu dans le délai de sonnerie (voir socket.service.ts côté serveur).
+    const onNoAnswer = () => cleanup();
 
     socket.on('call:incoming', onIncoming);
     socket.on('call:answered', onAnswered);
@@ -150,6 +190,7 @@ export function useCall() {
     socket.on('call:cancelled', onCancelled);
     socket.on('call:ended', onEnded);
     socket.on('call:unavailable', onUnavailable);
+    socket.on('call:no-answer', onNoAnswer);
 
     return () => {
       socket.off('call:incoming', onIncoming);
@@ -159,8 +200,9 @@ export function useCall() {
       socket.off('call:cancelled', onCancelled);
       socket.off('call:ended', onEnded);
       socket.off('call:unavailable', onUnavailable);
+      socket.off('call:no-answer', onNoAnswer);
     };
-  }, [cleanup]);
+  }, [cleanup, flushIceQueue]);
 
   return { callState, incomingCall, callType, localStream, remoteStream, remoteUserId, startCall, acceptCall, declineCall, hangUp };
 }
