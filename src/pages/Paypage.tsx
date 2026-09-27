@@ -179,7 +179,7 @@ export default function PayPage() {
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Ex: Commune de Bandal, Av. Kasa-Vubu #12 (quartier...)"
+                placeholder="Preciser exactement un Lieu de livraison , Nous vous enverrons un Agent CBF dans moins d'1 heure  ! 
                 rows={3}
                 className="w-full resize-none rounded-2xl border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-orange-500 focus:bg-neutral-900 focus:outline-none transition-all shadow-inner"
               />
