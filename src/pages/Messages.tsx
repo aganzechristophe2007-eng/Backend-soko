@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, Send, Image as ImageIcon, Mic, Square, Phone, Video, Play, Pause } from 'lucide-react';
 import { getSocket } from '../lib/socket';
@@ -6,12 +6,21 @@ import { useCallContext } from '../context/CallContext';
 
 const API_BASE = import.meta.env.VITE_API_URL as string;
 
-type MessageType = 'TEXT' | 'IMAGE' | 'AUDIO' | 'VIDEO';
+type MessageType = 'TEXT' | 'IMAGE' | 'AUDIO' | 'VIDEO' | 'ORDER_REQUEST';
 
 interface Sender {
   id: string;
   name: string;
   avatar: string | null;
+}
+
+interface OrderSummary {
+  id: string;
+  status: 'PENDING' | 'AWAITING_SELLER_CONFIRMATION' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'EXPIRED';
+  expiresAt: string | null;
+  totalUSD: number;
+  totalCDF: number;
+  items: { product: { id: string; title: string } }[];
 }
 
 interface Message {
@@ -25,6 +34,7 @@ interface Message {
   isRead: boolean;
   createdAt: string;
   sender: Sender;
+  order?: OrderSummary | null;
 }
 
 interface Conversation {
@@ -129,6 +139,23 @@ export default function MessagingPage() {
       socket.off('message:read', onRead);
     };
   }, [loadConversations]);
+
+  // Boutons "Confirmer" / "Indisponible" sur la bulle de demande de livraison automatique.
+  const respondToOrder = useCallback(async (orderId: string, action: 'confirm' | 'deny') => {
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/${action}`, { method: 'PATCH', credentials: 'include' });
+      if (!res.ok) return;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.order?.id === orderId
+            ? { ...m, order: { ...m.order!, status: action === 'confirm' ? 'CONFIRMED' : 'EXPIRED' } }
+            : m
+        )
+      );
+    } catch (err) {
+      console.error('Erreur réponse commande', err);
+    }
+  }, []);
 
   const handleSendText = async () => {
     const content = text.trim();
@@ -239,6 +266,7 @@ export default function MessagingPage() {
                           : conv.lastMessage?.type === 'IMAGE' ? 'Photo'
                           : conv.lastMessage?.type === 'AUDIO' ? 'Message vocal'
                           : conv.lastMessage?.type === 'VIDEO' ? 'Vidéo'
+                          : conv.lastMessage?.type === 'ORDER_REQUEST' ? 'Demande de livraison'
                           : ''}
                       </p>
                     </div>
@@ -292,6 +320,9 @@ export default function MessagingPage() {
                 {m.type === 'IMAGE' && m.mediaUrl && <img src={m.mediaUrl} alt="Image envoyée" className="rounded-lg max-w-full max-h-64 object-cover" />}
                 {m.type === 'AUDIO' && m.mediaUrl && <AudioBubble url={m.mediaUrl} duration={m.mediaDuration} mine={mine} />}
                 {m.type === 'VIDEO' && m.mediaUrl && <video src={m.mediaUrl} controls playsInline className="rounded-lg max-w-full max-h-64" />}
+                {m.type === 'ORDER_REQUEST' && (
+                  <OrderRequestBubble message={m} mine={mine} onRespond={respondToOrder} />
+                )}
                 <span className={`block text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-neutral-400'}`}>{formatTime(m.createdAt)}</span>
               </div>
             </div>
@@ -323,6 +354,68 @@ export default function MessagingPage() {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function OrderRequestBubble({
+  message,
+  mine,
+  onRespond,
+}: {
+  message: Message;
+  mine: boolean;
+  onRespond: (orderId: string, action: 'confirm' | 'deny') => void;
+}) {
+  const order = message.order;
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!order || order.status !== 'AWAITING_SELLER_CONFIRMATION' || !order.expiresAt) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [order]);
+
+  const countdown = useMemo(() => {
+    if (!order?.expiresAt) return null;
+    const remaining = new Date(order.expiresAt).getTime() - now;
+    if (remaining <= 0) return '00:00:00';
+    const total = Math.floor(remaining / 1000);
+    const h = String(Math.floor(total / 3600)).padStart(2, '0');
+    const m = String(Math.floor((total % 3600) / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  }, [order?.expiresAt, now]);
+
+  const productTitle = order?.items?.[0]?.product?.title;
+
+  return (
+    <div className="min-w-[220px] space-y-2">
+      <p className="text-sm">{message.content}</p>
+      {productTitle && <p className="text-xs font-semibold opacity-80">« {productTitle} »</p>}
+
+      {order?.status === 'AWAITING_SELLER_CONFIRMATION' && countdown && (
+        <p className="text-[11px] font-mono opacity-80">⏱ {countdown} restant</p>
+      )}
+      {order?.status === 'CONFIRMED' && <p className="text-xs font-bold text-emerald-300">Disponibilité confirmée ✅</p>}
+      {order?.status === 'EXPIRED' && <p className="text-xs font-bold text-red-300">Signalé indisponible</p>}
+
+      {!mine && order?.status === 'AWAITING_SELLER_CONFIRMATION' && (
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={() => onRespond(order.id, 'confirm')}
+            className="flex-1 rounded-lg bg-white/20 px-2 py-1.5 text-xs font-bold hover:bg-white/30 transition"
+          >
+            Confirmer
+          </button>
+          <button
+            onClick={() => onRespond(order.id, 'deny')}
+            className="flex-1 rounded-lg bg-black/30 px-2 py-1.5 text-xs font-bold hover:bg-black/40 transition"
+          >
+            Indisponible
+          </button>
+        </div>
+      )}
     </div>
   );
 }

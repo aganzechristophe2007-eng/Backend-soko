@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/Authcontext';
 import { ThemeProvider } from './context/Themecontext'; // <-- Import ajouté
@@ -16,7 +16,22 @@ import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
 import { CallProvider } from './context/CallContext';
 import CallModal from './components/CallModal';
+import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from './lib/textPrefs';
+
 export default function App() {
+  // Taille et police de texte (réglées depuis Paramètres) : appliquées ici, à la racine,
+  // pour couvrir TOUTES les pages — et pas seulement Home/Settings comme avant.
+  useEffect(() => {
+    applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
+    const syncTextPrefs = () => applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
+    window.addEventListener(TEXT_PREF_EVENT, syncTextPrefs);
+    window.addEventListener('storage', syncTextPrefs);
+    return () => {
+      window.removeEventListener(TEXT_PREF_EVENT, syncTextPrefs);
+      window.removeEventListener('storage', syncTextPrefs);
+    };
+  }, []);
+
   return (
     <ThemeProvider> {/* <-- ThemeProvider placé en haut de l'arbre */}
       <AuthProvider>
@@ -53,4 +68,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-   

@@ -12,6 +12,15 @@ import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
 
+// Keep Home usable when the optional text-preferences helper module is unavailable.
+const TEXT_PREF_EVENT = 'text-prefs-change';
+const readSavedTextSize = (): string => localStorage.getItem('cbfsoko-text-size') || '';
+const readSavedTextFamily = (): string => localStorage.getItem('cbfsoko-text-family') || '';
+const applyTextPrefs = (size: string, family: string): void => {
+  if (size) document.documentElement.style.fontSize = size;
+  if (family) document.documentElement.style.fontFamily = family;
+};
+
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
 
 interface User {
@@ -225,6 +234,7 @@ export default function Home() {
   const wheelLockRef = useRef<boolean>(false);
 
   const [showAuth, setShowAuth] = useState<boolean>(false);
+  const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
 
   // Vues / commentaires des reels (colonne d'icônes façon TikTok)
@@ -283,6 +293,18 @@ export default function Home() {
     return () => {
       window.removeEventListener('storage-bg-change', syncBg);
       window.removeEventListener('storage', syncBg);
+    };
+  }, []);
+
+  // Taille et police du texte : mêmes réglages que le fond d'écran, choisis depuis Paramètres.
+  useEffect(() => {
+    applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
+    const syncTextPrefs = () => applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
+    window.addEventListener(TEXT_PREF_EVENT, syncTextPrefs);
+    window.addEventListener('storage', syncTextPrefs);
+    return () => {
+      window.removeEventListener(TEXT_PREF_EVENT, syncTextPrefs);
+      window.removeEventListener('storage', syncTextPrefs);
     };
   }, []);
 
@@ -589,7 +611,7 @@ export default function Home() {
       } else if (deltaX < -threshold) {
         if (currentFullscreenReel) {
           closeFullscreenReel();
-          handleProtectedAction(`/products/${currentFullscreenReel.productId}?livraison=1`);
+          handleDeliveryRequest(currentFullscreenReel.productId);
         }
       }
     } else {
@@ -649,6 +671,31 @@ export default function Home() {
     if (!token) openAuth(destination);
     else navigate(destination);
   };
+
+  // "Me faire livrer" : crée la demande de livraison côté serveur (chrono 24h + message
+  // automatique au vendeur), puis envoie l'acheteur sur l'onglet Commande.
+  const handleDeliveryRequest = useCallback(
+    async (productId: string) => {
+      if (!token) { openAuth('/orders'); return; }
+      if (deliveryLoading) return;
+      setDeliveryLoading(true);
+      try {
+        const res = await fetch(`${BASE_URL.replace(/\/+$/, '')}/orders/delivery-request`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId }),
+        });
+        if (!res.ok) throw new Error('Échec de la demande de livraison');
+      } catch (err) {
+        console.error('Erreur demande de livraison', err);
+      } finally {
+        setDeliveryLoading(false);
+        navigate('/orders');
+      }
+    },
+    [token, deliveryLoading, navigate]
+  );
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -801,16 +848,20 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
           <div className="flex flex-shrink-0 items-center gap-2">
             {/* Texte mat (orange sombre sans effet lumineux) et icône panier sans bordure */}
-            <Link to="/" className="flex items-center gap-2 px-1 py-1 transition-transform hover:scale-105" aria-label="CBFSOKO, accueil">
-              <span className="text-xl sm:text-2xl font-black tracking-wider">
-                <span className="text-[#10b981]">CBF</span>
-                <span className="text-[#f97316]">SOKO</span>
+            {/* Logo sur deux lignes (CBF / SOKO) : le panier est sur la ligne SOKO, en ligne
+                avec le texte (plus petit) pour ne plus le chevaucher sur mobile. */}
+            <Link to="/" className="flex items-center px-1 py-1 transition-transform hover:scale-105" aria-label="CBFSOKO, accueil">
+              <span className="flex flex-col leading-[1.05] font-black tracking-wide">
+                <span className="text-sm sm:text-lg text-[#10b981]">CBF</span>
+                <span className="flex items-center gap-1 text-sm sm:text-lg text-[#f97316]">
+                  SOKO
+                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                  </svg>
+                </span>
               </span>
-              <svg className="h-7 w-7 flex-shrink-0 text-[#f97316]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
             </Link>
           </div>
 
@@ -1336,6 +1387,15 @@ export default function Home() {
               </button>
             </div>
 
+            {deliveryLoading && (
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6">
+                <div className="rounded-2xl border border-neutral-500 bg-black px-6 py-5 text-center text-white">
+                  <p className="text-sm font-extrabold">Veuillez patienter…</p>
+                  <p className="mt-1 text-xs font-semibold text-neutral-300">Vérification du produit en cours.</p>
+                </div>
+              </div>
+            )}
+
             {shareConfirm && (
               <div
                 className="absolute inset-x-0 z-30 flex justify-center px-4"
@@ -1367,7 +1427,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => { closeFullscreenReel(); navigate(`/products/${currentFullscreenReel.productId}?livraison=1`); }}
+                      onClick={() => { closeFullscreenReel(); handleDeliveryRequest(currentFullscreenReel.productId); }}
                       className="flex-1 rounded-xl bg-[#c2410c] px-3 py-2 text-xs font-bold text-white hover:bg-[#9a3412] sm:flex-none"
                     >
                       Me faire livrer

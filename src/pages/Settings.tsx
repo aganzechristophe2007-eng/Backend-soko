@@ -6,6 +6,30 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/Authcontext';
 import { apiFetch, BASE_URL } from '../api/client';
+const TEXT_SIZE_OPTIONS = [
+  { id: 'small', label: 'Petit', px: 14 },
+  { id: 'medium', label: 'Normal', px: 16 },
+  { id: 'large', label: 'Grand', px: 18 },
+];
+const FONT_FAMILY_OPTIONS = [
+  { id: 'system', label: 'Par défaut', value: 'inherit' },
+  { id: 'sans', label: 'Sans-serif', value: 'Arial, sans-serif' },
+  { id: 'serif', label: 'Serif', value: 'Georgia, serif' },
+];
+const TEXT_SIZE_STORAGE_KEY = 'cbfsoko-text-size';
+const TEXT_FAMILY_STORAGE_KEY = 'cbfsoko-text-family';
+const readSavedTextSize = () => {
+  const saved = Number(localStorage.getItem(TEXT_SIZE_STORAGE_KEY));
+  return TEXT_SIZE_OPTIONS.some((option) => option.px === saved) ? saved : 16;
+};
+const readSavedTextFamily = () => {
+  const saved = localStorage.getItem(TEXT_FAMILY_STORAGE_KEY);
+  return FONT_FAMILY_OPTIONS.some((option) => option.value === saved) ? saved! : 'inherit';
+};
+const saveTextPrefs = (size: number, family: string) => {
+  localStorage.setItem(TEXT_SIZE_STORAGE_KEY, String(size));
+  localStorage.setItem(TEXT_FAMILY_STORAGE_KEY, family);
+};
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
 
@@ -64,6 +88,18 @@ export default function Settings() {
   const [customBg, setCustomBg] = useState<string>(() => {
     return localStorage.getItem('cbfsoko-custom-bg') || PRESET_BACKGROUNDS[0].value;
   });
+
+  const [textSize, setTextSize] = useState<number>(() => readSavedTextSize());
+  const [textFamily, setTextFamily] = useState<string>(() => readSavedTextFamily());
+
+  const handleSelectTextSize = (px: number) => {
+    setTextSize(px);
+    saveTextPrefs(px, textFamily);
+  };
+  const handleSelectTextFamily = (family: string) => {
+    setTextFamily(family);
+    saveTextPrefs(textSize, family);
+  };
 
   const bgFileInputRef = useRef<HTMLInputElement>(null);
   const bgCameraInputRef = useRef<HTMLInputElement>(null);
@@ -381,6 +417,43 @@ export default function Settings() {
             </SettingsSection>
           </>
         )}
+
+        {/* TEXTE : taille et police d'écriture, appliquées à toute l'application */}
+        <SettingsSection title="Texte" description="Ajustez la taille et la police d'écriture si l'affichage vous semble trop grand ou trop petit.">
+          <p className="mb-2 text-xs font-bold text-neutral-400">Taille du texte</p>
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            {TEXT_SIZE_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleSelectTextSize(opt.px)}
+                className={`rounded-lg py-2.5 text-xs font-bold transition-colors ${
+                  textSize === opt.px ? 'bg-[#c2410c] text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+                style={{ fontSize: `${Math.min(opt.px, 16)}px` }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="mb-2 text-xs font-bold text-neutral-400">Police d'écriture</p>
+          <div className="grid grid-cols-3 gap-2">
+            {FONT_FAMILY_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleSelectTextFamily(opt.value)}
+                className={`rounded-lg py-2.5 text-xs font-bold transition-colors ${
+                  textFamily === opt.value ? 'bg-[#c2410c] text-white' : 'bg-white/10 text-white hover:bg-white/20'
+                }`}
+                style={{ fontFamily: opt.value }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </SettingsSection>
 
         {/* APPARENCE */}
         <SettingsSection title="Apparence" description="Choisissez l'arrière-plan de votre marché CBFSOKO.">
