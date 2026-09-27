@@ -11,15 +11,7 @@ import {
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
-
-// Keep Home usable when the optional text-preferences helper module is unavailable.
-const TEXT_PREF_EVENT = 'text-prefs-change';
-const readSavedTextSize = (): string => localStorage.getItem('cbfsoko-text-size') || '';
-const readSavedTextFamily = (): string => localStorage.getItem('cbfsoko-text-family') || '';
-const applyTextPrefs = (size: string, family: string): void => {
-  if (size) document.documentElement.style.fontSize = size;
-  if (family) document.documentElement.style.fontFamily = family;
-};
+import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from '../lib/textPrefs';
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
 
@@ -147,7 +139,7 @@ const formatCDF = (value: number): string => String(Math.round(value)).replace(/
 
 const SectionHeader = ({ title, action }: { title: string; action?: React.ReactNode }) => (
   <div className="mb-3 flex items-center justify-between gap-3 px-1">
-    <h2 className="flex items-center gap-2 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+    <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white sm:text-xl">
       <span className="h-6 w-1.5 rounded-sm bg-[#f97316]" aria-hidden="true" />
       {title}
     </h2>
@@ -847,21 +839,25 @@ export default function Home() {
       <header className={`sticky top-0 z-50 ${t.header}`}>
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
           <div className="flex flex-shrink-0 items-center gap-2">
-            {/* Texte mat (orange sombre sans effet lumineux) et icône panier sans bordure */}
-            {/* Logo sur deux lignes (CBF / SOKO) : le panier est sur la ligne SOKO, en ligne
-                avec le texte (plus petit) pour ne plus le chevaucher sur mobile. */}
+            {/* Logo sur deux lignes (CBF / SOKO) : lien vers l'accueil. Panier séparé,
+                sur toute la hauteur du logo, qui renverra vers la page "À propos". */}
             <Link to="/" className="flex items-center px-1 py-1 transition-transform hover:scale-105" aria-label="CBFSOKO, accueil">
-              <span className="flex flex-col leading-[1.05] font-black tracking-wide">
+              <span className="flex flex-col leading-[1.05] font-bold tracking-wide">
                 <span className="text-sm sm:text-lg text-[#10b981]">CBF</span>
-                <span className="flex items-center gap-1 text-sm sm:text-lg text-[#f97316]">
-                  SOKO
-                  <svg className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="9" cy="21" r="1"></circle>
-                    <circle cx="20" cy="21" r="1"></circle>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                  </svg>
-                </span>
+                <span className="text-sm sm:text-lg text-[#f97316]">SOKO</span>
               </span>
+            </Link>
+            <Link
+              to="/a-propos"
+              aria-label="À propos de CBFSOKO"
+              title="À propos"
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-[#f97316] transition-transform hover:scale-110 sm:h-9 sm:w-9"
+            >
+              <svg className="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
             </Link>
           </div>
 
@@ -1113,7 +1109,7 @@ export default function Home() {
 
                       <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
                         {isDemand && (
-                          <span className="rounded-md bg-[#ea580c] px-2 py-1 text-[11px] font-extrabold text-white">DEMANDE</span>
+                          <span className="rounded-md bg-[#ea580c] px-2 py-1 text-[11px] font-bold text-white">DEMANDE</span>
                         )}
                         <div className="relative">
                           <button
@@ -1171,8 +1167,8 @@ export default function Home() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1.5 truncate text-base font-extrabold text-white">{product.title}</p>
-                      <p className="text-lg font-extrabold text-[#f97316]">{product.priceUSD} $</p>
+                      <p className="mt-1.5 truncate text-sm font-semibold text-white">{product.title}</p>
+                      <p className="text-base font-bold text-[#f97316]">{product.priceUSD} $</p>
                       {product.priceCDF > 0 && (
                         <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
                       )}
@@ -1197,7 +1193,7 @@ export default function Home() {
       <footer className="border-t-2 border-neutral-700 bg-black pb-28 pt-8 md:pb-8">
         <div className="mx-auto grid max-w-7xl gap-8 px-3 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
-            <p className="text-xl font-black tracking-wider">
+            <p className="text-lg font-bold tracking-wide">
               <span className="text-[#10b981]">CBF</span>
               <span className="text-[#f97316]">SOKO</span>
             </p>
@@ -1207,7 +1203,7 @@ export default function Home() {
           </div>
 
           <nav aria-label="Informations légales">
-            <h2 className="text-sm font-extrabold text-white">Informations légales</h2>
+            <h2 className="text-sm font-bold text-white">Informations légales</h2>
             <ul className="mt-3 space-y-2">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
@@ -1220,7 +1216,7 @@ export default function Home() {
           </nav>
 
           <div>
-            <h2 className="text-sm font-extrabold text-white">Éditeur du site</h2>
+            <h2 className="text-sm font-bold text-white">Éditeur du site</h2>
             <dl className="mt-3 space-y-1.5 text-sm font-semibold text-neutral-300">
               {LEGAL_ROWS.map(([label, value]) => (
                 <div key={label} className="flex gap-2">
@@ -1322,7 +1318,7 @@ export default function Home() {
                 </span>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-extrabold text-[#f97316]">Reel :</span>
+                    <span className="text-xs font-bold text-[#f97316]">Reel :</span>
                     <span className="text-xs font-bold text-white truncate max-w-[130px] sm:max-w-xs">{fullscreenProduct?.title || currentFullscreenReel.caption}</span>
                   </div>
                   <span className="text-xs text-white">Par <strong className="text-white">{currentFullscreenReel.seller?.name || 'Vendeur'}</strong></span>
@@ -1359,7 +1355,7 @@ export default function Home() {
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
                   <Eye className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-extrabold text-[#f97316]">{formatCount(currentReelStats.views)}</span>
+                <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.views)}</span>
               </div>
 
               <button
@@ -1371,7 +1367,7 @@ export default function Home() {
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
                   <MessageCircle className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-extrabold text-[#f97316]">{formatCount(currentReelStats.comments)}</span>
+                <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.comments)}</span>
               </button>
 
               <button
@@ -1390,7 +1386,7 @@ export default function Home() {
             {deliveryLoading && (
               <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6">
                 <div className="rounded-2xl border border-neutral-500 bg-black px-6 py-5 text-center text-white">
-                  <p className="text-sm font-extrabold">Veuillez patienter…</p>
+                  <p className="text-sm font-bold">Veuillez patienter…</p>
                   <p className="mt-1 text-xs font-semibold text-neutral-300">Vérification du produit en cours.</p>
                 </div>
               </div>
@@ -1422,7 +1418,7 @@ export default function Home() {
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">{fullscreenProduct?.title || currentFullscreenReel.caption}</p>
-                    {fullscreenProduct && <p className="text-xs font-extrabold text-[#f97316]">{fullscreenProduct.priceUSD} $</p>}
+                    {fullscreenProduct && <p className="text-xs font-bold text-[#f97316]">{fullscreenProduct.priceUSD} $</p>}
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -1457,7 +1453,7 @@ export default function Home() {
                 onWheel={(e) => e.stopPropagation()}
               >
                 <div className="flex flex-shrink-0 items-center justify-between border-b-2 border-neutral-600 px-4 py-3">
-                  <p className="text-sm font-extrabold text-white">
+                  <p className="text-sm font-bold text-white">
                     Commentaires <span className="text-[#f97316]">({formatCount(currentReelStats.comments)})</span>
                   </p>
                   <button
