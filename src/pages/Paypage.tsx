@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Truck, Percent, Receipt } from 'lucide-react';
+import { ArrowLeft, Truck, Percent, Receipt, ShieldCheck } from 'lucide-react';
 import { BASE_URL } from '../api/client';
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
@@ -46,21 +46,20 @@ function SummaryRow({
   bold?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-4 py-2.5 ${bold ? 'text-base font-extrabold text-white' : 'text-sm text-neutral-300'}`}>
-      <span className="flex items-center gap-2">
+    <div className={`flex items-center justify-between gap-4 py-3 ${bold ? 'text-base font-bold text-white' : 'text-sm text-neutral-300'}`}>
+      <span className="flex items-center gap-2.5">
         {icon}
-        {label}
+        <span className={bold ? 'font-semibold text-white' : ''}>{label}</span>
       </span>
-      <span className={`text-right ${bold ? 'text-orange-500' : ''}`}>
-        {formatCDF(cdf)} CDF
-        {usd !== undefined && <span className="ml-1 text-xs text-neutral-500">(~{usd.toFixed(2)} $)</span>}
+      <span className={`text-right ${bold ? 'text-orange-500 text-lg font-extrabold' : 'font-medium'}`}>
+        {formatCDF(cdf)} <span className="text-xs font-normal">CDF</span>
+        {usd !== undefined && <span className="ml-1.5 text-xs text-neutral-500 font-normal">(~{usd.toFixed(2)} $)</span>}
       </span>
     </div>
   );
 }
 
 export default function PayPage() {
-  // CORRECTION ICI : on récupère "id" au lieu de "orderId" pour correspondre à /pay/:id
   const { id: orderId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<PaymentSummary | null>(null);
@@ -95,21 +94,33 @@ export default function PayPage() {
   const product = item?.product;
 
   return (
-    <div className="min-h-screen bg-black text-white pb-16">
-      <header className="sticky top-0 z-40 border-b border-neutral-800 bg-black/95 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-400 hover:text-white">
-          <ArrowLeft className="h-5 w-5" />
+    <div className="min-h-screen bg-black text-white pb-20">
+      {/* Header amélioré */}
+      <header className="sticky top-0 z-40 border-b border-neutral-800/80 bg-black/80 backdrop-blur-md px-4 py-3.5 flex items-center gap-3">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-800 transition-all"
+        >
+          <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="text-base font-bold">Paiement</h1>
+        <div>
+          <h1 className="text-sm font-bold leading-tight">Finaliser le paiement</h1>
+          <p className="text-[11px] text-neutral-400">Sécurisé et chiffré</p>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-6">
-        {loading && <p className="py-10 text-center text-sm text-neutral-400">Chargement…</p>}
+      <main className="mx-auto max-w-md px-4 pt-6 space-y-6">
+        {loading && (
+          <div className="py-20 text-center space-y-3">
+            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+            <p className="text-xs text-neutral-400 animate-pulse">Chargement de votre récapitulatif…</p>
+          </div>
+        )}
 
         {!loading && error && (
-          <div className="py-10 text-center">
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-center space-y-3 mt-10">
             <p className="text-sm font-semibold text-red-400">{error}</p>
-            <Link to="/orders" className="mt-3 inline-block text-sm font-bold text-orange-500">
+            <Link to="/orders" className="inline-block rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-2 text-xs font-bold text-orange-400 hover:bg-neutral-800 transition-colors">
               Retour à mes commandes
             </Link>
           </div>
@@ -117,21 +128,25 @@ export default function PayPage() {
 
         {!loading && summary && product && (
           <>
-            <div className="flex items-center gap-3">
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-900">
+            {/* Carte produit design */}
+            <div className="flex items-center gap-3.5 rounded-2xl border border-neutral-800/80 bg-neutral-900/50 p-3.5 backdrop-blur-sm">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-800 border border-neutral-700/50">
                 {product.images?.[0] && (
                   <img src={getMediaUrl(product.images[0])} alt={product.title} className="h-full w-full object-cover" />
                 )}
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold">{product.title}</p>
-                <p className="text-xs text-neutral-500">
-                  Quantité : {item.quantity} · Poids total : {summary.totalWeightKg} kg
-                </p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-neutral-100">{product.title}</p>
+                <div className="mt-1 flex items-center gap-2 text-xs text-neutral-400">
+                  <span className="bg-neutral-800 px-2 py-0.5 rounded-md font-medium text-neutral-300">Qté : {item.quantity}</span>
+                  <span>·</span>
+                  <span>{summary.totalWeightKg} kg</span>
+                </div>
               </div>
             </div>
 
-            <div className="mt-6 divide-y divide-neutral-900">
+            {/* Facture / Récapitulatif clean */}
+            <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/40 p-4 backdrop-blur-sm divide-y divide-neutral-800/60">
               <SummaryRow label="Sous-total produit" cdf={summary.subtotalCDF} usd={summary.subtotalUSD} />
               <SummaryRow
                 icon={<Truck className="h-4 w-4 text-orange-500" />}
@@ -145,9 +160,9 @@ export default function PayPage() {
                 cdf={summary.commissionCDF}
                 usd={summary.commissionUSD}
               />
-              <div className="pt-3">
+              <div className="pt-2">
                 <SummaryRow
-                  icon={<Receipt className="h-4 w-4" />}
+                  icon={<Receipt className="h-4 w-4 text-orange-500" />}
                   label="Total à payer"
                   cdf={summary.grandTotalCDF}
                   usd={summary.grandTotalUSD}
@@ -156,25 +171,36 @@ export default function PayPage() {
               </div>
             </div>
 
-            <div className="mt-6">
-              <label className="mb-1.5 block text-xs font-semibold text-neutral-400">Adresse de livraison</label>
+            {/* Section Adresse */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-neutral-300 ml-1">
+                Adresse de livraison exacte <span className="text-orange-500">*</span>
+              </label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="Commune, quartier, avenue, numéro"
-                rows={2}
-                className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-500 focus:border-orange-500 focus:outline-none"
+                placeholder="Ex: Commune de Bandal, Av. Kasa-Vubu #12 (quartier...)"
+                rows={3}
+                className="w-full resize-none rounded-2xl border border-neutral-800 bg-neutral-900/60 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-orange-500 focus:bg-neutral-900 focus:outline-none transition-all shadow-inner"
               />
             </div>
 
-            <button
-              type="button"
-              disabled={!address.trim()}
-              className="mt-6 w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:opacity-40"
-              onClick={() => alert('Récapitulatif prêt. Intégration du paiement (mobile money) à brancher ici.')}
-            >
-              Continuer vers le paiement
-            </button>
+            {/* Bouton d'action pro avec badge sécurisé */}
+            <div className="pt-2 space-y-3">
+              <button
+                type="button"
+                disabled={!address.trim()}
+                className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:brightness-110 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                onClick={() => alert('Récapitulatif prêt. Intégration du paiement (mobile money) à brancher ici.')}
+              >
+                Procéder au paiement
+              </button>
+
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-neutral-500 pt-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Transactions sécurisées et cryptées</span>
+              </div>
+            </div>
           </>
         )}
       </main>
