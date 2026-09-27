@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Send, Image as ImageIcon, Mic, Trash2, Phone, Video, Play, Pause } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Image as ImageIcon, Mic, Trash2, Phone, Video, Play, Pause, Check, CheckCheck } from 'lucide-react';
 import { getSocket } from '../lib/socket';
 import { useCallContext } from '../context/CallContext';
 
@@ -61,6 +61,17 @@ function formatDuration(seconds: number | null) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+type TickState = 'sent' | 'delivered' | 'read';
+
+// Envoyé (1 coche) : le destinataire n'est pas en ligne, donc pas encore livré.
+// Livré (2 coches grises) : le destinataire est en ligne (peu importe la page où il se trouve),
+// mais n'a pas encore ouvert cette conversation.
+// Lu (2 coches bleues) : le destinataire a ouvert la conversation (isRead vient du serveur).
+function getTickState(message: Message, partnerOnline: boolean): TickState {
+  if (message.isRead) return 'read';
+  return partnerOnline ? 'delivered' : 'sent';
+}
+
 export default function MessagingPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,6 +85,10 @@ export default function MessagingPage() {
   const [recording, setRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioLevels, setAudioLevels] = useState<number[]>(() => Array(RECORDING_BAR_COUNT).fill(RECORDING_BASELINE));
+  // Présence en ligne, à l'échelle de toute l'app (le serveur diffuse "presence:update" à tout
+  // le monde dès qu'un socket se connecte/déconnecte, quelle que soit la page où se trouve la
+  // personne) — donc on n'a besoin de vérifier ça qu'une seule fois ici, pas par page.
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set());
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -93,6 +108,13 @@ export default function MessagingPage() {
     if (!res.ok) return;
     const { data } = await res.json();
     setConversations(data);
+    setOnlineIds((prev) => {
+      const next = new Set(prev);
+      for (const c of data as Conversation[]) {
+        if (c.online) next.add(c.partner.id);
+      }
+      return next;
+    });
   }, []);
 
   useEffect(() => {
@@ -132,6 +154,14 @@ export default function MessagingPage() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
+  // Demande la permission de notification une seule fois (silencieusement si déjà accordée
+  // ou refusée) — permet d'afficher une notification système à l'arrivée d'un message.
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   useEffect(() => {
     const socket = getSocket();
 
@@ -145,6 +175,22 @@ export default function MessagingPage() {
         }
         return current;
       });
+
+      // Notification système uniquement si la conversation concernée n'est pas déjà ouverte à
+      // l'écran (comme WhatsApp : pas besoin de notifier ce qu'on est déjà en train de lire).
+      if (!isOpenConversation && 'Notification' in window && Notification.permission === 'granted') {
+        const preview =
+          message.type === 'TEXT' ? message.content ?? ''
+          : message.type === 'IMAGE' ? 'Photo'
+          : message.type === 'AUDIO' ? 'Message vocal'
+          : message.type === 'VIDEO' ? 'Vidéo'
+          : 'Demande de livraison';
+        try {
+          new Notification(message.sender.name, { body: preview, icon: message.sender.avatar || undefined });
+        } catch {
+          // certains navigateurs mobiles n'autorisent pas `new Notification` hors service worker ; sans gravité
+        }
+      }
 
       // Met à jour la liste des conversations localement plutôt que de tout recharger depuis
       // le serveur à chaque message — nettement plus rapide, surtout sur connexion lente.
@@ -183,6 +229,19 @@ export default function MessagingPage() {
       setMessages((prev) => prev.map((m) => ({ ...m, isRead: true })));
     };
 
+    // Présence en ligne diffusée par le serveur à tout le monde, quelle que soit la page —
+    // met à jour à la fois la liste des conversations (pastille verte) et les coches de
+    // livraison des messages de la conversation ouverte, en direct.
+    const onPresence = ({ userId, online }: { userId: string; online: boolean }) => {
+      setOnlineIds((prev) => {
+        const next = new Set(prev);
+        if (online) next.add(userId);
+        else next.delete(userId);
+        return next;
+      });
+      setConversations((prev) => prev.map((c) => (c.partner.id === userId ? { ...c, online } : c)));
+    };
+
     // Après une reconnexion (coupure réseau brève), on rejoint la conversation ouverte pour
     // que le serveur continue à nous compter comme "en train de la lire" et à router les
     // messages correctement.
@@ -196,11 +255,13 @@ export default function MessagingPage() {
     socket.on('message:new', onNew);
     socket.on('message:sent', onSent);
     socket.on('message:read', onRead);
+    socket.on('presence:update', onPresence);
     socket.io.on('reconnect', onReconnect);
     return () => {
       socket.off('message:new', onNew);
       socket.off('message:sent', onSent);
       socket.off('message:read', onRead);
+      socket.off('presence:update', onPresence);
       socket.io.off('reconnect', onReconnect);
     };
   }, [loadConversations]);
@@ -419,7 +480,7 @@ export default function MessagingPage() {
   if (!selectedPartner) {
     return (
       <div className="min-h-screen bg-neutral-950 text-neutral-100 pb-20">
-        <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-900/90 px-4 py-3 flex items-center space-x-3">
+        <header className="sticky top-0 z-40 bg-neutral-900 px-4 py-3 flex items-center space-x-3">
           <button onClick={() => navigate('/')} className="p-1.5 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-neutral-100">
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -428,7 +489,7 @@ export default function MessagingPage() {
 
         <main className="max-w-2xl mx-auto px-4 py-6">
           {conversations.length === 0 ? (
-            <div className="text-center py-16 border border-neutral-800 rounded-xl bg-neutral-900 text-neutral-400">
+            <div className="text-center py-16 rounded-xl bg-neutral-900 text-neutral-400">
               <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />
               <p className="text-sm">Aucune discussion en cours.</p>
             </div>
@@ -438,7 +499,7 @@ export default function MessagingPage() {
                 <div
                   key={conv.partner.id}
                   onClick={() => openConversation(conv.partner)}
-                  className="p-4 rounded-xl border border-neutral-800 bg-neutral-900 hover:border-orange-600/50 transition cursor-pointer flex items-center justify-between"
+                  className="p-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 transition cursor-pointer flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-3 min-w-0">
                     <div className="relative shrink-0">
@@ -476,15 +537,20 @@ export default function MessagingPage() {
     );
   }
 
+  const isPartnerOnline = onlineIds.has(selectedPartner.id);
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col">
-      <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-900/90 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-neutral-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3 min-w-0">
           <button onClick={closeConversation} className="p-1.5 rounded-lg hover:bg-neutral-800 transition text-neutral-400 hover:text-neutral-100">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="w-9 h-9 rounded-full bg-orange-600/20 text-orange-600 flex items-center justify-center font-bold text-sm shrink-0">
-            {selectedPartner.name.charAt(0)}
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-orange-600/20 text-orange-600 flex items-center justify-center font-bold text-sm">
+              {selectedPartner.name.charAt(0)}
+            </div>
+            {isPartnerOnline && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-neutral-900" />}
           </div>
           <h1 className="font-bold text-base truncate">{selectedPartner.name}</h1>
         </div>
@@ -511,9 +577,15 @@ export default function MessagingPage() {
                 {m.type === 'ORDER_REQUEST' && (
                   <OrderRequestBubble message={m} mine={mine} onRespond={respondToOrder} />
                 )}
-                <span className={`block text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-neutral-400'}`}>
-                  {formatTime(m.createdAt)}
-                  {m.status === 'sending' && ' · Envoi…'}
+                <span className={`flex items-center gap-1 text-[10px] mt-1 ${mine ? 'text-white/70' : 'text-neutral-400'}`}>
+                  <span>{formatTime(m.createdAt)}</span>
+                  {m.status === 'sending' && <span>Envoi…</span>}
+                  {mine && m.status !== 'sending' && m.status !== 'failed' && (() => {
+                    const tick = getTickState(m, isPartnerOnline);
+                    if (tick === 'sent') return <Check className="w-3.5 h-3.5 shrink-0" />;
+                    if (tick === 'delivered') return <CheckCheck className="w-3.5 h-3.5 shrink-0 text-white/70" />;
+                    return <CheckCheck className="w-3.5 h-3.5 shrink-0 text-sky-400" />;
+                  })()}
                 </span>
                 {m.status === 'failed' && (
                   <button
@@ -529,7 +601,7 @@ export default function MessagingPage() {
         })}
       </div>
 
-      <div className="border-t border-neutral-800 bg-neutral-900 px-3 py-3 flex items-center space-x-2">
+      <div className="bg-neutral-900 px-3 py-3 flex items-center space-x-2">
         {recording ? (
           <>
             <button
@@ -574,7 +646,7 @@ export default function MessagingPage() {
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendText()}
               placeholder="Écrire un message..."
-              className="flex-1 bg-neutral-800 rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-orange-600"
+              className="flex-1 bg-neutral-800 rounded-full px-4 py-2.5 text-sm outline-none focus:bg-neutral-700 transition"
             />
 
             {text.trim() ? (
