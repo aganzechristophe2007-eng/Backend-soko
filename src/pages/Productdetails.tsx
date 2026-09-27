@@ -73,16 +73,6 @@ function SellerStars({ avg, count }: { avg: number; count: number }) {
   );
 }
 
-type ThemeMode = 'dark' | 'light' | 'system';
-
-const readThemeMode = (): ThemeMode => {
-  const saved = localStorage.getItem('cbfsoko-theme-mode');
-  return saved === 'dark' || saved === 'system' ? saved : 'light';
-};
-
-const resolveDark = (mode: ThemeMode) =>
-  mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
 /* ------------------------------------------------------------------ */
 /*  Page ProductDetails                                               */
 /* ------------------------------------------------------------------ */
@@ -93,7 +83,10 @@ export default function ProductDetails() {
   const navigate = useNavigate();
   const { user, login: authLogin } = useAuth();
 
-  const [darkMode] = useState<boolean>(() => resolveDark(readThemeMode()));
+  // Thème toujours sombre sur cette page : ce sont les couleurs exactes voulues
+  // (fond noir, accents orange), indépendamment du thème clair/sombre choisi
+  // ailleurs dans l'app.
+  const [darkMode] = useState<boolean>(true);
   const [product, setProduct] = useState<ProductItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -191,7 +184,7 @@ export default function ProductDetails() {
   return (
     <div className={`min-h-screen ${t.page}`}>
       <header className={`sticky top-0 z-40 ${t.borderStrong} ${t.header}`}>
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
           <button type="button" onClick={goBack} className={iconBtn} aria-label="Retour">
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -203,9 +196,9 @@ export default function ProductDetails() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 pb-16">
+      <main className="mx-auto max-w-md px-4 py-6 pb-16">
         {loading ? (
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-4">
             <div className={`aspect-square animate-pulse rounded-2xl ${t.soft}`} />
             <div className="space-y-3">
               <div className={`h-7 w-3/4 animate-pulse rounded ${t.soft}`} />
@@ -222,7 +215,7 @@ export default function ProductDetails() {
             </Link>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 md:gap-8">
+          <div className="space-y-6">
             {/* ------------------------- Médias ------------------------- */}
             <div className="space-y-4">
               <div className={`relative overflow-hidden rounded-2xl ${t.border} ${t.soft}`}>
