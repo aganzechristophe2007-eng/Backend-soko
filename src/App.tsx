@@ -16,7 +16,7 @@ import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
 import UserPage from './pages/userpage';
 import About from './pages/About';
-import PayPage from './pages/PayPage';
+import PayPage from './pages/Paypage';
 import AdminSeller from './pages/admin-seller';
 
 
