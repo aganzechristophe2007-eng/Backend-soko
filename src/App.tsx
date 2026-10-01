@@ -16,7 +16,9 @@ import ProductRenseignement from './pages/Productrenseignement';
 import Settings from './pages/Settings';
 import UserPage from './pages/userpage';
 import About from './pages/About';
-import PayPage from './pages/Paypage'; // <-- Assurez-vous que l'import est correct
+import PayPage from './pages/PayPage';
+import AdminSeller from './pages/admin-seller';
+
 
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from './api/client';
@@ -67,6 +69,9 @@ export default function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/users/:id" element={<UserPage />} />
               <Route path="/a-propos" element={<About />} />
+
+              {/* Tableau de bord admin (accès contrôlé côté serveur par requireRole) */}
+              <Route path="/admin-seller" element={<AdminSeller />} />
 
               {/* Redirection globale par défaut */}
               <Route path="*" element={<Home />} />
