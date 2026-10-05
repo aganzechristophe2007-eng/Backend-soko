@@ -43,6 +43,28 @@ const STATUS: Record<string, { label: string; color: string }> = {
   EXPIRED: { label: 'Expirées', color: '#9CA3AF' },
 };
 const statusMeta = (s: string) => STATUS[s] ?? { label: s, color: C.muted };
+
+// Statuts que l'administrateur peut poser à la main (le serveur revalide chaque changement).
+// SHIPPED et DELIVERED n'y figurent pas : ils sont posés par le paiement et la livraison.
+type OrderAction = { to: 'COURIER_VERIFIED' | 'CANCELLED'; label: string; question: string; color: string };
+const ACT_VERIFY: OrderAction = {
+  to: 'COURIER_VERIFIED',
+  label: 'Marquer vérifiée',
+  question: 'Déclarer cette commande comme vérifiée ? Le paiement sera débloqué pour l\'acheteur.',
+  color: '#16A34A',
+};
+const ACT_CANCEL: OrderAction = {
+  to: 'CANCELLED',
+  label: 'Annuler',
+  question: 'Annuler cette commande ? Cette action est définitive.',
+  color: '#DC2626',
+};
+const ORDER_ACTIONS: Record<string, OrderAction[]> = {
+  CONFIRMED: [ACT_VERIFY, ACT_CANCEL],
+  COURIER_VERIFIED: [ACT_CANCEL],
+  AWAITING_SELLER_CONFIRMATION: [ACT_CANCEL],
+  PENDING: [ACT_CANCEL],
+};
 const PIE_COLORS = ['#22C55E', '#EF4444', '#FACC15', '#3B82F6', '#A855F7', '#F97316'];
 
 /* ---------- Types (reflet de la réponse de l'API) ---------- */
@@ -209,8 +231,70 @@ const chartTooltip = {
   cursor: { fill: '#232323' },
 };
 
+/* ---------- Changement de statut d'une commande ---------- */
+function StatusActions({ order, onChanged }: { order: OrderDto; onChanged: () => void }) {
+  const actions = ORDER_ACTIONS[order.status];
+  const [asking, setAsking] = useState<OrderAction | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  if (!actions?.length) return null;
+
+  const run = async (a: OrderAction) => {
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    try {
+      const res = await fetch(`${ROOT}/api/admin-seller/orders/${encodeURIComponent(order.id)}/status`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ status: a.to }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) {
+        setErr(res.status === 401 ? 'Session expirée. Reconnectez-vous.' : json?.message || 'Action impossible.');
+        return;
+      }
+      setAsking(null);
+      onChanged();
+    } catch {
+      setErr('Serveur injoignable. Réessayez.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const btn = 'h-8 rounded-lg px-3 text-xs font-semibold text-white disabled:opacity-50';
+  return (
+    <div className="mt-2 space-y-2">
+      {asking ? (
+        <div className="space-y-2">
+          <p className="text-xs text-white">{asking.question}</p>
+          <div className="flex gap-2">
+            <button type="button" disabled={busy} onClick={() => run(asking)} className={btn} style={{ background: asking.color }}>
+              {busy ? 'Envoi...' : 'Confirmer'}
+            </button>
+            <button type="button" disabled={busy} onClick={() => { setAsking(null); setErr(''); }} className={btn} style={{ background: '#3F3F46' }}>
+              Retour
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {actions.map((a) => (
+            <button key={a.to} type="button" onClick={() => { setAsking(a); setErr(''); }} className={btn} style={{ background: a.color }}>
+              {a.label}
+            </button>
+          ))}
+        </div>
+      )}
+      {err && <p role="alert" className="text-xs font-semibold" style={{ color: '#F87171' }}>{err}</p>}
+    </div>
+  );
+}
+
 /* ---------- Tableau des commandes à traiter ---------- */
-function AttentionTable({ rows, q }: { rows: OrderDto[]; q: string }) {
+function AttentionTable({ rows, q, onChanged }: { rows: OrderDto[]; q: string; onChanged: () => void }) {
   const list = rows.filter((o) => has(q, o.product?.title, o.seller?.name, o.seller?.shopName, o.buyer.name));
   if (!list.length) return <Empty text="Aucune commande à traiter pour le moment." />;
   return (
@@ -251,6 +335,7 @@ function AttentionTable({ rows, q }: { rows: OrderDto[]; q: string }) {
                   <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: waiting ? '#EA580C' : '#2563EB' }}>
                     {label}
                   </span>
+                  <StatusActions order={o} onChanged={onChanged} />
                 </td>
                 <td className="px-5 py-3">
                   <Contact phone={o.seller?.phone ?? null} userId={o.seller?.id} />
@@ -265,7 +350,7 @@ function AttentionTable({ rows, q }: { rows: OrderDto[]; q: string }) {
 }
 
 /* ---------- Vues ---------- */
-function DashboardView({ d, q }: { d: DashboardData; q: string }) {
+function DashboardView({ d, q, onChanged }: { d: DashboardData; q: string; onChanged: () => void }) {
   const cards = [
     { label: 'Commandes du jour', value: num(d.kpis.ordersToday), sub: null as string | null },
     { label: 'Produits en attente de vérification', value: num(d.kpis.ordersAwaitingVerification), sub: null },
@@ -287,13 +372,13 @@ function DashboardView({ d, q }: { d: DashboardData; q: string }) {
         <div className="px-5 py-4 text-lg font-bold text-white" style={{ borderBottom: `1px solid ${C.border}` }}>
           Dernières commandes à vérifier
         </div>
-        <AttentionTable rows={d.attentionOrders} q={q} />
+        <AttentionTable rows={d.attentionOrders} q={q} onChanged={onChanged} />
       </Panel>
     </>
   );
 }
 
-function OrdersView({ d, q }: { d: DashboardData; q: string }) {
+function OrdersView({ d, q, onChanged }: { d: DashboardData; q: string; onChanged: () => void }) {
   const list = d.recentOrders.filter((o) => has(q, o.id, o.product?.title, o.buyer.name, o.seller?.name, o.seller?.shopName));
   return (
     <Panel className="overflow-hidden">
@@ -302,10 +387,10 @@ function OrdersView({ d, q }: { d: DashboardData; q: string }) {
         <Empty text="Aucune commande trouvée." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[860px]">
+          <table className="w-full text-sm min-w-[1000px]">
             <thead>
               <tr style={{ color: C.muted, borderBottom: `1px solid ${C.border}` }} className="text-left">
-                {['Réf.', 'Produit', 'Acheteur', 'Vendeur', 'Montant', 'Statut', 'Date'].map((h) => (
+                {['Réf.', 'Produit', 'Acheteur', 'Vendeur', 'Montant', 'Statut', 'Date', 'Action'].map((h) => (
                   <th key={h} className="px-4 py-3 font-medium">{h}</th>
                 ))}
               </tr>
@@ -322,6 +407,7 @@ function OrdersView({ d, q }: { d: DashboardData; q: string }) {
                     <td className="px-4 py-3">{o.totalUSD > 0 ? usd(o.totalUSD) : cdf(o.totalCDF)}</td>
                     <td className="px-4 py-3"><span className="font-semibold" style={{ color: m.color }}>{m.label}</span></td>
                     <td className="px-4 py-3" style={{ color: C.muted }}>{shortDate(o.createdAt)}</td>
+                    <td className="px-4 py-3"><StatusActions order={o} onChanged={onChanged} /></td>
                   </tr>
                 );
               })}
@@ -727,11 +813,11 @@ export default function AdminSeller() {
           ) : data ? (
             <>
               {error && <div className="mb-4 rounded-lg px-4 py-2 text-sm text-white" style={{ background: '#7F1D1D' }}>{error.message} Les données affichées peuvent être obsolètes.</div>}
-              {view === 'dashboard' && <DashboardView d={data} q={q} />}
-              {view === 'orders' && <OrdersView d={data} q={q} />}
+              {view === 'dashboard' && <DashboardView d={data} q={q} onChanged={() => load()} />}
+              {view === 'orders' && <OrdersView d={data} q={q} onChanged={() => load()} />}
               {view === 'verifications' && (
                 <Panel className="overflow-hidden">
-                  <AttentionTable rows={data.attentionOrders.filter((o) => o.status === 'CONFIRMED')} q={q} />
+                  <AttentionTable rows={data.attentionOrders.filter((o) => o.status === 'CONFIRMED')} q={q} onChanged={() => load()} />
                 </Panel>
               )}
               {view === 'sellers' && <SellersView d={data} q={q} />}
