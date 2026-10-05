@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/Authcontext';
 import { apiFetch, BASE_URL } from '../api/client';
+import { RoleCard, ProfileEditor, PasswordChanger, EvolutionDashboard, LogoutButton } from '../components/settingsExtras';
 const TEXT_SIZE_OPTIONS = [
   { id: 'small', label: 'Petit', px: 14 },
   { id: 'medium', label: 'Normal', px: 16 },
@@ -280,6 +281,26 @@ export default function Settings() {
 
         {user && (
           <>
+            {/* RÔLE */}
+            <SettingsSection title="Mon rôle">
+              <RoleCard />
+            </SettingsSection>
+
+            {/* PROFIL */}
+            <SettingsSection title="Profil" description="Modifiez votre nom et votre numéro de téléphone.">
+              <ProfileEditor />
+            </SettingsSection>
+
+            {/* SÉCURITÉ */}
+            <SettingsSection title="Sécurité" description="Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.">
+              <PasswordChanger />
+            </SettingsSection>
+
+            {/* ÉVOLUTION */}
+            <SettingsSection title="Mon évolution" description="Vos vues, ventes, revenus et achats au fil du temps.">
+              <EvolutionDashboard />
+            </SettingsSection>
+
             {/* PORTEFEUILLE */}
             <SettingsSection title="Paiements">
               <Link
@@ -501,6 +522,13 @@ export default function Settings() {
             })}
           </div>
         </SettingsSection>
+
+        {/* DÉCONNEXION */}
+        {user && (
+          <SettingsSection title="Session">
+            <LogoutButton />
+          </SettingsSection>
+        )}
       </main>
 
       {/* CONFIRMATION DE SUPPRESSION */}

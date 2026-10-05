@@ -5,6 +5,8 @@ interface AuthContextType {
   user: any;
   login: (userData: any) => void;
   logout: () => void;
+  // Ajouté : relit /auth/me (nouveau rôle, nouvelle photo...) sans recharger la page.
+  refreshUser: () => Promise<void>;
   loading: boolean;
 }
 
@@ -48,8 +50,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const res: any = await apiFetch('/auth/me');
+      setUser(res?.data || res?.user || res);
+    } catch (e) {
+      // Session expirée : on ne touche pas à l'état, la prochaine requête protégée redirigera.
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, refreshUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
