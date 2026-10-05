@@ -15,6 +15,7 @@ import {
   YAxis,
 } from 'recharts';
 import { BASE_URL } from '../api/client';
+import { useAuth } from '../context/Authcontext';
 
 /* ---------- Constantes ---------- */
 const ROOT = String(BASE_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
@@ -116,6 +117,9 @@ const waHref = (phone: string | null) => {
   const digits = (phone || '').replace(/\D/g, '');
   return digits ? `https://wa.me/${digits}` : null;
 };
+// Seules les images en https sont affichées (pas de data:, javascript:, http: ni URL relative contrôlée par un tiers)
+const safeUrl = (u?: string | null) => (u && /^https:\/\//i.test(u) ? u : null);
+const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
 const has = (q: string, ...fields: (string | null | undefined)[]) =>
   !q || fields.some((f) => (f || '').toLowerCase().includes(q));
 
@@ -143,8 +147,8 @@ const Icon = ({ name, size = 20 }: { name: string; size?: number }) => (
 
 /* ---------- Petits composants ---------- */
 const Avatar = ({ src, name, size = 40 }: { src?: string | null; name: string; size?: number }) =>
-  src ? (
-    <img src={src} alt="" width={size} height={size} className="rounded-full object-cover shrink-0" style={{ width: size, height: size }} />
+  safeUrl(src) ? (
+    <img src={safeUrl(src)!} alt="" width={size} height={size} referrerPolicy="no-referrer" loading="lazy" className="rounded-full object-cover shrink-0" style={{ width: size, height: size }} />
   ) : (
     <div className="rounded-full flex items-center justify-center font-semibold text-white shrink-0" style={{ width: size, height: size, background: '#3F3F46' }}>
       {(name || '?').trim().charAt(0).toUpperCase()}
@@ -232,8 +236,8 @@ function AttentionTable({ rows, q }: { rows: OrderDto[]; q: string }) {
             return (
               <tr key={o.id} style={{ borderBottom: `1px solid ${C.border}` }}>
                 <td className="px-5 py-3">
-                  {o.product?.image ? (
-                    <img src={o.product.image} alt="" className="h-12 w-12 rounded-md object-cover bg-white" />
+                  {safeUrl(o.product?.image) ? (
+                    <img src={safeUrl(o.product?.image)!} alt="" referrerPolicy="no-referrer" loading="lazy" className="h-12 w-12 rounded-md object-cover bg-white" />
                   ) : (
                     <div className="h-12 w-12 rounded-md" style={{ background: '#27272A' }} />
                   )}
@@ -550,6 +554,8 @@ function StatsView({ d }: { d: DashboardData }) {
 
 /* ---------- Page ---------- */
 export default function AdminSeller() {
+  const { user, loading: authLoading } = useAuth();
+  const allowed = !!user && ADMIN_ROLES.includes(user.role);
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -566,6 +572,7 @@ export default function AdminSeller() {
           res.status === 401 ? 'Session expirée. Reconnectez-vous.'
           : res.status === 403 ? 'Accès refusé : réservé aux administrateurs.'
           : json?.message || 'Impossible de charger le tableau de bord.';
+        if (res.status === 401 || res.status === 403) setData(null);
         setError({ status: res.status, message });
         return;
       }
@@ -580,14 +587,19 @@ export default function AdminSeller() {
   }, []);
 
   useEffect(() => {
+    // Aucune requête n'est envoyée tant que la session n'est pas confirmée comme administrateur
+    if (!allowed) return;
     const ctrl = new AbortController();
     load(ctrl.signal);
-    const timer = window.setInterval(() => load(), REFRESH_MS);
+    const timer = window.setInterval(() => {
+      if (document.hidden) return; // onglet en arrière-plan : on ne sollicite pas le serveur
+      load();
+    }, REFRESH_MS);
     return () => {
       ctrl.abort();
       window.clearInterval(timer);
     };
-  }, [load]);
+  }, [load, allowed]);
 
   const q = query.trim().toLowerCase();
 
@@ -611,6 +623,21 @@ export default function AdminSeller() {
     stats: 'Statistiques de la semaine',
   };
   const attention = (data?.badges.ordersAwaitingSeller ?? 0) + (data?.kpis.ordersAwaitingVerification ?? 0);
+
+  if (authLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-sm" style={{ background: C.page, color: C.muted }}>Vérification de la session...</div>;
+  }
+  if (!allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6" style={{ background: C.page }}>
+        <Panel className="max-w-md p-8 text-center">
+          <p className="text-lg font-semibold text-white">Accès refusé</p>
+          <p className="mt-2 text-sm" style={{ color: C.muted }}>Cette page est réservée aux administrateurs.</p>
+        </Panel>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex min-h-screen text-gray-100" style={{ background: C.page }}>
