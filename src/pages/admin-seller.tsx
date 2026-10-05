@@ -97,6 +97,7 @@ interface DashboardData {
     totalRevenueCDF: number;
   };
   attentionOrders: OrderDto[];
+  verifiedOrders: OrderDto[];
   recentOrders: OrderDto[];
   shops: {
     total: number;
@@ -294,9 +295,9 @@ function StatusActions({ order, onChanged }: { order: OrderDto; onChanged: () =>
 }
 
 /* ---------- Tableau des commandes à traiter ---------- */
-function AttentionTable({ rows, q, onChanged }: { rows: OrderDto[]; q: string; onChanged: () => void }) {
+function AttentionTable({ rows, q, onChanged, emptyText = 'Aucune commande à traiter pour le moment.' }: { rows: OrderDto[]; q: string; onChanged: () => void; emptyText?: string }) {
   const list = rows.filter((o) => has(q, o.product?.title, o.seller?.name, o.seller?.shopName, o.buyer.name));
-  if (!list.length) return <Empty text="Aucune commande à traiter pour le moment." />;
+  if (!list.length) return <Empty text={emptyText} />;
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm min-w-[760px]">
@@ -312,8 +313,11 @@ function AttentionTable({ rows, q, onChanged }: { rows: OrderDto[]; q: string; o
         <tbody>
           {list.map((o) => {
             const waiting = o.status === 'AWAITING_SELLER_CONFIRMATION';
+            const verified = o.status === 'COURIER_VERIFIED';
             const label = waiting
               ? `En attente confirmation (${elapsed(o.createdAt)} écoulées)`
+              : verified
+              ? 'Vérifiée, en attente de paiement'
               : o.courier
               ? `Confirmée, vérification par ${o.courier.name}`
               : 'Confirmée, aucun livreur assigné';
@@ -332,7 +336,7 @@ function AttentionTable({ rows, q, onChanged }: { rows: OrderDto[]; q: string; o
                 </td>
                 <td className="px-3 py-3 text-white">{o.seller ? o.seller.shopName || o.seller.name : '—'}</td>
                 <td className="px-3 py-3">
-                  <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: waiting ? '#EA580C' : '#2563EB' }}>
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: waiting ? '#EA580C' : verified ? '#0D9488' : '#2563EB' }}>
                     {label}
                   </span>
                   <StatusActions order={o} onChanged={onChanged} />
@@ -370,9 +374,40 @@ function DashboardView({ d, q, onChanged }: { d: DashboardData; q: string; onCha
       </div>
       <Panel className="mt-6 overflow-hidden">
         <div className="px-5 py-4 text-lg font-bold text-white" style={{ borderBottom: `1px solid ${C.border}` }}>
-          Dernières commandes à vérifier
+          Commandes à traiter et récemment vérifiées
         </div>
-        <AttentionTable rows={d.attentionOrders} q={q} onChanged={onChanged} />
+        <AttentionTable rows={[...d.attentionOrders, ...d.verifiedOrders]} q={q} onChanged={onChanged} />
+      </Panel>
+    </>
+  );
+}
+
+function VerificationsView({ d, q, onChanged }: { d: DashboardData; q: string; onChanged: () => void }) {
+  const [tab, setTab] = useState<'todo' | 'done'>('todo');
+  const todo = d.attentionOrders.filter((o) => o.status === 'CONFIRMED');
+  const done = d.verifiedOrders;
+  const tabBtn = (id: 'todo' | 'done', label: string, count: number) => (
+    <button
+      type="button"
+      onClick={() => setTab(id)}
+      className="flex-1 rounded-xl px-5 py-3 text-left text-base font-semibold text-white"
+      style={{ background: tab === id ? C.orange : '#27272A' }}
+    >
+      {label} <span style={{ color: tab === id ? '#fff' : C.muted }}>({num(count)})</span>
+    </button>
+  );
+  return (
+    <>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        {tabBtn('todo', 'À vérifier', todo.length)}
+        {tabBtn('done', 'Vérifiées, en attente de paiement', done.length)}
+      </div>
+      <Panel className="mt-4 overflow-hidden">
+        {tab === 'todo' ? (
+          <AttentionTable rows={todo} q={q} onChanged={onChanged} />
+        ) : (
+          <AttentionTable rows={done} q={q} onChanged={onChanged} emptyText="Aucune commande vérifiée en attente de paiement." />
+        )}
       </Panel>
     </>
   );
@@ -815,11 +850,7 @@ export default function AdminSeller() {
               {error && <div className="mb-4 rounded-lg px-4 py-2 text-sm text-white" style={{ background: '#7F1D1D' }}>{error.message} Les données affichées peuvent être obsolètes.</div>}
               {view === 'dashboard' && <DashboardView d={data} q={q} onChanged={() => load()} />}
               {view === 'orders' && <OrdersView d={data} q={q} onChanged={() => load()} />}
-              {view === 'verifications' && (
-                <Panel className="overflow-hidden">
-                  <AttentionTable rows={data.attentionOrders.filter((o) => o.status === 'CONFIRMED')} q={q} onChanged={() => load()} />
-                </Panel>
-              )}
+              {view === 'verifications' && <VerificationsView d={data} q={q} onChanged={() => load()} />}
               {view === 'sellers' && <SellersView d={data} q={q} />}
               {view === 'couriers' && <CouriersView d={data} q={q} />}
               {view === 'stats' && <StatsView d={data} />}
