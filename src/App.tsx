@@ -18,7 +18,7 @@ import UserPage from './pages/userpage';
 import About from './pages/About';
 import PayPage from './pages/Paypage';
 import AdminSeller from './pages/admin-seller';
-
+import Walletpage from './pages/wallet';
 
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from './api/client';
@@ -59,7 +59,7 @@ export default function App() {
               <Route path="/pay/:id" element={<PayPage />} />
 
               <Route path="/messages" element={<MessagingPage />} />
-              <Route path="/wallet" element={<Wallet />} />
+              <Route path="/wallet" element={<Walletpage />} />
               <Route path="/products/:id" element={<Productdetails />} />
               <Route path="/products/:id/renseignement" element={<ProductRenseignement />} />
               

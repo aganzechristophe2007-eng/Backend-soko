@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Truck, Percent, Receipt, ShieldCheck, Phone, MessageCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, Truck, Percent, Receipt, ShieldCheck, Phone, MessageCircle, CheckCircle2, XCircle, Wallet as WalletIcon } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
@@ -13,6 +13,7 @@ const WHATSAPP_NUMBER = String(import.meta.env.VITE_WHATSAPP_NUMBER || '').repla
 const POLL_INTERVAL_MS = 3000;
 
 type Currency = 'CDF' | 'USD';
+type PayMethod = 'mobile' | 'wallet';
 type View = 'loading' | 'form' | 'waiting' | 'success' | 'failed' | 'error';
 
 interface PaymentSummary {
@@ -124,6 +125,8 @@ export default function PayPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [pollWarning, setPollWarning] = useState(false);
+  const [method, setMethod] = useState<PayMethod>('mobile');
+  const [wallet, setWallet] = useState<{ balanceCDF: number; balanceUSD: number } | null>(null);
 
   // Chargement : si un paiement existe déjà pour cette commande (réussi ou en cours), on le reprend ;
   // sinon on affiche le récapitulatif calculé par le serveur.
@@ -150,6 +153,12 @@ export default function PayPage() {
     try {
       const res = await apiFetch(`/orders/${orderId}/payment-summary`);
       setSummary(res.data as PaymentSummary);
+      try {
+        const w = await apiFetch('/wallet');
+        setWallet({ balanceCDF: w.data.balanceCDF, balanceUSD: w.data.balanceUSD });
+      } catch {
+        setWallet(null); // le paiement Mobile Money reste possible
+      }
       setView('form');
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Impossible de charger le récapitulatif.');
@@ -194,8 +203,8 @@ export default function PayPage() {
 
   const submit = async () => {
     if (submitting || !orderId) return;
-    const normalized = normalizePhone(phone);
-    if (!normalized) {
+    const normalized = method === 'mobile' ? normalizePhone(phone) : '';
+    if (method === 'mobile' && !normalized) {
       setFormError('Numéro Mobile Money invalide (10 chiffres, ex. 0997654321).');
       return;
     }
@@ -206,6 +215,16 @@ export default function PayPage() {
     setSubmitting(true);
     setFormError('');
     try {
+      if (method === 'wallet') {
+        // Paiement par le solde du portefeuille : confirmé immédiatement par le serveur.
+        const r = await apiFetch(`/wallet/pay-order/${orderId}`, {
+          method: 'POST',
+          body: JSON.stringify({ currency, address: address.trim() }),
+        });
+        setPayment(r.data as PaymentDto);
+        setView('success');
+        return;
+      }
       const res = await apiFetch(`/payments/orders/${orderId}/initiate`, {
         method: 'POST',
         body: JSON.stringify({ currency, phone: normalized, address: address.trim() }),
@@ -232,6 +251,8 @@ export default function PayPage() {
   const item = summary?.order.items[0];
   const product = item?.product;
   const selectedAmount = summary ? (currency === 'CDF' ? summary.grandTotalCDF : summary.grandTotalUSD) : 0;
+  const walletBalance = wallet ? (currency === 'CDF' ? wallet.balanceCDF : wallet.balanceUSD) : 0;
+  const walletEnough = !!wallet && walletBalance >= selectedAmount;
   const needsSupport = payment?.failureCode === 'AMOUNT_MISMATCH' || payment?.failureCode === 'ORDER_NOT_PAYABLE';
 
   return (
@@ -336,6 +357,51 @@ export default function PayPage() {
               </div>
             </fieldset>
 
+            <fieldset className="space-y-2">
+              <legend className="ml-1 text-xs font-semibold text-neutral-300">Payer avec</legend>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Moyen de paiement">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={method === 'mobile'}
+                  onClick={() => setMethod('mobile')}
+                  className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${
+                    method === 'mobile' ? 'bg-[#c2410c] text-white' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                  }`}
+                >
+                  Mobile Money
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={method === 'wallet'}
+                  onClick={() => setMethod('wallet')}
+                  className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${
+                    method === 'wallet' ? 'bg-[#c2410c] text-white' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+                  }`}
+                >
+                  <WalletIcon className="h-4 w-4" />
+                  Portefeuille
+                </button>
+              </div>
+              {method === 'wallet' && (
+                <div className="rounded-xl bg-neutral-800 px-4 py-3 text-xs">
+                  <p className="text-neutral-300">
+                    Solde disponible : <span className="font-bold text-white">{formatMoney(walletBalance, currency)}</span>
+                  </p>
+                  {!walletEnough && (
+                    <p className="mt-1.5 font-semibold text-orange-400">
+                      Solde insuffisant.{' '}
+                      <Link to="/wallet" className="underline">
+                        Déposer de l'argent
+                      </Link>
+                    </p>
+                  )}
+                </div>
+              )}
+            </fieldset>
+
+            {method === 'mobile' && (
             <div className="space-y-2">
               <label htmlFor="pay-phone" className="ml-1 block text-xs font-semibold text-neutral-300">
                 Numéro Mobile Money du payeur <span className="text-orange-500">*</span>
@@ -353,6 +419,7 @@ export default function PayPage() {
               <p className="ml-1 text-[11px] text-neutral-500">10 chiffres. Vous recevrez une demande de confirmation sur ce numéro.</p>
               <p className="ml-1 text-[11px] font-semibold text-neutral-300">Réseaux acceptés : Airtel Money, Orange Money, M-Pesa et Afrimoney.</p>
             </div>
+            )}
 
             <div className="space-y-2">
               <label htmlFor="pay-address" className="ml-1 block text-xs font-semibold text-neutral-300">
@@ -377,15 +444,17 @@ export default function PayPage() {
             <div className="space-y-3 pt-2">
               <button
                 type="button"
-                disabled={submitting || !phone.trim() || !address.trim()}
+                disabled={submitting || (method === 'mobile' && !phone.trim()) || !address.trim() || (method === 'wallet' && !walletEnough)}
                 onClick={submit}
                 className="w-full rounded-2xl bg-[#c2410c] px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#9a3412] disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {submitting ? 'Envoi de la demande…' : `Payer ${formatMoney(selectedAmount, currency)}`}
               </button>
-              <p className="text-center text-[11px] text-neutral-500">
-                Des frais de l'opérateur peuvent s'ajouter. Le montant exact à confirmer s'affiche sur votre téléphone.
-              </p>
+              {method === 'mobile' && (
+                <p className="text-center text-[11px] text-neutral-500">
+                  Des frais de l'opérateur peuvent s'ajouter. Le montant exact à confirmer s'affiche sur votre téléphone.
+                </p>
+              )}
               <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-neutral-500">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                 <span>Montant calculé et vérifié par nos serveurs</span>
