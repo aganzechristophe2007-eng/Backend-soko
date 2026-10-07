@@ -97,7 +97,7 @@ interface NavItem {
 }
 
 // Thème "Commerce Noir & Orange" : noir pur opaque, sans image de nature ni décor.
-// Orange #c2410c pour les boutons (texte blanc dessus), orange #f97316 pour les prix et accents sur noir.
+// Thème noir et blanc : boutons blancs (texte noir), cartes anthracite. L'orange est réservé au logo.
 const DEFAULT_BACKGROUND = '#000000';
 
 // L'ancien fond "Kivu Nature" éventuellement enregistré est ignoré au profit du noir.
@@ -138,12 +138,14 @@ const LEGAL_LINKS = [
 const formatCDF = (value: number): string => String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 const SectionHeader = ({ title, action }: { title: string; action?: React.ReactNode }) => (
-  <div className="mb-3 flex items-center justify-between gap-3 px-1">
-    <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white sm:text-xl">
-      <span className="h-6 w-1.5 rounded-sm bg-[#f97316]" aria-hidden="true" />
-      {title}
-    </h2>
-    {action}
+  <div className="mb-4 flex items-center justify-between gap-4 px-1">
+    {title && (
+      <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white sm:text-xl">
+        <span className="h-6 w-1.5 rounded-sm bg-white" aria-hidden="true" />
+        {title}
+      </h2>
+    )}
+    {action && <div className="ml-auto">{action}</div>}
   </div>
 );
 
@@ -160,11 +162,11 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
   const state =
     variant === 'bottom'
       ? active
-        ? 'text-[#f97316]'
-        : 'text-white hover:text-[#f97316]'
+        ? 'text-white'
+        : 'text-neutral-500 hover:text-white'
       : active
-        ? 'bg-[#c2410c] text-white'
-        : 'text-white hover:bg-neutral-800';
+        ? 'bg-white text-black'
+        : 'text-neutral-400 hover:bg-neutral-900 hover:text-white';
 
   const layout =
     variant === 'top'
@@ -255,16 +257,16 @@ export default function Home() {
   const [commentSubmitting, setCommentSubmitting] = useState<boolean>(false);
 
   const t = {
-    page: 'text-white selection:bg-orange-500 selection:text-white',
-    header: 'bg-black border-b-2 border-neutral-600',
-    surface: 'bg-black hover:border-[#f97316]',
+    page: 'text-white selection:bg-white selection:text-black',
+    header: 'bg-black border-b-2 border-neutral-800',
+    surface: 'bg-black hover:border-white',
     soft: 'bg-neutral-800',
-    border: 'border-neutral-500 border',
+    border: 'border-neutral-700 border',
     muted: 'text-neutral-200',
-    mobileNav: 'bg-black border-t-2 border-neutral-600',
+    mobileNav: 'bg-black border-t-2 border-neutral-800',
   };
 
-  const iconBtn = 'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-600 bg-black text-white transition-colors hover:border-white focus-visible:outline-none';
+  const iconBtn = 'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-black text-white transition-colors hover:border-white focus-visible:outline-none';
 
   const getMediaUrl = useCallback((mediaPath?: string | null) => {
     if (!mediaPath) return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80';
@@ -808,7 +810,7 @@ export default function Home() {
       key: 'profile',
       label: 'Profil',
       icon: token && user?.avatar ? (
-        <span className="h-6 w-6 overflow-hidden rounded-full bg-[#c2410c]">
+        <span className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700">
           <img src={getMediaUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
         </span>
       ) : (
@@ -864,7 +866,7 @@ export default function Home() {
           </div>
 
           <form onSubmit={handleSearch} className="order-last w-full sm:order-none sm:mx-2 sm:w-auto sm:max-w-md sm:flex-1">
-            <div className="flex h-11 w-full min-w-0 items-center gap-2 rounded-full border-2 border-neutral-500 bg-black pl-4 pr-1 transition-colors focus-within:border-[#f97316]">
+            <div className="flex h-11 w-full min-w-0 items-center gap-2 rounded-full border-2 border-neutral-700 bg-black pl-4 pr-1 transition-colors focus-within:border-white">
               <input
                 type="text"
                 value={searchQuery}
@@ -877,7 +879,7 @@ export default function Home() {
                 type="submit"
                 disabled={searchLoading}
                 aria-label="Rechercher"
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white transition-colors hover:bg-[#9a3412] disabled:opacity-60"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-200 disabled:opacity-60"
               >
                 {searchLoading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -889,13 +891,13 @@ export default function Home() {
           </form>
 
           <div className="ml-auto flex flex-shrink-0 items-center gap-1">
-            <button type="button" onClick={() => handleProtectedAction('/profile')} className={`${iconBtn} overflow-hidden`} title="Mon profil" aria-label="Mon profil">
+            <Link to="/settings" className={`${iconBtn} overflow-hidden`} title="Paramètres" aria-label="Paramètres">
               {token && user?.avatar ? (
                 <img src={getMediaUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
               ) : (
                 <UserIcon className="h-4 w-4" />
               )}
-            </button>
+            </Link>
 
             <button type="button" onClick={() => handleProtectedAction('/notifications')} className={iconBtn} title="Notifications">
               <Bell className="h-4 w-4" />
@@ -915,12 +917,12 @@ export default function Home() {
 
         {/* NAVIGATION ORDINATEUR : mêmes options que la barre du bas sur mobile */}
         <div className="hidden border-t border-neutral-800 md:block">
-          <nav aria-label="Navigation principale" className="mx-auto flex max-w-7xl items-center gap-1 px-3 py-2 sm:px-6 lg:px-8 [&_svg]:h-5 [&_svg]:w-5">
+          <nav aria-label="Navigation principale" className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:px-6 lg:px-8 [&_svg]:h-5 [&_svg]:w-5">
             {navItems.map((item) => renderTab(item, 'top'))}
             <button
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#ea580c] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#c2410c]"
+              className="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-bold text-black transition-colors hover:bg-neutral-200"
             >
               <Camera className="h-5 w-5" />
               Poster
@@ -929,24 +931,24 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 pb-6">
+      <main className="flex-1 pb-4">
         {/* NOUVEAUTÉS / REELS MINIATURISÉS */}
-        <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8">
-          <SectionHeader title="Découvrir les nouveautés" />
+        <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+          <SectionHeader title="À la une" />
           {loadingProducts ? (
-            <div className="flex gap-3 overflow-x-hidden pb-1">
+            <div className="flex gap-4 overflow-x-hidden pb-1">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[9/16] w-28 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-32" />
+                <div key={i} className="aspect-[5/6] w-28 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-32" />
               ))}
             </div>
           ) : displayedReels.length === 0 ? (
             <div className={`rounded-xl border border-dashed py-6 text-center text-xs ${t.border} ${t.surface} ${t.muted}`}>Aucune vidéo.</div>
           ) : (
-            <div className="scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
+            <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1">
               {displayedReels.map((reel) => (
                 <div
                   key={reel.id}
-                  className="group relative aspect-[9/16] w-28 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-500 bg-black transition-colors duration-200 hover:border-[#f97316] sm:w-32"
+                  className="group relative aspect-[5/6] w-28 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white sm:w-32"
                   onClick={() => openFullscreenReelById(reel.id)}
                 >
                   <video
@@ -958,20 +960,18 @@ export default function Home() {
                     autoPlay
                     className="h-full w-full object-cover"
                   />
-                  <div className="absolute left-1/2 top-[9%] z-10 flex max-w-[62%] -translate-x-1/2 items-center gap-1.5 rounded-full bg-black py-0.5 pl-0.5 pr-2">
-                    <span className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-[#c2410c]">
+                  <div className="absolute left-1/2 top-[9%] z-10 flex max-w-[62%] -translate-x-1/2 items-center gap-1.5 rounded-full bg-black p-0.5">
+                    <span className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-neutral-700">
                       {reel.seller?.avatar ? (
                         <img src={getMediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <UserIcon className="h-full w-full p-0.5 text-white" />
                       )}
                     </span>
-                    <span className="truncate text-xs font-bold text-white">
-                      {reel.seller?.name || 'Vendeur'}
-                    </span>
+                    <span className="sr-only">{reel.seller?.name || 'Vendeur'}</span>
                   </div>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-500 bg-black p-1.5 text-white">
+                  <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-700 bg-black p-1.5 text-white">
                     {isReelMuted(reel.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
                   </button>
                 </div>
@@ -982,14 +982,14 @@ export default function Home() {
 
         {/* CATÉGORIES */}
         {categories.length > 0 && (
-          <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8">
-            <div className="scrollbar-hide flex gap-2.5 overflow-x-auto pb-1">
+          <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+            <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
               <button
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
                 aria-pressed={activeCategoryId === null}
                 className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
-                  activeCategoryId === null ? 'border-[#ea580c] bg-[#ea580c] text-white' : 'border-neutral-700 bg-[#0d0d0d] text-white hover:border-white'
+                  activeCategoryId === null ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                 }`}
               >
                 Tous
@@ -1001,7 +1001,7 @@ export default function Home() {
                   onClick={() => setActiveCategoryId(cat.id)}
                   aria-pressed={activeCategoryId === cat.id}
                   className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
-                    activeCategoryId === cat.id ? 'border-[#ea580c] bg-[#ea580c] text-white' : 'border-neutral-700 bg-[#0d0d0d] text-white hover:border-white'
+                    activeCategoryId === cat.id ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                   }`}
                 >
                   {cat.name} ({categoryCounts[cat.id] ?? 0})
@@ -1012,9 +1012,9 @@ export default function Home() {
         )}
 
         {/* PRODUITS */}
-        <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <SectionHeader
-            title={searchResults !== null ? 'Résultats de la recherche' : 'Les annonces récentes'}
+            title={searchResults !== null ? 'Résultats de la recherche' : ''}
             action={
               searchResults !== null ? (
                 <button
@@ -1026,7 +1026,7 @@ export default function Home() {
                   Effacer
                 </button>
               ) : (
-                <Link to="/products" className="flex items-center gap-0.5 rounded-full border border-neutral-500 px-3 py-1.5 text-sm font-bold text-white hover:border-white">
+                <Link to="/products" className="flex items-center gap-0.5 rounded-full border border-neutral-700 px-3 py-1.5 text-sm font-bold text-white hover:border-white">
                   Tout voir
                 </Link>
               )
@@ -1034,32 +1034,32 @@ export default function Home() {
           />
 
           {searchError && (
-            <div className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">{searchError}</div>
+            <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-bold text-white">{searchError}</div>
           )}
 
           {searchInfo && searchResults !== null && (
-            <div className="mb-3 rounded-lg border border-neutral-500 bg-black p-3">
+            <div className="mb-3 rounded-lg border border-neutral-700 bg-black p-3">
               <p className="flex items-center gap-1.5 text-sm font-bold text-white">
-                <Sparkles className="h-4 w-4 flex-shrink-0 text-[#f97316]" />
+                <Sparkles className="h-4 w-4 flex-shrink-0 text-white" />
                 <span className="min-w-0 break-words">{searchInfo.ai ? 'Recherche intelligente' : 'Recherche'} : « {searchInfo.query} »</span>
               </p>
               {searchChips.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {searchChips.map((chip) => (
-                    <span key={chip} className="rounded-full border border-neutral-500 bg-black px-2.5 py-1 text-xs font-bold text-white">
+                    <span key={chip} className="rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-bold text-white">
                       {chip}
                     </span>
                   ))}
                 </div>
               )}
               {searchInfo.relaxed && (
-                <p className="mt-2 text-xs font-bold text-[#f97316]">Aucun résultat exact : les critères ont été élargis.</p>
+                <p className="mt-2 text-xs font-bold text-white">Aucun résultat exact : les critères ont été élargis.</p>
               )}
             </div>
           )}
 
           {loadingProducts || searchLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="animate-pulse rounded-lg border border-neutral-700 bg-black p-3">
                   <div className="aspect-square w-full rounded-md bg-neutral-800" />
@@ -1073,7 +1073,7 @@ export default function Home() {
               {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayedProducts.map((product) => {
                 const photoCount = product.images?.length ?? 0;
                 const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
@@ -1082,10 +1082,10 @@ export default function Home() {
                   <article
                     key={product.id}
                     onClick={() => goToProductDetails(product.id)}
-                    className="group cursor-pointer rounded-2xl border border-neutral-700 bg-[#0d0d0d] p-2.5 transition-colors duration-200 hover:border-[#f97316]"
+                    className="group cursor-pointer rounded-3xl border border-neutral-800 bg-[#121212] p-3 transition-colors duration-200 hover:border-white"
                   >
                     <div className="relative aspect-square w-full">
-                      <div className="h-full w-full overflow-hidden rounded-xl bg-neutral-900">
+                      <div className="h-full w-full overflow-hidden rounded-2xl bg-neutral-900">
                         <img
                           src={getMediaUrl(product.images?.[0])}
                           alt={product.title}
@@ -1095,14 +1095,14 @@ export default function Home() {
                       </div>
 
                       {product.category?.name && (
-                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-md border border-neutral-500 bg-black px-2 py-1 text-[11px] font-bold text-white">
+                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-[11px] font-bold text-white">
                           {product.category.name}
                         </span>
                       )}
 
                       <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
                         {isDemand && (
-                          <span className="rounded-md bg-[#ea580c] px-2 py-1 text-[11px] font-bold text-white">DEMANDE</span>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-black">DEMANDE</span>
                         )}
                         <div className="relative">
                           <button
@@ -1111,7 +1111,7 @@ export default function Home() {
                             aria-haspopup="menu"
                             aria-expanded={menuOpen}
                             onClick={(e) => { e.stopPropagation(); setMenuProductId(menuOpen ? null : product.id); }}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-500 bg-black text-white hover:border-white"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-700 bg-black text-white hover:border-white"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
@@ -1119,7 +1119,7 @@ export default function Home() {
                             <div
                               role="menu"
                               onClick={(e) => e.stopPropagation()}
-                              className="absolute right-0 top-10 z-20 w-44 rounded-xl border border-neutral-500 bg-black p-1"
+                              className="absolute right-0 top-10 z-20 w-44 rounded-xl border border-neutral-700 bg-black p-1"
                             >
                               <button
                                 type="button"
@@ -1143,25 +1143,24 @@ export default function Home() {
                       </div>
 
                       {photoCount > 1 && (
-                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md border border-neutral-500 bg-black px-1.5 py-0.5 text-xs font-bold text-white">
-                          <Images className="h-3.5 w-3.5 text-[#f97316]" />
+                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-bold text-white">
+                          <Images className="h-3.5 w-3.5 text-white" />
                           {photoCount}
                         </span>
                       )}
                     </div>
 
                     <div className="mt-3 min-w-0 px-0.5">
-                      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-200">
-                        <span className="truncate">{product.seller?.name || 'Vendeur'}</span>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-neutral-200">
                         {product.location && (
                           <span className="flex flex-shrink-0 items-center gap-1">
-                            <MapPin className="h-3 w-3 text-[#f97316]" />
+                            <MapPin className="h-3 w-3 text-white" />
                             {product.location}
                           </span>
                         )}
                       </div>
                       <p className="mt-1.5 truncate text-sm font-semibold text-white">{product.title}</p>
-                      <p className="text-base font-bold text-[#f97316]">{product.priceUSD} $</p>
+                      <p className="text-base font-bold text-white">{product.priceUSD} $</p>
                       {product.priceCDF > 0 && (
                         <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
                       )}
@@ -1169,7 +1168,7 @@ export default function Home() {
 
                     <button
                       type="button"
-                      className="mt-3 h-10 w-full rounded-xl border border-[#7c2d12] bg-[#1c0f08] text-sm font-bold text-[#f97316] transition-colors hover:bg-[#2a150a]"
+                      className="mt-3 h-10 w-full rounded-full border border-white bg-white text-sm font-bold text-black transition-colors hover:bg-neutral-200"
                     >
                       Voir
                     </button>
@@ -1184,7 +1183,7 @@ export default function Home() {
 
       {/* PIED DE PAGE LÉGAL */}
       <footer className="border-t-2 border-neutral-700 bg-black pb-28 pt-8 md:pb-8">
-        <div className="mx-auto grid max-w-7xl gap-8 px-3 sm:px-6 md:grid-cols-3 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
             <p className="text-lg font-bold tracking-wide">
               <span className="text-[#10b981]">CBF</span>
@@ -1200,7 +1199,7 @@ export default function Home() {
             <ul className="mt-3 space-y-2">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm font-semibold text-neutral-300 hover:text-[#f97316]">
+                  <Link to={link.to} className="text-sm font-semibold text-neutral-300 hover:text-white">
                     {link.label}
                   </Link>
                 </li>
@@ -1221,7 +1220,7 @@ export default function Home() {
                 <div className="flex gap-2">
                   <dt className="text-neutral-400">Email :</dt>
                   <dd className="min-w-0 break-words">
-                    <a href={`mailto:${LEGAL_INFO.email}`} className="hover:text-[#f97316]">{LEGAL_INFO.email}</a>
+                    <a href={`mailto:${LEGAL_INFO.email}`} className="hover:text-white">{LEGAL_INFO.email}</a>
                   </dd>
                 </div>
               )}
@@ -1229,7 +1228,7 @@ export default function Home() {
                 <div className="flex gap-2">
                   <dt className="text-neutral-400">Téléphone :</dt>
                   <dd>
-                    <a href={`tel:${LEGAL_INFO.phone.replace(/\s/g, '')}`} className="hover:text-[#f97316]">{LEGAL_INFO.phone}</a>
+                    <a href={`tel:${LEGAL_INFO.phone.replace(/\s/g, '')}`} className="hover:text-white">{LEGAL_INFO.phone}</a>
                   </dd>
                 </div>
               )}
@@ -1237,7 +1236,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-7xl border-t border-neutral-800 px-3 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mt-8 max-w-7xl border-t border-neutral-800 px-4 pt-4 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold text-neutral-400">
             Les prix en francs congolais (CDF) sont des conversions indicatives des prix en dollars américains (USD).
           </p>
@@ -1249,7 +1248,7 @@ export default function Home() {
 
       {cardShareToast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[70] flex justify-center px-4 md:bottom-8" role="status">
-          <span className="rounded-full border border-neutral-500 bg-black px-4 py-2 text-xs font-bold text-white">Lien copié</span>
+          <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-bold text-white">Lien copié</span>
         </div>
       )}
 
@@ -1265,11 +1264,11 @@ export default function Home() {
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
               aria-label="Poster une annonce"
-              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#ea580c] text-white shadow-[0_6px_16px_rgba(234,88,12,0.45)] ring-4 ring-black transition-transform hover:bg-[#c2410c] active:scale-95"
+              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-none ring-4 ring-black transition-transform hover:bg-neutral-200 active:scale-95"
             >
               <Camera className="h-6 w-6" />
             </button>
-            <span className="mt-1 text-xs font-bold text-[#f97316]">Poster</span>
+            <span className="mt-1 text-xs font-bold text-white">Poster</span>
           </div>
           {mobileItems.slice(mobileMid).map((item) => renderTab(item, 'bottom'))}
         </div>
@@ -1313,7 +1312,7 @@ export default function Home() {
 
             {fullscreenPaused && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white border border-neutral-500">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-white border border-neutral-700">
                   <Play className="h-6 w-6" />
                 </span>
               </div>
@@ -1333,7 +1332,7 @@ export default function Home() {
                 className="flex flex-col items-center gap-1"
                 aria-label="Voir le profil du vendeur"
               >
-                <span className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#c2410c]">
+                <span className="h-11 w-11 flex-shrink-0 overflow-hidden rounded-full border-2 border-white bg-neutral-700">
                   {currentFullscreenReel.seller?.avatar ? (
                     <img src={getMediaUrl(currentFullscreenReel.seller.avatar)} alt="" className="h-full w-full object-cover" />
                   ) : (
@@ -1344,10 +1343,10 @@ export default function Home() {
               </Link>
 
               <div className="flex flex-col items-center gap-1">
-                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <Eye className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.views)}</span>
+                <span className="text-xs font-bold text-white">{formatCount(currentReelStats.views)}</span>
               </div>
 
               <button
@@ -1356,10 +1355,10 @@ export default function Home() {
                 className="flex flex-col items-center gap-1"
                 aria-label="Voir les commentaires"
               >
-                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <MessageCircle className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.comments)}</span>
+                <span className="text-xs font-bold text-white">{formatCount(currentReelStats.comments)}</span>
               </button>
 
               <button
@@ -1368,7 +1367,7 @@ export default function Home() {
                 className="flex flex-col items-center gap-1"
                 aria-label="Partager ce produit"
               >
-                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <Share2 className="h-5 w-5" />
                 </span>
                 <span className="text-xs font-bold text-white">Partager</span>
@@ -1377,7 +1376,7 @@ export default function Home() {
 
             {deliveryLoading && (
               <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6">
-                <div className="rounded-2xl border border-neutral-500 bg-black px-6 py-5 text-center text-white">
+                <div className="rounded-2xl border border-neutral-700 bg-black px-6 py-5 text-center text-white">
                   <p className="text-sm font-bold">Veuillez patienter…</p>
                   <p className="mt-1 text-xs font-semibold text-neutral-300">Vérification du produit en cours.</p>
                 </div>
@@ -1389,7 +1388,7 @@ export default function Home() {
                 className="absolute inset-x-0 z-30 flex justify-center px-4"
                 style={{ top: 'calc(4.5rem + env(safe-area-inset-top))' }}
               >
-                <span className="rounded-full border border-neutral-500 bg-black px-4 py-2 text-xs font-bold text-white">
+                <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-bold text-white">
                   Lien copié
                 </span>
               </div>
@@ -1409,7 +1408,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setDescriptionExpanded((v) => !v)}
-                      className="mt-0.5 text-xs font-bold text-[#f97316]"
+                      className="mt-0.5 text-xs font-bold text-white"
                     >
                       {descriptionExpanded ? 'Voir moins' : 'Voir plus'}
                     </button>
@@ -1418,13 +1417,13 @@ export default function Home() {
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">{fullscreenProduct?.title || currentFullscreenReel.caption}</p>
-                    {fullscreenProduct && <p className="text-xs font-bold text-[#f97316]">{fullscreenProduct.priceUSD} $</p>}
+                    {fullscreenProduct && <p className="text-xs font-bold text-white">{fullscreenProduct.priceUSD} $</p>}
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => { closeFullscreenReel(); handleDeliveryRequest(currentFullscreenReel.productId); }}
-                      className="flex-1 rounded-xl bg-[#c2410c] px-3 py-2 text-xs font-bold text-white hover:bg-[#9a3412] sm:flex-none"
+                      className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-bold text-black hover:bg-neutral-200 sm:flex-none"
                     >
                       Me faire livrer
                     </button>
@@ -1443,7 +1442,7 @@ export default function Home() {
             {/* PANNEAU DE COMMENTAIRES */}
             {showComments && (
               <div
-                className="absolute inset-x-0 bottom-0 z-40 flex h-[70%] flex-col rounded-t-2xl border-t-2 border-neutral-500 bg-black"
+                className="absolute inset-x-0 bottom-0 z-40 flex h-[70%] flex-col rounded-t-2xl border-t-2 border-neutral-700 bg-black"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Commentaires"
@@ -1452,14 +1451,14 @@ export default function Home() {
                 onTouchEnd={(e) => e.stopPropagation()}
                 onWheel={(e) => e.stopPropagation()}
               >
-                <div className="flex flex-shrink-0 items-center justify-between border-b-2 border-neutral-600 px-4 py-3">
+                <div className="flex flex-shrink-0 items-center justify-between border-b-2 border-neutral-800 px-4 py-3">
                   <p className="text-sm font-bold text-white">
-                    Commentaires <span className="text-[#f97316]">({formatCount(currentReelStats.comments)})</span>
+                    Commentaires <span className="text-white">({formatCount(currentReelStats.comments)})</span>
                   </p>
                   <button
                     type="button"
                     onClick={closeComments}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-500 bg-black text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 bg-black text-white"
                     aria-label="Fermer les commentaires"
                   >
                     <X className="h-4 w-4" />
@@ -1468,7 +1467,7 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto px-4 py-3">
                   {commentsError && (
-                    <div className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">
+                    <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-bold text-white">
                       {commentsError}
                     </div>
                   )}
@@ -1483,7 +1482,7 @@ export default function Home() {
                     <div className="flex flex-col gap-3.5">
                       {comments.map((c) => (
                         <div key={c.id} className="flex items-start gap-2.5">
-                          <span className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-neutral-500 bg-[#c2410c]">
+                          <span className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border border-neutral-700 bg-neutral-700">
                             {c.user?.avatar ? (
                               <img src={getMediaUrl(c.user.avatar)} alt="" className="h-full w-full object-cover" />
                             ) : (
@@ -1498,7 +1497,7 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => deleteComment(c.id)}
-                              className="flex-shrink-0 text-xs font-bold text-neutral-300 hover:text-[#f97316]"
+                              className="flex-shrink-0 text-xs font-bold text-neutral-300 hover:text-white"
                             >
                               Supprimer
                             </button>
@@ -1516,14 +1515,14 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={loadMoreComments}
-                      className="mx-auto mt-3 block rounded-full border border-neutral-500 px-4 py-1.5 text-xs font-bold text-white hover:border-white"
+                      className="mx-auto mt-3 block rounded-full border border-neutral-700 px-4 py-1.5 text-xs font-bold text-white hover:border-white"
                     >
                       Voir plus
                     </button>
                   )}
                 </div>
 
-                <div className="flex-shrink-0 border-t-2 border-neutral-600 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5">
+                <div className="flex-shrink-0 border-t-2 border-neutral-800 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5">
                   {token ? (
                     <div className="flex items-center gap-2">
                       <input
@@ -1533,13 +1532,13 @@ export default function Home() {
                         onKeyDown={(e) => { if (e.key === 'Enter') submitComment(); }}
                         maxLength={300}
                         placeholder="Écrire un commentaire..."
-                        className="min-w-0 flex-1 rounded-full border border-neutral-500 bg-black px-4 py-2.5 text-sm font-semibold text-white placeholder-neutral-300 outline-none focus:border-[#f97316]"
+                        className="min-w-0 flex-1 rounded-full border border-neutral-700 bg-black px-4 py-2.5 text-sm font-semibold text-white placeholder-neutral-300 outline-none focus:border-white"
                       />
                       <button
                         type="button"
                         onClick={submitComment}
                         disabled={commentSubmitting || commentText.trim().length === 0}
-                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white disabled:opacity-50"
+                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white text-black disabled:opacity-50"
                         aria-label="Envoyer le commentaire"
                       >
                         <Send className="h-4 w-4" />
@@ -1549,7 +1548,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => { closeComments(); openAuth(); }}
-                      className="w-full rounded-full bg-[#c2410c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#9a3412]"
+                      className="w-full rounded-full bg-white px-4 py-2.5 text-sm font-bold text-black hover:bg-neutral-200"
                     >
                       Se connecter pour commenter
                     </button>
