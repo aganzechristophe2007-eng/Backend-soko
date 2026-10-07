@@ -141,7 +141,7 @@ const formatCDF = (value: number): string => String(Math.round(value)).replace(/
 const SectionHeader = ({ title, action }: { title: string; action?: React.ReactNode }) => (
   <div className="mb-4 flex items-center justify-between gap-4 px-1">
     {title && (
-      <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white sm:text-xl">
+      <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-white sm:text-lg">
           {title}
       </h2>
     )}
@@ -163,15 +163,15 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
     variant === 'bottom'
       ? active
         ? 'text-white'
-        : 'text-neutral-500 hover:text-white'
+        : 'text-neutral-400 hover:text-white'
       : active
         ? 'bg-white text-black'
-        : 'text-neutral-400 hover:bg-neutral-900 hover:text-white';
+        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white';
 
   const layout =
     variant === 'top'
-      ? 'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold'
-      : 'flex w-full flex-col items-center gap-1 text-xs font-semibold transition-colors duration-150';
+      ? 'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold'
+      : 'flex w-full flex-col items-center gap-1 text-xs font-medium transition-colors duration-150';
 
   const className = `${layout} ${state} focus-visible:outline-none`;
 
@@ -257,7 +257,7 @@ export default function Home() {
   const [commentSubmitting, setCommentSubmitting] = useState<boolean>(false);
 
   const t = {
-    page: 'text-white selection:bg-white selection:text-black',
+    page: 'antialiased [text-rendering:optimizeLegibility] text-white selection:bg-white selection:text-black',
     header: 'bg-black border-b-2 border-neutral-800',
     surface: 'bg-black hover:border-white',
     soft: 'bg-neutral-800',
@@ -858,7 +858,7 @@ export default function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Ex : téléphone moins de 150 $"
                 maxLength={200}
-                className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white placeholder-neutral-300 outline-none"
+                className="min-w-0 flex-1 bg-transparent text-sm font-medium text-white placeholder-neutral-300 outline-none"
               />
               <button
                 type="submit"
@@ -892,7 +892,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => openAuth()}
-                className="ml-1 flex h-9 flex-shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="ml-1 flex h-9 flex-shrink-0 items-center rounded-full bg-white px-4 text-sm font-semibold text-black transition-transform hover:scale-105"
               >
                 Connexion
               </button>
@@ -907,7 +907,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-bold text-black transition-colors hover:bg-neutral-200"
+              className="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
             >
               <Camera className="h-5 w-5" />
               Poster
@@ -973,7 +973,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
                 aria-pressed={activeCategoryId === null}
-                className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
                   activeCategoryId === null ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                 }`}
               >
@@ -985,7 +985,7 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
                   aria-pressed={activeCategoryId === cat.id}
-                  className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors ${
+                  className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
                     activeCategoryId === cat.id ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                   }`}
                 >
@@ -1005,7 +1005,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="flex items-center gap-1 rounded-full border border-white bg-black px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-white hover:text-black"
+                  className="flex items-center gap-1 rounded-full border border-white bg-black px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-black"
                 >
                   <X className="h-4 w-4" />
                   Effacer
@@ -1019,26 +1019,26 @@ export default function Home() {
           />
 
           {searchError && (
-            <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-bold text-white">{searchError}</div>
+            <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-semibold text-white">{searchError}</div>
           )}
 
           {searchInfo && searchResults !== null && (
             <div className="mb-3 rounded-lg border border-neutral-700 bg-black p-3">
-              <p className="flex items-center gap-1.5 text-sm font-bold text-white">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
                 <Sparkles className="h-4 w-4 flex-shrink-0 text-white" />
                 <span className="min-w-0 break-words">{searchInfo.ai ? 'Recherche intelligente' : 'Recherche'} : « {searchInfo.query} »</span>
               </p>
               {searchChips.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {searchChips.map((chip) => (
-                    <span key={chip} className="rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-bold text-white">
+                    <span key={chip} className="rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-semibold text-white">
                       {chip}
                     </span>
                   ))}
                 </div>
               )}
               {searchInfo.relaxed && (
-                <p className="mt-2 text-xs font-bold text-white">Aucun résultat exact : les critères ont été élargis.</p>
+                <p className="mt-2 text-xs font-semibold text-white">Aucun résultat exact : les critères ont été élargis.</p>
               )}
             </div>
           )}
@@ -1054,7 +1054,7 @@ export default function Home() {
               ))}
             </div>
           ) : displayedProducts.length === 0 ? (
-            <div className={`rounded-xl border border-dashed py-8 text-center text-sm font-semibold ${t.border} ${t.muted}`}>
+            <div className={`rounded-xl border border-dashed py-8 text-center text-sm font-medium ${t.border} ${t.muted}`}>
               {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
@@ -1082,14 +1082,14 @@ export default function Home() {
                       </div>
 
                       {product.category?.name && (
-                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-[11px] font-bold text-white">
+                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-semibold text-white">
                           {product.category.name}
                         </span>
                       )}
 
                       <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
                         {isDemand && (
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-black">DEMANDE</span>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">DEMANDE</span>
                         )}
                         <div className="relative">
                           <button
@@ -1112,7 +1112,7 @@ export default function Home() {
                                 type="button"
                                 role="menuitem"
                                 onClick={() => shareProduct(product)}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-bold text-white hover:bg-neutral-800"
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-white hover:bg-neutral-800"
                               >
                                 <Share2 className="h-4 w-4" /> Partager
                               </button>
@@ -1120,7 +1120,7 @@ export default function Home() {
                                 type="button"
                                 role="menuitem"
                                 onClick={() => { setMenuProductId(null); goToProductDetails(product.id); }}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-bold text-white hover:bg-neutral-800"
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-white hover:bg-neutral-800"
                               >
                                 <ChevronRight className="h-4 w-4" /> Voir l'annonce
                               </button>
@@ -1129,8 +1129,15 @@ export default function Home() {
                         </div>
                       </div>
 
+                      {product.location && (
+                        <span className="absolute bottom-2 left-2 flex max-w-[55%] items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-medium text-white">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">{product.location}</span>
+                        </span>
+                      )}
+
                       {photoCount > 1 && (
-                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-bold text-white">
+                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-semibold text-white">
                           <Images className="h-3.5 w-3.5 text-white" />
                           {photoCount}
                         </span>
@@ -1139,16 +1146,11 @@ export default function Home() {
 
                     <div className="min-w-0 px-2.5 pb-3 pt-3">
                       <p className="truncate text-sm font-medium text-neutral-300">{product.title}</p>
-                      <p className="mt-1 text-lg font-bold text-white">{product.priceUSD} $</p>
+                      <p className="mt-1 text-lg font-semibold text-white">{product.priceUSD} $</p>
                       {product.priceCDF > 0 && (
-                        <p className="text-[11px] font-semibold text-neutral-500">≈ {formatCDF(product.priceCDF)} CDF</p>
+                        <p className="text-xs font-medium text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
                       )}
-                      {product.location && (
-                        <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-neutral-400">
-                          <MapPin className="h-3 w-3" />
-                          <span className="truncate">{product.location}</span>
-                        </p>
-                      )}
+                      
                     </div>
                   </article>
                 );
@@ -1160,24 +1162,24 @@ export default function Home() {
       </main>
 
       {/* PIED DE PAGE LÉGAL */}
-      <footer className="border-t-2 border-neutral-700 bg-black pb-28 pt-8 md:pb-8">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
+      <footer className="border-t-2 border-neutral-700 bg-black pb-28 pt-6 md:pb-6">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
-            <p className="text-lg font-bold tracking-wide">
+            <p className="text-xl font-black tracking-tighter">
               <span className="text-[#10b981]">CBF</span>
               <span className="text-[#f97316]">SOKO</span>
             </p>
-            <p className="mt-2 max-w-xs text-sm font-semibold text-neutral-300">
+            <p className="mt-2 max-w-xs text-sm font-medium text-neutral-300">
               CBFSOKO met en relation acheteurs et vendeurs. Chaque annonce est publiée sous la seule responsabilité de son auteur.
             </p>
           </div>
 
           <nav aria-label="Informations légales">
-            <h2 className="text-sm font-bold text-white">Informations légales</h2>
+            <h2 className="text-sm font-semibold text-white">Informations légales</h2>
             <ul className="mt-3 space-y-2">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm font-semibold text-neutral-300 hover:text-white">
+                  <Link to={link.to} className="text-sm font-medium text-neutral-300 hover:text-white">
                     {link.label}
                   </Link>
                 </li>
@@ -1186,17 +1188,17 @@ export default function Home() {
           </nav>
 
           <div>
-            <h2 className="text-sm font-bold text-white">Éditeur du site</h2>
-            <dl className="mt-3 space-y-1.5 text-sm font-semibold text-neutral-300">
+            <h2 className="text-sm font-semibold text-white">Éditeur du site</h2>
+            <dl className="mt-3 space-y-1.5 text-sm font-medium text-neutral-300">
               {LEGAL_ROWS.map(([label, value]) => (
                 <div key={label} className="flex gap-2">
-                  <dt className="text-neutral-400">{label} :</dt>
+                  <dt className="text-neutral-300">{label} :</dt>
                   <dd className="min-w-0 break-words">{value}</dd>
                 </div>
               ))}
               {LEGAL_INFO.email && (
                 <div className="flex gap-2">
-                  <dt className="text-neutral-400">Email :</dt>
+                  <dt className="text-neutral-300">Email :</dt>
                   <dd className="min-w-0 break-words">
                     <a href={`mailto:${LEGAL_INFO.email}`} className="hover:text-white">{LEGAL_INFO.email}</a>
                   </dd>
@@ -1204,7 +1206,7 @@ export default function Home() {
               )}
               {LEGAL_INFO.phone && (
                 <div className="flex gap-2">
-                  <dt className="text-neutral-400">Téléphone :</dt>
+                  <dt className="text-neutral-300">Téléphone :</dt>
                   <dd>
                     <a href={`tel:${LEGAL_INFO.phone.replace(/\s/g, '')}`} className="hover:text-white">{LEGAL_INFO.phone}</a>
                   </dd>
@@ -1214,11 +1216,11 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-7xl border-t border-neutral-800 px-4 pt-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold text-neutral-400">
+        <div className="mx-auto mt-6 max-w-7xl border-t border-neutral-800 px-4 pt-4 sm:px-6 lg:px-8">
+          <p className="text-xs font-medium text-neutral-300">
             Les prix en francs congolais (CDF) sont des conversions indicatives des prix en dollars américains (USD).
           </p>
-          <p className="mt-1 text-xs font-semibold text-neutral-400">
+          <p className="mt-1 text-xs font-medium text-neutral-300">
             © {new Date().getFullYear()} {LEGAL_INFO.companyName}. Tous droits réservés.
           </p>
         </div>
@@ -1226,7 +1228,7 @@ export default function Home() {
 
       {cardShareToast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[70] flex justify-center px-4 md:bottom-8" role="status">
-          <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-bold text-white">Lien copié</span>
+          <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-semibold text-white">Lien copié</span>
         </div>
       )}
 
@@ -1246,7 +1248,7 @@ export default function Home() {
             >
               <Camera className="h-6 w-6" />
             </button>
-            <span className="mt-1 text-xs font-bold text-white">Poster</span>
+            <span className="mt-1 text-xs font-semibold text-white">Poster</span>
           </div>
           {mobileItems.slice(mobileMid).map((item) => renderTab(item, 'bottom'))}
         </div>
@@ -1317,14 +1319,14 @@ export default function Home() {
                     <UserIcon className="h-full w-full p-2 text-white" />
                   )}
                 </span>
-                <span className="max-w-[3.5rem] truncate text-[10px] font-bold text-white">{currentFullscreenReel.seller?.name || 'Vendeur'}</span>
+                <span className="max-w-[3.5rem] truncate text-xs font-semibold text-white">{currentFullscreenReel.seller?.name || 'Vendeur'}</span>
               </Link>
 
               <div className="flex flex-col items-center gap-1">
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <Eye className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-white">{formatCount(currentReelStats.views)}</span>
+                <span className="text-xs font-semibold text-white">{formatCount(currentReelStats.views)}</span>
               </div>
 
               <button
@@ -1336,7 +1338,7 @@ export default function Home() {
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <MessageCircle className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-white">{formatCount(currentReelStats.comments)}</span>
+                <span className="text-xs font-semibold text-white">{formatCount(currentReelStats.comments)}</span>
               </button>
 
               <button
@@ -1348,15 +1350,15 @@ export default function Home() {
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-black text-white">
                   <Share2 className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-white">Partager</span>
+                <span className="text-xs font-semibold text-white">Partager</span>
               </button>
             </div>
 
             {deliveryLoading && (
               <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6">
                 <div className="rounded-2xl border border-neutral-700 bg-black px-6 py-5 text-center text-white">
-                  <p className="text-sm font-bold">Veuillez patienter…</p>
-                  <p className="mt-1 text-xs font-semibold text-neutral-300">Vérification du produit en cours.</p>
+                  <p className="text-sm font-semibold">Veuillez patienter…</p>
+                  <p className="mt-1 text-xs font-medium text-neutral-300">Vérification du produit en cours.</p>
                 </div>
               </div>
             )}
@@ -1366,7 +1368,7 @@ export default function Home() {
                 className="absolute inset-x-0 z-30 flex justify-center px-4"
                 style={{ top: 'calc(4.5rem + env(safe-area-inset-top))' }}
               >
-                <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-bold text-white">
+                <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-semibold text-white">
                   Lien copié
                 </span>
               </div>
@@ -1380,13 +1382,13 @@ export default function Home() {
                     onTouchEnd={(e) => e.stopPropagation()}
                     onWheel={(e) => e.stopPropagation()}
                   >
-                    <p className={`text-xs leading-relaxed text-neutral-200 ${descriptionExpanded ? '' : 'line-clamp-2'}`}>
+                    <p className={`text-xs leading-relaxed text-neutral-200 ${descriptionExpanded ? '' : 'line-clamp-1'}`}>
                       {currentReelDescription}
                     </p>
                     <button
                       type="button"
                       onClick={() => setDescriptionExpanded((v) => !v)}
-                      className="mt-0.5 text-xs font-bold text-white"
+                      className="mt-0.5 text-xs font-semibold text-white"
                     >
                       {descriptionExpanded ? 'Voir moins' : 'Voir plus'}
                     </button>
@@ -1394,21 +1396,21 @@ export default function Home() {
                 )}
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold">{fullscreenProduct?.title || currentFullscreenReel.caption}</p>
-                    {fullscreenProduct && <p className="text-xs font-bold text-white">{fullscreenProduct.priceUSD} $</p>}
+                    <p className="truncate text-xs font-medium">{fullscreenProduct?.title || currentFullscreenReel.caption}</p>
+                    {fullscreenProduct && <p className="text-xs font-semibold text-white">{fullscreenProduct.priceUSD} $</p>}
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => { closeFullscreenReel(); handleDeliveryRequest(currentFullscreenReel.productId); }}
-                      className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-bold text-black hover:bg-neutral-200 sm:flex-none"
+                      className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black hover:bg-neutral-200 sm:flex-none"
                     >
                       Me faire livrer
                     </button>
                     <button
                       type="button"
                       onClick={() => { closeFullscreenReel(); goToProductDetails(currentFullscreenReel.productId); }}
-                      className="flex-1 rounded-xl bg-white border border-white px-3 py-2 text-xs font-bold text-black hover:bg-neutral-200 sm:flex-none"
+                      className="flex-1 rounded-xl bg-white border border-white px-3 py-2 text-xs font-semibold text-black hover:bg-neutral-200 sm:flex-none"
                     >
                       Voir
                     </button>
@@ -1430,7 +1432,7 @@ export default function Home() {
                 onWheel={(e) => e.stopPropagation()}
               >
                 <div className="flex flex-shrink-0 items-center justify-between border-b-2 border-neutral-800 px-4 py-3">
-                  <p className="text-sm font-bold text-white">
+                  <p className="text-sm font-semibold text-white">
                     Commentaires <span className="text-white">({formatCount(currentReelStats.comments)})</span>
                   </p>
                   <button
@@ -1445,13 +1447,13 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto px-4 py-3">
                   {commentsError && (
-                    <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-bold text-white">
+                    <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-semibold text-white">
                       {commentsError}
                     </div>
                   )}
 
                   {comments.length === 0 && !commentsLoading && !commentsError && (
-                    <div className="py-8 text-center text-sm font-semibold text-neutral-200">
+                    <div className="py-8 text-center text-sm font-medium text-neutral-200">
                       Aucun commentaire. Soyez le premier à écrire.
                     </div>
                   )}
@@ -1468,14 +1470,14 @@ export default function Home() {
                             )}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-white">{c.user?.name || 'Utilisateur'}</p>
+                            <p className="text-xs font-semibold text-white">{c.user?.name || 'Utilisateur'}</p>
                             <p className="mt-0.5 break-words text-sm text-white">{c.content}</p>
                           </div>
                           {token && user?.id === c.userId && (
                             <button
                               type="button"
                               onClick={() => deleteComment(c.id)}
-                              className="flex-shrink-0 text-xs font-bold text-neutral-300 hover:text-white"
+                              className="flex-shrink-0 text-xs font-semibold text-neutral-300 hover:text-white"
                             >
                               Supprimer
                             </button>
@@ -1486,14 +1488,14 @@ export default function Home() {
                   )}
 
                   {commentsLoading && (
-                    <div className="py-4 text-center text-xs font-semibold text-neutral-200">Chargement…</div>
+                    <div className="py-4 text-center text-xs font-medium text-neutral-200">Chargement…</div>
                   )}
 
                   {!commentsLoading && commentsHasMore && (
                     <button
                       type="button"
                       onClick={loadMoreComments}
-                      className="mx-auto mt-3 block rounded-full border border-neutral-700 px-4 py-1.5 text-xs font-bold text-white hover:border-white"
+                      className="mx-auto mt-3 block rounded-full border border-neutral-700 px-4 py-1.5 text-xs font-semibold text-white hover:border-white"
                     >
                       Voir plus
                     </button>
@@ -1510,7 +1512,7 @@ export default function Home() {
                         onKeyDown={(e) => { if (e.key === 'Enter') submitComment(); }}
                         maxLength={300}
                         placeholder="Écrire un commentaire..."
-                        className="min-w-0 flex-1 rounded-full border border-neutral-700 bg-black px-4 py-2.5 text-sm font-semibold text-white placeholder-neutral-300 outline-none focus:border-white"
+                        className="min-w-0 flex-1 rounded-full border border-neutral-700 bg-black px-4 py-2.5 text-sm font-medium text-white placeholder-neutral-300 outline-none focus:border-white"
                       />
                       <button
                         type="button"
@@ -1526,7 +1528,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => { closeComments(); openAuth(); }}
-                      className="w-full rounded-full bg-white px-4 py-2.5 text-sm font-bold text-black hover:bg-neutral-200"
+                      className="w-full rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-neutral-200"
                     >
                       Se connecter pour commenter
                     </button>
