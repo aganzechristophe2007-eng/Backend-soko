@@ -17,12 +17,12 @@ import { useAuth } from '../context/Authcontext';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from '../lib/textPrefs';
 
 // Images du design : frontend/src/public/assets/home/
-import logoCbfSoko from '../public/assets/home/logo-cbf-soko.jpg';
-import heroBanner from '../public/assets/home/hero-banner.jpg';
-import sellerBanner from '../public/assets/home/seller-banner.jpg';
-import livraisonImg from '../public/assets/home/livraison.jpg';
-import boutiqueImg from '../public/assets/home/boutique.jpg';
-import supportImg from '../public/assets/home/support.jpg';
+import logoCbfSoko from '../public/logo-cbf-soko.jpg';
+import heroBanner from '../public/hero-banner.jpg';
+import sellerBanner from '../public/seller-banner.jpg';
+import livraisonImg from '../public/livraison.jpg';
+import boutiqueImg from '../public/boutique.jpg';
+import supportImg from '../public/support.jpg';
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
 
