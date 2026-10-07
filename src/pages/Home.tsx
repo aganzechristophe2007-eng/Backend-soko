@@ -891,34 +891,40 @@ export default function Home() {
           ) : (
             <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1">
               {displayedReels.map((reel) => (
-                <div
-                  key={reel.id}
-                  className="group relative aspect-[4/5] w-32 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white sm:w-36"
-                  onClick={() => openFullscreenReelById(reel.id)}
-                >
-                  <video
-                    ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
-                    src={reel.videoUrl}
-                    poster={reel.thumbnail}
-                    loop
-                    playsInline
-                    autoPlay
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute left-1/2 top-[9%] z-10 flex max-w-[62%] -translate-x-1/2 items-center gap-1.5 rounded-full bg-black p-0.5">
-                    <span className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-neutral-700">
-                      {reel.seller?.avatar ? (
-                        <img src={getMediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <UserIcon className="h-full w-full p-0.5 text-white" />
-                      )}
-                    </span>
-                    <span className="sr-only">{reel.seller?.name || 'Vendeur'}</span>
+                <div key={reel.id} className="relative aspect-[4/5] w-32 flex-shrink-0 snap-start sm:w-36">
+                  <div
+                    className="group relative h-full w-full cursor-pointer overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white"
+                    onClick={() => openFullscreenReelById(reel.id)}
+                  >
+                    <video
+                      ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
+                      src={reel.videoUrl}
+                      poster={reel.thumbnail}
+                      loop
+                      playsInline
+                      autoPlay
+                      className="h-full w-full object-cover"
+                    />
+
+                    <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-700 bg-black p-1.5 text-white">
+                      {isReelMuted(reel.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                    </button>
                   </div>
 
-                  <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-700 bg-black p-1.5 text-white">
-                    {isReelMuted(reel.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-                  </button>
+                  {/* Profil du vendeur posé sur le contour de l'ovale (en haut à gauche), hors du masque de la vidéo. */}
+                  <span
+                    className="pointer-events-none absolute left-[18%] top-[11.7%] z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-neutral-700"
+                    title={reel.seller?.name || 'Vendeur'}
+                  >
+                    {reel.seller?.avatar ? (
+                      <img src={getMediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-sm font-semibold text-white" aria-hidden="true">
+                        {(reel.seller?.name || 'V').charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <span className="sr-only">{reel.seller?.name || 'Vendeur'}</span>
+                  </span>
                 </div>
               ))}
             </div>
