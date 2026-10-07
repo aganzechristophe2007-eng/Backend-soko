@@ -878,22 +878,23 @@ export default function Home() {
 
       <main className="flex-1 pb-4">
         {/* NOUVEAUTÉS / REELS MINIATURISÉS */}
-        <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+        <section className="bg-[#c2410c] py-5" aria-label="À la une">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <SectionHeader title="À la une" />
           {loadingProducts ? (
             <div className="flex gap-4 overflow-x-hidden pb-1">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[4/5] w-32 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-36" />
+                <div key={i} className="aspect-[4/5] w-32 flex-shrink-0 animate-pulse rounded-[50%] bg-[#9a3412] sm:w-36" />
               ))}
             </div>
           ) : displayedReels.length === 0 ? (
-            <div className={`rounded-xl border border-dashed py-6 text-center text-xs ${t.border} ${t.surface} ${t.muted}`}>Aucune vidéo.</div>
+            <div className={`rounded-xl border border-dashed border-white py-6 text-center text-xs text-white`}>Aucune vidéo.</div>
           ) : (
             <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1">
               {displayedReels.map((reel) => (
                 <div key={reel.id} className="relative aspect-[4/5] w-32 flex-shrink-0 snap-start sm:w-36">
                   <div
-                    className="group relative h-full w-full cursor-pointer overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white"
+                    className="group relative h-full w-full cursor-pointer overflow-hidden rounded-[50%] border-2 border-white bg-black"
                     onClick={() => openFullscreenReelById(reel.id)}
                   >
                     <video
@@ -913,7 +914,7 @@ export default function Home() {
 
                   {/* Profil du vendeur posé sur le contour de l'ovale (en haut à gauche), hors du masque de la vidéo. */}
                   <span
-                    className="pointer-events-none absolute left-[18%] top-[11.7%] z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-black bg-neutral-700"
+                    className="pointer-events-none absolute left-[18%] top-[11.7%] z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-[#c2410c] bg-neutral-700"
                     title={reel.seller?.name || 'Vendeur'}
                   >
                     {reel.seller?.avatar ? (
@@ -929,18 +930,19 @@ export default function Home() {
               ))}
             </div>
           )}
+        </div>
         </section>
 
-        {/* CATÉGORIES */}
+        {/* CATÉGORIES : onglets texte soulignés */}
         {categories.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-            <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-0.5">
+          <section className="mx-auto max-w-7xl px-4 pt-2 sm:px-6 lg:px-8" aria-label="Catégories">
+            <div className="scrollbar-hide flex items-center gap-6 overflow-x-auto border-b border-neutral-800">
               <button
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
                 aria-pressed={activeCategoryId === null}
-                className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
-                  activeCategoryId === null ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
+                className={`-mb-px h-11 flex-shrink-0 border-b-2 text-sm font-medium transition-colors ${
+                  activeCategoryId === null ? 'border-white text-white' : 'border-transparent text-neutral-400 hover:text-white'
                 }`}
               >
                 Tous
@@ -951,14 +953,14 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
                   aria-pressed={activeCategoryId === cat.id}
-                  className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
-                    activeCategoryId === cat.id ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
+                  className={`-mb-px h-11 flex-shrink-0 whitespace-nowrap border-b-2 text-sm font-medium transition-colors ${
+                    activeCategoryId === cat.id ? 'border-white text-white' : 'border-transparent text-neutral-400 hover:text-white'
                   }`}
                 >
                   {cat.name}{(categoryCounts[cat.id] ?? 0) > 0 ? ` (${categoryCounts[cat.id]})` : ''}
                 </button>
               ))}
-              <Link to="/products" aria-label="Tout voir" title="Tout voir" className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-[#121212] text-white hover:border-white">
+              <Link to="/products" aria-label="Tout voir" title="Tout voir" className="-mb-px ml-auto flex h-11 w-8 flex-shrink-0 items-center justify-center border-b-2 border-transparent text-neutral-400 hover:text-white">
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
