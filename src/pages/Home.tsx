@@ -128,6 +128,7 @@ const LEGAL_ROWS: [string, string][] = ([
 ] as [string, string][]).filter(([, value]) => !!value);
 
 const LEGAL_LINKS = [
+  { to: '/a-propos', label: 'À propos' },
   { to: '/legal/mentions-legales', label: 'Mentions légales' },
   { to: '/legal/cgu', label: "Conditions d'utilisation" },
   { to: '/legal/confidentialite', label: 'Politique de confidentialité' },
@@ -141,8 +142,7 @@ const SectionHeader = ({ title, action }: { title: string; action?: React.ReactN
   <div className="mb-4 flex items-center justify-between gap-4 px-1">
     {title && (
       <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-white sm:text-xl">
-        <span className="h-6 w-1.5 rounded-sm bg-white" aria-hidden="true" />
-        {title}
+          {title}
       </h2>
     )}
     {action && <div className="ml-auto">{action}</div>}
@@ -842,26 +842,11 @@ export default function Home() {
     >
       <header className={`sticky top-0 z-50 ${t.header}`}>
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
-          <div className="flex flex-shrink-0 items-center gap-2">
-            {/* Logo sur deux lignes (CBF / SOKO) : lien vers l'accueil. Panier séparé,
-                sur toute la hauteur du logo, qui renverra vers la page "À propos". */}
+          <div className="flex flex-shrink-0 items-center">
             <Link to="/" className="flex items-center px-1 py-1 transition-transform hover:scale-105" aria-label="CBFSOKO, accueil">
-              <span className="flex flex-col leading-[1.05] font-bold tracking-wide">
-                <span className="text-sm sm:text-lg text-[#10b981]">CBF</span>
-                <span className="text-sm sm:text-lg text-[#f97316]">SOKO</span>
+              <span className="text-xl font-black tracking-tighter sm:text-2xl">
+                <span className="text-[#10b981]">CBF</span><span className="text-[#f97316]">SOKO</span>
               </span>
-            </Link>
-            <Link
-              to="/a-propos"
-              aria-label="À propos de CBFSOKO"
-              title="À propos"
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-[#f97316] transition-transform hover:scale-110 sm:h-9 sm:w-9"
-            >
-              <svg className="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
             </Link>
           </div>
 
@@ -938,7 +923,7 @@ export default function Home() {
           {loadingProducts ? (
             <div className="flex gap-4 overflow-x-hidden pb-1">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[5/6] w-28 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-32" />
+                <div key={i} className="aspect-[4/5] w-32 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-36" />
               ))}
             </div>
           ) : displayedReels.length === 0 ? (
@@ -948,7 +933,7 @@ export default function Home() {
               {displayedReels.map((reel) => (
                 <div
                   key={reel.id}
-                  className="group relative aspect-[5/6] w-28 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white sm:w-32"
+                  className="group relative aspect-[4/5] w-32 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-700 bg-black transition-colors duration-200 hover:border-white sm:w-36"
                   onClick={() => openFullscreenReelById(reel.id)}
                 >
                   <video
@@ -988,7 +973,7 @@ export default function Home() {
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
                 aria-pressed={activeCategoryId === null}
-                className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
+                className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors ${
                   activeCategoryId === null ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                 }`}
               >
@@ -1000,11 +985,11 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
                   aria-pressed={activeCategoryId === cat.id}
-                  className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
+                  className={`h-9 flex-shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors ${
                     activeCategoryId === cat.id ? 'border-white bg-white text-black' : 'border-neutral-800 bg-[#121212] text-neutral-200 hover:border-white'
                   }`}
                 >
-                  {cat.name} ({categoryCounts[cat.id] ?? 0})
+                  {cat.name}{(categoryCounts[cat.id] ?? 0) > 0 ? ` (${categoryCounts[cat.id]})` : ''}
                 </button>
               ))}
             </div>
@@ -1026,8 +1011,8 @@ export default function Home() {
                   Effacer
                 </button>
               ) : (
-                <Link to="/products" className="flex items-center gap-0.5 rounded-full border border-neutral-700 px-3 py-1.5 text-sm font-bold text-white hover:border-white">
-                  Tout voir
+                <Link to="/products" aria-label="Tout voir" title="Tout voir" className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 text-white hover:border-white">
+                  <ChevronRight className="h-4 w-4" />
                 </Link>
               )
             }
@@ -1082,14 +1067,16 @@ export default function Home() {
                   <article
                     key={product.id}
                     onClick={() => goToProductDetails(product.id)}
-                    className="group cursor-pointer rounded-3xl border border-neutral-800 bg-[#121212] p-3 transition-colors duration-200 hover:border-white"
+                    className="group cursor-pointer rounded-3xl border border-neutral-800 bg-[#121212] p-1.5 transition-colors duration-200 hover:border-white"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.target === e.currentTarget && e.key === 'Enter') goToProductDetails(product.id); }}
                   >
-                    <div className="relative aspect-square w-full">
-                      <div className="h-full w-full overflow-hidden rounded-2xl bg-neutral-900">
+                    <div className="relative aspect-[4/5] w-full">
+                      <div className="h-full w-full overflow-hidden rounded-[22px] bg-neutral-900">
                         <img
                           src={getMediaUrl(product.images?.[0])}
                           alt={product.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="h-full w-full object-cover"
                           loading="lazy"
                         />
                       </div>
@@ -1150,28 +1137,19 @@ export default function Home() {
                       )}
                     </div>
 
-                    <div className="mt-3 min-w-0 px-0.5">
-                      <div className="flex items-center gap-2 text-xs font-semibold text-neutral-200">
-                        {product.location && (
-                          <span className="flex flex-shrink-0 items-center gap-1">
-                            <MapPin className="h-3 w-3 text-white" />
-                            {product.location}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1.5 truncate text-sm font-semibold text-white">{product.title}</p>
-                      <p className="text-base font-bold text-white">{product.priceUSD} $</p>
+                    <div className="min-w-0 px-2.5 pb-3 pt-3">
+                      <p className="truncate text-sm font-medium text-neutral-300">{product.title}</p>
+                      <p className="mt-1 text-lg font-bold text-white">{product.priceUSD} $</p>
                       {product.priceCDF > 0 && (
-                        <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
+                        <p className="text-[11px] font-semibold text-neutral-500">≈ {formatCDF(product.priceCDF)} CDF</p>
+                      )}
+                      {product.location && (
+                        <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-neutral-400">
+                          <MapPin className="h-3 w-3" />
+                          <span className="truncate">{product.location}</span>
+                        </p>
                       )}
                     </div>
-
-                    <button
-                      type="button"
-                      className="mt-3 h-10 w-full rounded-full border border-white bg-white text-sm font-bold text-black transition-colors hover:bg-neutral-200"
-                    >
-                      Voir
-                    </button>
                   </article>
                 );
               })}
