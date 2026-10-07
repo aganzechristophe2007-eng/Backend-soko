@@ -3,10 +3,12 @@ import { AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search, Camera, MessageSquare, Bell, Package,
-  MapPin, ChevronRight, User as UserIcon,
+  MapPin, User as UserIcon,
   Volume2, VolumeX, Store,
   X, Play, Sparkles,
-  Eye, MessageCircle, Share2, Send
+  Eye, MessageCircle, Share2, Send,
+  Home as HomeIcon, Plus, ArrowRight, Flame, Tag, BadgeCheck,
+  LayoutGrid, Smartphone, Laptop, Shirt, Plug, Car, MoreHorizontal
 } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
@@ -32,6 +34,7 @@ interface SellerLite {
   id: string;
   name: string;
   avatar?: string;
+  verified?: boolean;
 }
 
 interface ProductItem {
@@ -96,14 +99,13 @@ interface NavItem {
   mobile: boolean;
 }
 
-// Thème "Commerce Noir & Orange" : noir pur opaque, sans image de nature ni décor.
-// Thème noir et blanc : boutons blancs (texte noir), cartes anthracite. L'orange est réservé au logo.
-const DEFAULT_BACKGROUND = '#000000';
+// Thème clair CBF SOKO : fond blanc, orange #FF6B00 en couleur d'accent.
+const DEFAULT_BACKGROUND = '#FFFFFF';
 
-// L'ancien fond "Kivu Nature" éventuellement enregistré est ignoré au profit du noir.
+// Les anciens fonds (noir ou "Kivu Nature") éventuellement enregistrés sont ignorés au profit du blanc.
 const readSavedBg = (): string => {
   const saved = localStorage.getItem('cbfsoko-custom-bg');
-  if (!saved || saved.includes('photo-1507525428034')) return DEFAULT_BACKGROUND;
+  if (!saved || saved === '#000000' || saved.includes('photo-1507525428034')) return DEFAULT_BACKGROUND;
   return saved;
 };
 
@@ -138,15 +140,160 @@ const LEGAL_LINKS = [
 // 184690000 -> "184 690 000"
 const formatCDF = (value: number): string => String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-const SectionHeader = ({ title, action }: { title: string; action?: React.ReactNode }) => (
-  <div className="mb-4 flex items-center justify-between gap-4 px-1">
-    {title && (
-      <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-white sm:text-lg">
-          {title}
+// Route du bouton « Créer ma boutique » (bannière vendeur). À ajuster ici si votre page de création de boutique a une autre URL.
+const SELLER_SHOP_ROUTE = '/boutique';
+
+type MediaUrlFn = (mediaPath?: string | null) => string;
+
+const normalizeText = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// Icône Lucide choisie d'après le nom de la catégorie renvoyée par l'API (aucune catégorie n'est inventée).
+const getCategoryIcon = (name: string): React.ReactNode => {
+  const n = normalizeText(name);
+  const cls = 'h-6 w-6 sm:h-7 sm:w-7';
+  if (/phone|mobile/.test(n)) return <Smartphone className={cls} aria-hidden="true" />;
+  if (/informatique|ordinateur|computer|laptop/.test(n)) return <Laptop className={cls} aria-hidden="true" />;
+  if (/mode|vetement|habit|chaussure/.test(n)) return <Shirt className={cls} aria-hidden="true" />;
+  if (/electro/.test(n)) return <Plug className={cls} aria-hidden="true" />;
+  if (/maison|meuble|deco/.test(n)) return <HomeIcon className={cls} aria-hidden="true" />;
+  if (/vehicule|voiture|auto|moto/.test(n)) return <Car className={cls} aria-hidden="true" />;
+  return <Tag className={cls} aria-hidden="true" />;
+};
+
+interface SectionHeaderProps {
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
+}
+
+const SectionHeader = ({ title, subtitle, icon, action }: SectionHeaderProps) => (
+  <div className="mb-4 flex items-end justify-between gap-4">
+    <div className="min-w-0">
+      <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
+        {icon}
+        <span className="truncate">{title}</span>
       </h2>
-    )}
-    {action && <div className="ml-auto">{action}</div>}
+      {subtitle && <p className="mt-0.5 text-sm text-[#667085]">{subtitle}</p>}
+    </div>
+    {action && <div className="flex-shrink-0">{action}</div>}
   </div>
+);
+
+const SeeAllLink = () => (
+  <Link
+    to="/products"
+    className="inline-flex items-center gap-1 rounded-full px-1 text-sm font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+  >
+    Voir tout
+    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+  </Link>
+);
+
+const SellerRow = ({ seller, getMediaUrl }: { seller?: SellerLite; getMediaUrl: MediaUrlFn }) => {
+  const name = seller?.name || 'Vendeur';
+  return (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#FFF1E7] text-[10px] font-bold text-[#FF6B00]">
+        {seller?.avatar ? (
+          <img src={getMediaUrl(seller.avatar)} alt="" loading="lazy" className="h-full w-full object-cover" />
+        ) : (
+          <span aria-hidden="true">{name.charAt(0).toUpperCase()}</span>
+        )}
+      </span>
+      <span className="truncate text-xs font-medium text-[#667085]">{name}</span>
+      {seller?.verified && (
+        <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#2E90FA]" role="img" aria-label="Vendeur vérifié" />
+      )}
+    </div>
+  );
+};
+
+interface ProductCardProps {
+  product: ProductItem;
+  onOpen: (productId: string) => void;
+  getMediaUrl: MediaUrlFn;
+}
+
+const ProductCard = ({ product, onOpen, getMediaUrl }: ProductCardProps) => {
+  const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
+  return (
+    <article
+      onClick={() => onOpen(product.id)}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onOpen(product.id);
+        }
+      }}
+      tabIndex={0}
+      role="link"
+      aria-label={`${product.title}, ${product.priceUSD} $`}
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F2F4F7]">
+        <img
+          src={getMediaUrl(product.images?.[0])}
+          alt={product.title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        {isDemand && (
+          <span className="absolute left-2 top-2 rounded-full bg-[#FF6B00] px-2.5 py-1 text-[11px] font-bold text-white">DEMANDE</span>
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3">
+        <SellerRow seller={product.seller} getMediaUrl={getMediaUrl} />
+        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[#111111]">{product.title}</h3>
+        <div className="mt-auto pt-1">
+          <p className="text-lg font-bold leading-tight text-[#FF6B00]">{product.priceUSD} $</p>
+          {product.priceCDF > 0 && <p className="text-xs text-[#667085]">≈ {formatCDF(product.priceCDF)} CDF</p>}
+        </div>
+        {product.location && (
+          <p className="flex items-center gap-1 text-xs text-[#667085]">
+            <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+            <span className="truncate">{product.location}</span>
+          </p>
+        )}
+      </div>
+    </article>
+  );
+};
+
+interface CategoryPillProps {
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+  count?: number;
+  onClick: () => void;
+}
+
+const CategoryPill = ({ label, icon, active, count, onClick }: CategoryPillProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    aria-pressed={active}
+    title={count ? `${label} (${count})` : label}
+    className="group flex w-20 flex-shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none sm:w-24"
+  >
+    <span
+      className={`flex h-14 w-14 items-center justify-center rounded-full border transition sm:h-16 sm:w-16 group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 ${
+        active
+          ? 'border-[#FF6B00] bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
+          : 'border-[#EAECF0] bg-white text-[#FF6B00] group-hover:border-[#FF6B00] group-hover:bg-[#FFF1E7]'
+      }`}
+    >
+      {icon}
+    </span>
+    <span
+      className={`line-clamp-2 break-words text-center text-[11px] leading-tight tracking-tight sm:text-xs ${
+        active ? 'font-semibold text-[#FF6B00]' : 'font-medium text-[#111111]'
+      }`}
+    >
+      {label}
+    </span>
+  </button>
 );
 
 interface NavTabProps {
@@ -162,18 +309,18 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
   const state =
     variant === 'bottom'
       ? active
-        ? 'text-white'
-        : 'text-neutral-400 hover:text-white'
+        ? 'text-[#FF6B00]'
+        : 'text-[#667085] hover:text-[#111111]'
       : active
-        ? 'bg-white text-black'
-        : 'text-neutral-300 hover:bg-neutral-900 hover:text-white';
+        ? 'bg-[#FFF1E7] text-[#FF6B00]'
+        : 'text-[#667085] hover:bg-[#F2F4F7] hover:text-[#111111]';
 
   const layout =
     variant === 'top'
-      ? 'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold'
-      : 'flex w-full flex-col items-center gap-1 text-xs font-medium transition-colors duration-150';
+      ? 'inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors'
+      : 'flex w-full flex-col items-center gap-0.5 rounded-xl py-1 text-[11px] font-medium transition-colors duration-150';
 
-  const className = `${layout} ${state} focus-visible:outline-none`;
+  const className = `${layout} ${state} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]`;
 
   const content = (
     <>
@@ -253,16 +400,14 @@ export default function Home() {
   const [commentSubmitting, setCommentSubmitting] = useState<boolean>(false);
 
   const t = {
-    page: 'antialiased [text-rendering:optimizeLegibility] text-white selection:bg-white selection:text-black',
-    header: 'bg-black border-b-2 border-neutral-800',
-    surface: 'bg-black hover:border-white',
-    soft: 'bg-neutral-800',
-    border: 'border-neutral-700 border',
-    muted: 'text-neutral-200',
-    mobileNav: 'bg-black border-t-2 border-neutral-800',
+    page: 'antialiased [text-rendering:optimizeLegibility] text-[#111111] selection:bg-[#FF6B00] selection:text-white',
+    header: 'border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85',
+    border: 'border-[#EAECF0] border',
+    muted: 'text-[#667085]',
+    mobileNav: 'border-t border-[#EAECF0] bg-white shadow-[0_-4px_16px_rgba(16,24,40,0.06)]',
   };
 
-  const iconBtn = 'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-black text-white transition-colors hover:border-white focus-visible:outline-none';
+  const iconBtn = 'relative h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
 
   const getMediaUrl = useCallback((mediaPath?: string | null) => {
     if (!mediaPath) return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80';
@@ -761,17 +906,30 @@ export default function Home() {
     return counts;
   }, [products]);
 
+  // Reels de « À la une » associés à leur produit (prix, localisation) : mêmes données, aucune donnée ajoutée.
+  const featuredItems = useMemo(() => {
+    const byId = new Map(products.map((p) => [p.id, p] as const));
+    return displayedReels.map((reel) => ({ reel, product: byId.get(reel.productId) }));
+  }, [products, displayedReels]);
+
+  // Quand une recherche aboutit, on amène l'utilisateur sur la liste des résultats.
+  const annoncesRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (searchResults !== null) annoncesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [searchResults]);
+
   const path = location.pathname;
   const navItems: NavItem[] = [
-    { key: 'orders', label: 'Commandes', icon: <Package className="h-6 w-6" />, active: path.startsWith('/orders'), onClick: () => handleProtectedAction('/orders'), mobile: true },
-    { key: 'shop', label: 'Boutique', icon: <Store className="h-6 w-6" />, active: path.startsWith('/boutique'), to: '/boutique', mobile: true },
+    { key: 'home', label: 'Accueil', icon: <HomeIcon className="h-6 w-6" />, active: path === '/', to: '/', mobile: true },
+    { key: 'orders', label: 'Commandes', icon: <Package className="h-6 w-6" />, active: path.startsWith('/orders'), onClick: () => handleProtectedAction('/orders'), mobile: false },
+    { key: 'shop', label: 'Boutiques', icon: <Store className="h-6 w-6" />, active: path.startsWith('/boutique'), to: '/boutique', mobile: true },
     { key: 'messages', label: 'Messages', icon: <MessageSquare className="h-6 w-6" />, active: path.startsWith('/messages'), onClick: () => handleProtectedAction('/messages'), mobile: true },
     {
       key: 'profile',
       label: 'Profil',
       icon: token && user?.avatar ? (
-        <span className="h-6 w-6 overflow-hidden rounded-full bg-neutral-700">
-          <img src={getMediaUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
+        <span className="h-6 w-6 overflow-hidden rounded-full bg-[#F2F4F7]">
+          <img src={getMediaUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
         </span>
       ) : (
         <UserIcon className="h-6 w-6" />
@@ -786,12 +944,12 @@ export default function Home() {
     <NavTab key={item.key} label={item.label} icon={item.icon} active={item.active} to={item.to} onClick={item.onClick} variant={variant} />
   );
 
-  const mobileItems = navItems;
+  const mobileItems = navItems.filter((item) => item.mobile);
   const mobileMid = 2;
 
   return (
     <div
-      className={`relative flex min-h-screen flex-col ${t.page}`}
+      className={`relative flex min-h-screen flex-col overflow-x-clip ${t.page}`}
       style={{
         background: customBg,
         backgroundSize: 'cover',
@@ -800,31 +958,34 @@ export default function Home() {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* HEADER */}
       <header className={`sticky top-0 z-50 ${t.header}`}>
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
-          <div className="flex flex-shrink-0 items-center">
-            <Link to="/" className="flex items-center px-1 py-1 transition-transform hover:scale-105" aria-label="CBFSOKO, accueil">
-              <span className="text-xl font-black tracking-tighter sm:text-2xl">
-                <span className="text-[#10b981]">CBF</span><span className="text-[#f97316]">SOKO</span>
-              </span>
-            </Link>
-          </div>
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 lg:px-8">
+          <Link
+            to="/"
+            className="flex-shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+            aria-label="CBF SOKO, accueil"
+          >
+            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" className="h-8 w-auto sm:h-11" />
+          </Link>
 
-          <form onSubmit={handleSearch} className="order-last w-full sm:order-none sm:mx-2 sm:w-auto sm:max-w-md sm:flex-1">
-            <div className="flex h-11 w-full min-w-0 items-center gap-2 rounded-full border-2 border-neutral-700 bg-black pl-4 pr-1 transition-colors focus-within:border-white">
+          <form onSubmit={handleSearch} role="search" className="min-w-0 flex-1 lg:mx-auto lg:max-w-2xl">
+            <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-full border border-[#EAECF0] bg-[#F9FAFB] pl-3 pr-1 transition focus-within:border-[#FF6B00] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF6B00]/20 sm:h-11 sm:pl-4">
+              <Search className="hidden h-4 w-4 flex-shrink-0 text-[#667085] sm:block" aria-hidden="true" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Ex : téléphone moins de 150 $"
+                aria-label="Rechercher un produit"
                 maxLength={200}
-                className="min-w-0 flex-1 bg-transparent text-sm font-medium text-white placeholder-neutral-300 outline-none"
+                className="min-w-0 flex-1 bg-transparent text-base font-medium text-[#111111] placeholder-[#98A2B3] outline-none sm:text-sm"
               />
               <button
                 type="submit"
                 disabled={searchLoading}
                 aria-label="Rechercher"
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-neutral-200 disabled:opacity-60"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B00] text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-1 disabled:opacity-60"
               >
                 {searchLoading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -835,24 +996,45 @@ export default function Home() {
             </div>
           </form>
 
-          <div className="ml-auto flex flex-shrink-0 items-center gap-1">
-            <Link to="/settings" className={`${iconBtn} overflow-hidden`} title="Paramètres" aria-label="Paramètres">
+          <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => handleProtectedAction('/orders')}
+              className={`${iconBtn} hidden sm:inline-flex md:hidden`}
+              aria-label="Commandes"
+              title="Commandes"
+            >
+              <Package className="h-[18px] w-[18px]" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleProtectedAction('/notifications')}
+              className={`${iconBtn} ${token ? 'inline-flex' : 'hidden sm:inline-flex'}`}
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <Bell className="h-[18px] w-[18px]" />
+            </button>
+
+            <Link
+              to="/settings"
+              className={`${iconBtn} ${token ? 'inline-flex' : 'hidden sm:inline-flex'} overflow-hidden`}
+              title="Paramètres"
+              aria-label="Paramètres"
+            >
               {token && user?.avatar ? (
-                <img src={getMediaUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
+                <img src={getMediaUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
               ) : (
-                <UserIcon className="h-4 w-4" />
+                <UserIcon className="h-[18px] w-[18px]" />
               )}
             </Link>
-
-            <button type="button" onClick={() => handleProtectedAction('/notifications')} className={iconBtn} title="Notifications">
-              <Bell className="h-4 w-4" />
-            </button>
 
             {!token && (
               <button
                 type="button"
                 onClick={() => openAuth()}
-                className="ml-1 flex h-9 flex-shrink-0 items-center rounded-full bg-white px-4 text-sm font-semibold text-black transition-transform hover:scale-105"
+                className="inline-flex h-9 flex-shrink-0 items-center rounded-full bg-[#FF6B00] px-3.5 text-sm font-semibold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:px-4"
               >
                 Connexion
               </button>
@@ -860,14 +1042,14 @@ export default function Home() {
           </div>
         </div>
 
-        {/* NAVIGATION ORDINATEUR : mêmes options que la barre du bas sur mobile */}
-        <div className="hidden border-t border-neutral-800 md:block">
-          <nav aria-label="Navigation principale" className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-2 sm:px-6 lg:px-8 [&_svg]:h-5 [&_svg]:w-5">
+        {/* NAVIGATION ORDINATEUR : mêmes options que la barre du bas sur mobile, plus Commandes */}
+        <div className="hidden border-t border-[#EAECF0] md:block">
+          <nav aria-label="Navigation principale" className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-1.5 sm:px-6 lg:px-8 [&_svg]:h-5 [&_svg]:w-5">
             {navItems.map((item) => renderTab(item, 'top'))}
             <button
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
+              className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#FF6B00] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
             >
               <Camera className="h-5 w-5" />
               Poster
@@ -877,229 +1059,259 @@ export default function Home() {
       </header>
 
       <main className="flex-1 pb-4">
-        {/* NOUVEAUTÉS / REELS MINIATURISÉS */}
-        <section className="bg-[#c2410c] py-5" aria-label="À la une">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeader title="À la une" />
-          {loadingProducts ? (
-            <div className="flex gap-4 overflow-x-hidden pb-1">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[4/5] w-32 flex-shrink-0 animate-pulse rounded-[50%] bg-[#9a3412] sm:w-36" />
-              ))}
-            </div>
-          ) : displayedReels.length === 0 ? (
-            <div className={`rounded-xl border border-dashed border-white py-6 text-center text-xs text-white`}>Aucune vidéo.</div>
-          ) : (
-            <div className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1">
-              {displayedReels.map((reel) => (
-                <div key={reel.id} className="relative aspect-[4/5] w-32 flex-shrink-0 snap-start sm:w-36">
-                  <div
-                    className="group relative h-full w-full cursor-pointer overflow-hidden rounded-[50%] border-2 border-white bg-black"
-                    onClick={() => openFullscreenReelById(reel.id)}
-                  >
-                    <video
-                      ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
-                      src={reel.videoUrl}
-                      poster={reel.thumbnail}
-                      loop
-                      playsInline
-                      autoPlay
-                      className="h-full w-full object-cover"
-                    />
-
-                    <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-700 bg-black p-1.5 text-white">
-                      {isReelMuted(reel.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-                    </button>
-                  </div>
-
-                  {/* Profil du vendeur posé sur le contour de l'ovale (en haut à gauche), hors du masque de la vidéo. */}
-                  <span
-                    className="pointer-events-none absolute left-[18%] top-[11.7%] z-20 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-2 border-[#c2410c] bg-neutral-700"
-                    title={reel.seller?.name || 'Vendeur'}
-                  >
-                    {reel.seller?.avatar ? (
-                      <img src={getMediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-sm font-semibold text-white" aria-hidden="true">
-                        {(reel.seller?.name || 'V').charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                    <span className="sr-only">{reel.seller?.name || 'Vendeur'}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* HERO : le texte et le bouton font partie de l'image, toute la bannière mène à la destination existante */}
+        <section aria-label="Bienvenue" className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+          <h1 className="sr-only">CBF SOKO : des produits fiables, près de chez vous</h1>
+          <Link
+            to="/products"
+            aria-label="Explorer maintenant"
+            className="block overflow-hidden rounded-3xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
+          >
+            <img
+              src="/assets/home/hero-banner.png"
+              alt="Des produits fiables, près de chez vous. Neuf ou d'occasion, trouvez ce qu'il vous faut au meilleur prix à Bukavu et partout en RDC. Explorer maintenant."
+              decoding="async"
+              className="block h-auto w-full"
+            />
+          </Link>
         </section>
 
-        {/* CATÉGORIES : onglets texte soulignés */}
-        {categories.length > 0 && (
-          <section className="mx-auto max-w-7xl px-4 pt-2 sm:px-6 lg:px-8" aria-label="Catégories">
-            <div className="scrollbar-hide flex items-center gap-6 overflow-x-auto border-b border-neutral-800">
-              <button
-                type="button"
-                onClick={() => setActiveCategoryId(null)}
-                aria-pressed={activeCategoryId === null}
-                className={`-mb-px h-11 flex-shrink-0 border-b-2 text-sm font-medium transition-colors ${
-                  activeCategoryId === null ? 'border-white text-white' : 'border-transparent text-neutral-400 hover:text-white'
-                }`}
-              >
-                Tous
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setActiveCategoryId(cat.id)}
-                  aria-pressed={activeCategoryId === cat.id}
-                  className={`-mb-px h-11 flex-shrink-0 whitespace-nowrap border-b-2 text-sm font-medium transition-colors ${
-                    activeCategoryId === cat.id ? 'border-white text-white' : 'border-transparent text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  {cat.name}{(categoryCounts[cat.id] ?? 0) > 0 ? ` (${categoryCounts[cat.id]})` : ''}
-                </button>
-              ))}
-              <Link to="/products" aria-label="Tout voir" title="Tout voir" className="-mb-px ml-auto flex h-11 w-8 flex-shrink-0 items-center justify-center border-b-2 border-transparent text-neutral-400 hover:text-white">
-                <ChevronRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {/* PRODUITS */}
-        <section className="mx-auto max-w-7xl px-4 pb-4 pt-0.5 sm:px-6 lg:px-8">
-          {(searchResults !== null || categories.length === 0) && (
+        {/* À LA UNE (reels) */}
+        <section aria-label="À la une" className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
           <SectionHeader
-            title={searchResults !== null ? 'Résultats de la recherche' : ''}
-            action={
-              searchResults !== null ? (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="flex items-center gap-1 rounded-full border border-white bg-black px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white hover:text-black"
-                >
-                  <X className="h-4 w-4" />
-                  Effacer
-                </button>
-              ) : (
-                <Link to="/products" aria-label="Tout voir" title="Tout voir" className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 text-white hover:border-white">
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              )
-            }
+            icon={<Flame className="h-5 w-5 text-[#FF6B00]" aria-hidden="true" />}
+            title="À la une"
+            subtitle="Les produits qui attirent l'attention"
+            action={<SeeAllLink />}
           />
-          )}
 
-          {searchError && (
-            <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-semibold text-white">{searchError}</div>
-          )}
-
-          {searchInfo && searchResults !== null && (
-            <div className="mb-3 rounded-lg border border-neutral-700 bg-black p-3">
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-white">
-                <Sparkles className="h-4 w-4 flex-shrink-0 text-white" />
-                <span className="min-w-0 break-words">{searchInfo.ai ? 'Recherche intelligente' : 'Recherche'} : « {searchInfo.query} »</span>
-              </p>
-              {searchChips.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {searchChips.map((chip) => (
-                    <span key={chip} className="rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-semibold text-white">
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {searchInfo.relaxed && (
-                <p className="mt-2 text-xs font-semibold text-white">Aucun résultat exact : les critères ont été élargis.</p>
-              )}
-            </div>
-          )}
-
-          {loadingProducts || searchLoading ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="animate-pulse rounded-lg border border-neutral-700 bg-black p-3">
-                  <div className="aspect-square w-full rounded-md bg-neutral-800" />
-                  <div className="mt-3 h-3 w-3/4 rounded bg-neutral-800" />
-                  <div className="mt-2 h-3 w-1/3 rounded bg-neutral-800" />
-                </div>
+          {loadingProducts ? (
+            <div className="-mx-4 flex gap-3 overflow-hidden px-4 sm:mx-0 sm:gap-4 sm:px-0">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-[280px] w-[158px] flex-shrink-0 animate-pulse rounded-2xl bg-[#F2F4F7] sm:w-[190px] lg:w-[208px]" />
               ))}
             </div>
-          ) : displayedProducts.length === 0 ? (
-            <div className={`rounded-xl border border-dashed py-8 text-center text-sm font-medium ${t.border} ${t.muted}`}>
-              {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
-            </div>
+          ) : featuredItems.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#EAECF0] py-8 text-center text-sm text-[#667085]">Aucune vidéo.</div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {displayedProducts.map((product) => {
-                const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
+            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 pt-1 sm:mx-0 sm:scroll-px-0 sm:gap-4 sm:px-0">
+              {featuredItems.map(({ reel, product }) => {
+                const title = product?.title || reel.caption || 'Vidéo produit';
                 return (
-                  <article
-                    key={product.id}
-                    onClick={() => goToProductDetails(product.id)}
-                    className="group cursor-pointer rounded-none border border-neutral-800 bg-[#121212] p-1.5 transition-colors duration-200 hover:border-white"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.target === e.currentTarget && e.key === 'Enter') goToProductDetails(product.id); }}
-                  >
-                    <div className="relative aspect-[4/5] w-full">
-                      <div className="h-full w-full overflow-hidden rounded-none bg-neutral-900">
-                        <img
-                          src={getMediaUrl(product.images?.[0])}
-                          alt={product.title}
+                  <div key={reel.id} className="w-[158px] flex-shrink-0 snap-start sm:w-[190px] lg:w-[208px]">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Ouvrir la vidéo : ${title}`}
+                      onClick={() => openFullscreenReelById(reel.id)}
+                      onKeyDown={(e) => {
+                        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          openFullscreenReelById(reel.id);
+                        }
+                      }}
+                      className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                    >
+                      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F2F4F7]">
+                        <video
+                          ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
+                          src={reel.videoUrl}
+                          poster={reel.thumbnail}
+                          loop
+                          playsInline
+                          autoPlay
+                          aria-hidden="true"
                           className="h-full w-full object-cover"
-                          loading="lazy"
                         />
+
+                        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                          <Play className="h-3 w-3 fill-current" aria-hidden="true" />
+                          Reel
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }}
+                          aria-label={isReelMuted(reel.id) ? 'Activer le son' : 'Couper le son'}
+                          className="absolute bottom-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        >
+                          {isReelMuted(reel.id) ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                        </button>
                       </div>
 
-                      {isDemand && (
-                        <span className="absolute right-2 top-2 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">DEMANDE</span>
-                      )}
-
-                      {product.location && (
-                        <span className="absolute bottom-2 left-2 flex max-w-[55%] items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-medium text-white">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{product.location}</span>
-                        </span>
-                      )}
+                      <div className="flex min-w-0 flex-col gap-1 p-3">
+                        <SellerRow seller={reel.seller} getMediaUrl={getMediaUrl} />
+                        <p className="line-clamp-1 text-sm font-medium text-[#111111]">{title}</p>
+                        {product && <p className="text-base font-bold leading-tight text-[#FF6B00]">{product.priceUSD} $</p>}
+                        {product?.location && (
+                          <p className="flex items-center gap-1 text-xs text-[#667085]">
+                            <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                            <span className="truncate">{product.location}</span>
+                          </p>
+                        )}
+                      </div>
                     </div>
-
-                    <div className="min-w-0 px-2.5 pb-3 pt-3">
-                      <p className="truncate text-sm font-medium text-neutral-300">{product.title}</p>
-                      <p className="mt-1 text-lg font-semibold text-white">{product.priceUSD} $</p>
-                      {product.priceCDF > 0 && (
-                        <p className="text-xs font-medium text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
-                      )}
-                      
-                    </div>
-                  </article>
+                  </div>
                 );
               })}
             </div>
           )}
         </section>
 
+        {/* CATÉGORIES */}
+        {categories.length > 0 && (
+          <section aria-label="Catégories" className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+            <div className="scrollbar-hide -mx-4 flex gap-1 overflow-x-auto px-4 pb-1 pt-1 sm:mx-0 sm:gap-3 sm:px-0">
+              <CategoryPill
+                label="Tous"
+                icon={<LayoutGrid className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />}
+                active={activeCategoryId === null}
+                onClick={() => setActiveCategoryId(null)}
+              />
+              {categories.map((cat) => (
+                <CategoryPill
+                  key={cat.id}
+                  label={cat.name}
+                  icon={getCategoryIcon(cat.name)}
+                  active={activeCategoryId === cat.id}
+                  count={categoryCounts[cat.id] ?? 0}
+                  onClick={() => setActiveCategoryId(cat.id)}
+                />
+              ))}
+              <Link
+                to="/products"
+                aria-label="Tout voir"
+                title="Tout voir"
+                className="group flex w-20 flex-shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none sm:w-24"
+              >
+                <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#667085] transition group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 sm:h-16 sm:w-16">
+                  <MoreHorizontal className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+                </span>
+                <span className="text-center text-[11px] font-medium leading-tight text-[#111111] sm:text-xs">Tout voir</span>
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* BANNIÈRE VENDEUR */}
+        <section aria-label="Devenir vendeur" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="relative flex items-stretch overflow-hidden rounded-3xl border border-[#FFE0CC] bg-[#FFF1E7]">
+            <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5 p-4 sm:gap-3 sm:p-8 lg:p-12">
+              <h2 className="text-lg font-bold leading-snug text-[#111111] sm:text-2xl lg:text-4xl">
+                Vendez vos produits <span className="text-[#FF6B00]">en toute simplicité !</span>
+              </h2>
+              <p className="text-xs leading-relaxed text-[#667085] sm:text-sm lg:text-base">
+                Créez votre boutique et touchez plus de clients.
+              </p>
+              <Link
+                to={SELLER_SHOP_ROUTE}
+                className="mt-1 inline-flex w-fit items-center gap-2 rounded-full bg-[#FF6B00] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:px-6 sm:py-3"
+              >
+                Créer ma boutique
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="relative w-[36%] flex-shrink-0 sm:w-[40%]">
+              <img
+                src="/assets/home/seller-banner.png"
+                alt="Vendeur CBF SOKO souriant, prêt à vendre ses produits en ligne"
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover object-right"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* DERNIÈRES ANNONCES / RÉSULTATS DE RECHERCHE */}
+        <section ref={annoncesRef} aria-label="Annonces" className="mx-auto max-w-7xl scroll-mt-32 px-4 pb-8 sm:px-6 lg:px-8">
+          <SectionHeader
+            icon={<Tag className="h-5 w-5 text-[#FF6B00]" aria-hidden="true" />}
+            title={searchResults !== null ? 'Résultats de la recherche' : 'Nos dernières annonces'}
+            action={
+              searchResults !== null ? (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="flex items-center gap-1 rounded-full border border-[#EAECF0] bg-white px-3 py-1.5 text-sm font-semibold text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  Effacer
+                </button>
+              ) : (
+                <SeeAllLink />
+              )
+            }
+          />
+
+          {searchError && (
+            <div role="alert" className="mb-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">{searchError}</div>
+          )}
+
+          {searchInfo && searchResults !== null && (
+            <div className="mb-4 rounded-2xl border border-[#FFE0CC] bg-[#FFF1E7] p-3">
+              <p className="flex items-center gap-1.5 text-sm font-semibold text-[#111111]">
+                <Sparkles className="h-4 w-4 flex-shrink-0 text-[#FF6B00]" aria-hidden="true" />
+                <span className="min-w-0 break-words">{searchInfo.ai ? 'Recherche intelligente' : 'Recherche'} : « {searchInfo.query} »</span>
+              </p>
+              {searchChips.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {searchChips.map((chip) => (
+                    <span key={chip} className="rounded-full border border-[#FFE0CC] bg-white px-2.5 py-1 text-xs font-medium text-[#111111]">
+                      {chip}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {searchInfo.relaxed && (
+                <p className="mt-2 text-xs font-medium text-[#667085]">Aucun résultat exact : les critères ont été élargis.</p>
+              )}
+            </div>
+          )}
+
+          {loadingProducts || searchLoading ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-[#EAECF0] bg-white">
+                  <div className="aspect-[4/5] w-full bg-[#F2F4F7]" />
+                  <div className="space-y-2 p-3">
+                    <div className="h-3 w-1/2 rounded bg-[#F2F4F7]" />
+                    <div className="h-3 w-3/4 rounded bg-[#F2F4F7]" />
+                    <div className="h-4 w-1/3 rounded bg-[#F2F4F7]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : displayedProducts.length === 0 ? (
+            <div className={`rounded-2xl border border-dashed py-10 text-center text-sm font-medium ${t.border} ${t.muted}`}>
+              {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+              {displayedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} onOpen={goToProductDetails} getMediaUrl={getMediaUrl} />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
 
       {/* PIED DE PAGE LÉGAL */}
-      <footer className="border-t-2 border-neutral-700 bg-black pb-28 pt-6 md:pb-6">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
+      <footer className="border-t border-[#EAECF0] bg-[#F9FAFB] pb-28 pt-10 md:pb-8">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
-            <p className="text-xl font-black tracking-tighter">
-              <span className="text-[#10b981]">CBF</span>
-              <span className="text-[#f97316]">SOKO</span>
-            </p>
-            <p className="mt-2 max-w-xs text-sm font-medium text-neutral-300">
+            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" loading="lazy" className="h-10 w-auto" />
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#667085]">
               CBFSOKO met en relation acheteurs et vendeurs. Chaque annonce est publiée sous la seule responsabilité de son auteur.
             </p>
           </div>
 
           <nav aria-label="Informations légales">
-            <h2 className="text-sm font-semibold text-white">Informations légales</h2>
+            <h2 className="text-sm font-bold text-[#111111]">Informations légales</h2>
             <ul className="mt-3 space-y-2">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
-                  <Link to={link.to} className="text-sm font-medium text-neutral-300 hover:text-white">
+                  <Link to={link.to} className="text-sm text-[#667085] transition-colors hover:text-[#FF6B00] focus-visible:outline-none focus-visible:underline">
                     {link.label}
                   </Link>
                 </li>
@@ -1108,27 +1320,27 @@ export default function Home() {
           </nav>
 
           <div>
-            <h2 className="text-sm font-semibold text-white">Éditeur du site</h2>
-            <dl className="mt-3 space-y-1.5 text-sm font-medium text-neutral-300">
+            <h2 className="text-sm font-bold text-[#111111]">Éditeur du site</h2>
+            <dl className="mt-3 space-y-1.5 text-sm text-[#667085]">
               {LEGAL_ROWS.map(([label, value]) => (
                 <div key={label} className="flex gap-2">
-                  <dt className="text-neutral-300">{label} :</dt>
+                  <dt className="font-medium text-[#111111]">{label} :</dt>
                   <dd className="min-w-0 break-words">{value}</dd>
                 </div>
               ))}
               {LEGAL_INFO.email && (
                 <div className="flex gap-2">
-                  <dt className="text-neutral-300">Email :</dt>
+                  <dt className="font-medium text-[#111111]">Email :</dt>
                   <dd className="min-w-0 break-words">
-                    <a href={`mailto:${LEGAL_INFO.email}`} className="hover:text-white">{LEGAL_INFO.email}</a>
+                    <a href={`mailto:${LEGAL_INFO.email}`} className="hover:text-[#FF6B00]">{LEGAL_INFO.email}</a>
                   </dd>
                 </div>
               )}
               {LEGAL_INFO.phone && (
                 <div className="flex gap-2">
-                  <dt className="text-neutral-300">Téléphone :</dt>
+                  <dt className="font-medium text-[#111111]">Téléphone :</dt>
                   <dd>
-                    <a href={`tel:${LEGAL_INFO.phone.replace(/\s/g, '')}`} className="hover:text-white">{LEGAL_INFO.phone}</a>
+                    <a href={`tel:${LEGAL_INFO.phone.replace(/\s/g, '')}`} className="hover:text-[#FF6B00]">{LEGAL_INFO.phone}</a>
                   </dd>
                 </div>
               )}
@@ -1136,11 +1348,11 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mx-auto mt-6 max-w-7xl border-t border-neutral-800 px-4 pt-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-medium text-neutral-300">
+        <div className="mx-auto mt-8 max-w-7xl border-t border-[#EAECF0] px-4 pt-4 sm:px-6 lg:px-8">
+          <p className="text-xs text-[#667085]">
             Les prix en francs congolais (CDF) sont des conversions indicatives des prix en dollars américains (USD).
           </p>
-          <p className="mt-1 text-xs font-medium text-neutral-300">
+          <p className="mt-1 text-xs text-[#667085]">
             © {new Date().getFullYear()} {LEGAL_INFO.companyName}. Tous droits réservés.
           </p>
         </div>
@@ -1157,12 +1369,12 @@ export default function Home() {
             <button
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
-              aria-label="Poster une annonce"
-              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-white text-black shadow-none ring-4 ring-black transition-transform hover:bg-neutral-200 active:scale-95"
+              aria-label="Publier une annonce"
+              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/30 ring-4 ring-white transition hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-[#FFD2B0] active:scale-95"
             >
-              <Camera className="h-6 w-6" />
+              <Plus className="h-7 w-7" strokeWidth={2.5} aria-hidden="true" />
             </button>
-            <span className="mt-1 text-xs font-semibold text-white">Poster</span>
+            <span className="mt-1 text-[11px] font-semibold text-[#FF6B00]">Publier</span>
           </div>
           {mobileItems.slice(mobileMid).map((item) => renderTab(item, 'bottom'))}
         </div>
