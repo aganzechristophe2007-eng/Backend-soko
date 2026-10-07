@@ -16,13 +16,7 @@ import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from '../lib/textPrefs';
 
-// Images du design : frontend/src/public/assets/home/
-import logoCbfSoko from '../public/logo-cbf-soko.jpg';
-import heroBanner from '../public/hero-banner.jpg';
-import sellerBanner from '../public/seller-banner.jpg';
-import livraisonImg from '../public/livraison.jpg';
-import boutiqueImg from '../public/boutique.jpg';
-import supportImg from '../public/support.jpg';
+
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
 
@@ -151,6 +145,14 @@ const formatCDF = (value: number): string => String(Math.round(value)).replace(/
 
 // Route du bouton « Créer ma boutique » (bannière vendeur). À ajuster ici si votre page de création de boutique a une autre URL.
 const SELLER_SHOP_ROUTE = '/boutique';
+
+// Illustrations à droite des catégories sur ordinateur. Vide tant que les 3 fichiers ne sont pas dans frontend/public/ :
+// ajoutez livraison.jpg, boutique.jpg et support.jpg dans ce dossier, puis décommentez les 3 lignes ci-dessous.
+const SECONDARY_BANNERS: { src: string; alt: string }[] = [
+  // { src: '/livraison.jpg', alt: 'Livreur CBF SOKO à scooter avec un colis' },
+  // { src: '/boutique.jpg', alt: 'Boutique CBF SOKO avec son auvent orange' },
+  // { src: '/support.jpg', alt: 'Conseillère du support client CBF SOKO avec un casque-micro' },
+];
 
 type MediaUrlFn = (mediaPath?: string | null) => string;
 
@@ -1128,7 +1130,7 @@ export default function Home() {
             className="flex-shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             aria-label="CBF SOKO, accueil"
           >
-            <img src={logoCbfSoko} alt="CBF SOKO" className="h-10 w-auto sm:h-12" />
+            <img src="/logo-cbf-soko.jpg" alt="CBF SOKO" className="h-10 w-auto sm:h-12" />
           </Link>
 
           <form onSubmit={handleSearch} role="search" className="min-w-0 flex-1 lg:mx-auto lg:max-w-2xl">
@@ -1233,7 +1235,7 @@ export default function Home() {
               className="block overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:rounded-3xl"
             >
               <img
-                src={heroBanner}
+                src="/hero-banner.jpg"
                 alt="Des produits fiables, près de chez vous. Neuf ou d'occasion, trouvez ce qu'il vous faut au meilleur prix à Bukavu et partout en RDC. Explorer maintenant."
                 decoding="async"
                 className="block h-auto w-full"
@@ -1246,7 +1248,7 @@ export default function Home() {
               className="relative hidden overflow-hidden rounded-3xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 lg:block"
             >
               <img
-                src={sellerBanner}
+                src="/seller-banner.jpg"
                 alt="Devenez vendeur sur CBF SOKO ! Vendez vos produits en toute simplicité et atteignez plus de clients. Créer ma boutique."
                 decoding="async"
                 className="absolute inset-0 h-full w-full object-cover"
@@ -1304,7 +1306,7 @@ export default function Home() {
         <section
           aria-label="Catégories"
           className={`mx-auto grid max-w-7xl gap-4 px-3 pt-4 sm:px-6 sm:pt-6 lg:px-8 ${
-            categories.length > 0 ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]' : ''
+            categories.length > 0 && SECONDARY_BANNERS.length > 0 ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]' : ''
           }`}
         >
           {categories.length > 0 && (
@@ -1343,31 +1345,22 @@ export default function Home() {
             </div>
           )}
 
-          <div className="hidden min-w-0 rounded-2xl border border-[#EAECF0] bg-white p-3 shadow-[0_1px_3px_rgba(16,24,40,0.06)] lg:block">
-            <div className="grid grid-cols-3 gap-3">
-              <img
-                src={livraisonImg}
-                alt="Livreur CBF SOKO à scooter avec un colis"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/3] w-full rounded-xl object-cover"
-              />
-              <img
-                src={boutiqueImg}
-                alt="Boutique CBF SOKO avec son auvent orange"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/3] w-full rounded-xl object-cover"
-              />
-              <img
-                src={supportImg}
-                alt="Conseillère du support client CBF SOKO avec un casque-micro"
-                loading="lazy"
-                decoding="async"
-                className="aspect-[4/3] w-full rounded-xl object-cover"
-              />
+          {SECONDARY_BANNERS.length > 0 && (
+            <div className="hidden min-w-0 rounded-2xl border border-[#EAECF0] bg-white p-3 shadow-[0_1px_3px_rgba(16,24,40,0.06)] lg:block">
+              <div className="grid grid-cols-3 gap-3">
+                {SECONDARY_BANNERS.map((banner) => (
+                  <img
+                    key={banner.alt}
+                    src={banner.src}
+                    alt={banner.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* BANNIÈRE VENDEUR (mobile / tablette ; sur ordinateur la bannière vendeur est à côté du hero) */}
@@ -1395,7 +1388,7 @@ export default function Home() {
             </div>
             <div className="relative w-[30%] flex-shrink-0 sm:w-[36%]">
               <img
-                src={sellerBanner}
+                src="/seller-banner.jpg"
                 alt="Vendeur CBF SOKO souriant, prêt à vendre ses produits en ligne"
                 loading="lazy"
                 decoding="async"
@@ -1489,7 +1482,7 @@ export default function Home() {
       <footer className="border-t border-[#EAECF0] bg-[#F9FAFB] pb-28 pt-10 md:pb-8">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
-            <img src={logoCbfSoko} alt="CBF SOKO" loading="lazy" className="h-12 w-auto" />
+            <img src="/logo-cbf-soko.jpg" alt="CBF SOKO" loading="lazy" className="h-12 w-auto" />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#667085]">
               CBFSOKO met en relation acheteurs et vendeurs. Chaque annonce est publiée sous la seule responsabilité de son auteur.
             </p>
