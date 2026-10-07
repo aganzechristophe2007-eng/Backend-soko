@@ -8,7 +8,8 @@ import {
   X, Play, Sparkles,
   Eye, MessageCircle, Share2, Send,
   Home as HomeIcon, Plus, ArrowRight, Flame, Tag, BadgeCheck,
-  LayoutGrid, Smartphone, Laptop, Shirt, Plug, Car, MoreHorizontal
+  LayoutGrid, Smartphone, Laptop, Shirt, Plug, Car, MoreHorizontal,
+  Heart, Megaphone, ChevronRight
 } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
@@ -147,10 +148,16 @@ type MediaUrlFn = (mediaPath?: string | null) => string;
 
 const normalizeText = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+// 28 -> "0:28", 95 -> "1:35"
+const formatDuration = (totalSeconds: number): string => {
+  const s = Math.max(0, Math.round(totalSeconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
 // Icône Lucide choisie d'après le nom de la catégorie renvoyée par l'API (aucune catégorie n'est inventée).
 const getCategoryIcon = (name: string): React.ReactNode => {
   const n = normalizeText(name);
-  const cls = 'h-6 w-6 sm:h-7 sm:w-7';
+  const cls = 'h-[22px] w-[22px] sm:h-7 sm:w-7';
   if (/phone|mobile/.test(n)) return <Smartphone className={cls} aria-hidden="true" />;
   if (/informatique|ordinateur|computer|laptop/.test(n)) return <Laptop className={cls} aria-hidden="true" />;
   if (/mode|vetement|habit|chaussure/.test(n)) return <Shirt className={cls} aria-hidden="true" />;
@@ -168,13 +175,13 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader = ({ title, subtitle, icon, action }: SectionHeaderProps) => (
-  <div className="mb-4 flex items-end justify-between gap-4">
+  <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4 sm:gap-4">
     <div className="min-w-0">
-      <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight text-[#111111] sm:text-xl">
+      <h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-[#111111] sm:text-xl">
         {icon}
         <span className="truncate">{title}</span>
       </h2>
-      {subtitle && <p className="mt-0.5 text-sm text-[#667085]">{subtitle}</p>}
+      {subtitle && <p className="mt-0.5 text-xs text-[#667085] sm:text-sm">{subtitle}</p>}
     </div>
     {action && <div className="flex-shrink-0">{action}</div>}
   </div>
@@ -183,7 +190,7 @@ const SectionHeader = ({ title, subtitle, icon, action }: SectionHeaderProps) =>
 const SeeAllLink = () => (
   <Link
     to="/products"
-    className="inline-flex items-center gap-1 rounded-full px-1 text-sm font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+    className="inline-flex items-center gap-1 whitespace-nowrap rounded-full px-1 text-xs font-semibold text-[#FF6B00] transition-colors hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] sm:text-sm"
   >
     Voir tout
     <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -194,17 +201,138 @@ const SellerRow = ({ seller, getMediaUrl }: { seller?: SellerLite; getMediaUrl: 
   const name = seller?.name || 'Vendeur';
   return (
     <div className="flex min-w-0 items-center gap-1.5">
-      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#FFF1E7] text-[10px] font-bold text-[#FF6B00]">
+      <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#FFF1E7] text-[9px] font-bold text-[#FF6B00] sm:h-5 sm:w-5 sm:text-[10px]">
         {seller?.avatar ? (
           <img src={getMediaUrl(seller.avatar)} alt="" loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <span aria-hidden="true">{name.charAt(0).toUpperCase()}</span>
         )}
       </span>
-      <span className="truncate text-xs font-medium text-[#667085]">{name}</span>
+      <span className="truncate text-[10px] font-medium text-[#344054] sm:text-xs">{name}</span>
       {seller?.verified && (
-        <BadgeCheck className="h-3.5 w-3.5 flex-shrink-0 text-[#2E90FA]" role="img" aria-label="Vendeur vérifié" />
+        <BadgeCheck className="h-3 w-3 flex-shrink-0 text-[#2E90FA] sm:h-3.5 sm:w-3.5" role="img" aria-label="Vendeur vérifié" />
       )}
+    </div>
+  );
+};
+
+// Cœur « favori » en haut à droite des cartes. Persistance locale (navigateur) : à relier à votre API de favoris si elle existe.
+const FavoriteButton = ({ active, onToggle, title }: { active: boolean; onToggle: () => void; title: string }) => (
+  <button
+    type="button"
+    onClick={(e) => { e.stopPropagation(); onToggle(); }}
+    aria-pressed={active}
+    aria-label={active ? `Retirer des favoris : ${title}` : `Ajouter aux favoris : ${title}`}
+    className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#344054] shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] sm:right-2 sm:top-2 sm:h-8 sm:w-8"
+  >
+    <Heart className={`h-4 w-4 ${active ? 'fill-[#FF6B00] text-[#FF6B00]' : ''}`} aria-hidden="true" />
+  </button>
+);
+
+const CARD_BASE =
+  'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
+
+interface CardInfoProps {
+  seller?: SellerLite;
+  title: string;
+  priceUSD?: number;
+  priceCDF?: number;
+  location?: string;
+  getMediaUrl: MediaUrlFn;
+}
+
+const CardInfo = ({ seller, title, priceUSD, priceCDF, location, getMediaUrl }: CardInfoProps) => (
+  <div className="flex min-w-0 flex-1 flex-col gap-1 p-2 sm:p-3">
+    <SellerRow seller={seller} getMediaUrl={getMediaUrl} />
+    <h3 className="line-clamp-1 text-[11px] font-semibold leading-snug text-[#111111] sm:text-sm">{title}</h3>
+    {priceUSD !== undefined && (
+      <div className="mt-auto">
+        <p className="text-xs font-bold leading-tight text-[#FF6B00] sm:text-base">{priceUSD} $</p>
+        {priceCDF !== undefined && priceCDF > 0 && (
+          <p className="hidden text-xs text-[#667085] sm:block">≈ {formatCDF(priceCDF)} CDF</p>
+        )}
+      </div>
+    )}
+    {location && (
+      <p className="flex items-center gap-1 text-[10px] text-[#667085] sm:text-xs">
+        <MapPin className="h-3 w-3 flex-shrink-0 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+        <span className="truncate">{location}</span>
+      </p>
+    )}
+  </div>
+);
+
+interface ReelCardProps {
+  reel: ReelItem;
+  product?: ProductItem;
+  getMediaUrl: MediaUrlFn;
+  muted: boolean;
+  duration?: number;
+  isFavorite: boolean;
+  onOpen: () => void;
+  onToggleMute: () => void;
+  onToggleFavorite: () => void;
+  onDuration: (seconds: number) => void;
+  registerVideo: (el: HTMLVideoElement | null) => void;
+}
+
+const ReelCard = ({
+  reel, product, getMediaUrl, muted, duration, isFavorite,
+  onOpen, onToggleMute, onToggleFavorite, onDuration, registerVideo,
+}: ReelCardProps) => {
+  const title = product?.title || reel.caption || 'Vidéo produit';
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Ouvrir la vidéo : ${title}`}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className={`${CARD_BASE} cursor-pointer`}
+    >
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F2F4F7]">
+        <video
+          ref={registerVideo}
+          src={reel.videoUrl}
+          poster={reel.thumbnail}
+          loop
+          playsInline
+          autoPlay
+          aria-hidden="true"
+          onLoadedMetadata={(e) => onDuration(e.currentTarget.duration)}
+          className="h-full w-full object-cover"
+        />
+
+        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white backdrop-blur-sm sm:left-2 sm:top-2 sm:text-[11px]">
+          <Play className="h-2.5 w-2.5 fill-current" aria-hidden="true" />
+          {duration ? <span aria-label={`Durée ${formatDuration(duration)}`}>{formatDuration(duration)}</span> : null}
+        </span>
+
+        <FavoriteButton active={isFavorite} onToggle={onToggleFavorite} title={title} />
+
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onToggleMute(); }}
+          aria-label={muted ? 'Activer le son' : 'Couper le son'}
+          className="absolute bottom-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        >
+          {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+
+      <CardInfo
+        seller={reel.seller}
+        title={title}
+        priceUSD={product?.priceUSD}
+        priceCDF={product?.priceCDF}
+        location={product?.location}
+        getMediaUrl={getMediaUrl}
+      />
     </div>
   );
 };
@@ -213,9 +341,11 @@ interface ProductCardProps {
   product: ProductItem;
   onOpen: (productId: string) => void;
   getMediaUrl: MediaUrlFn;
+  isFavorite: boolean;
+  onToggleFavorite: (productId: string) => void;
 }
 
-const ProductCard = ({ product, onOpen, getMediaUrl }: ProductCardProps) => {
+const ProductCard = ({ product, onOpen, getMediaUrl, isFavorite, onToggleFavorite }: ProductCardProps) => {
   const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
   return (
     <article
@@ -229,7 +359,7 @@ const ProductCard = ({ product, onOpen, getMediaUrl }: ProductCardProps) => {
       tabIndex={0}
       role="link"
       aria-label={`${product.title}, ${product.priceUSD} $`}
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+      className={`${CARD_BASE} cursor-pointer`}
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F2F4F7]">
         <img
@@ -239,24 +369,19 @@ const ProductCard = ({ product, onOpen, getMediaUrl }: ProductCardProps) => {
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {isDemand && (
-          <span className="absolute left-2 top-2 rounded-full bg-[#FF6B00] px-2.5 py-1 text-[11px] font-bold text-white">DEMANDE</span>
+          <span className="absolute left-1.5 top-1.5 rounded-md bg-[#FF6B00] px-2 py-1 text-[10px] font-bold leading-none text-white sm:left-2 sm:top-2 sm:text-[11px]">DEMANDE</span>
         )}
+        <FavoriteButton active={isFavorite} onToggle={() => onToggleFavorite(product.id)} title={product.title} />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3">
-        <SellerRow seller={product.seller} getMediaUrl={getMediaUrl} />
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[#111111]">{product.title}</h3>
-        <div className="mt-auto pt-1">
-          <p className="text-lg font-bold leading-tight text-[#FF6B00]">{product.priceUSD} $</p>
-          {product.priceCDF > 0 && <p className="text-xs text-[#667085]">≈ {formatCDF(product.priceCDF)} CDF</p>}
-        </div>
-        {product.location && (
-          <p className="flex items-center gap-1 text-xs text-[#667085]">
-            <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-            <span className="truncate">{product.location}</span>
-          </p>
-        )}
-      </div>
+      <CardInfo
+        seller={product.seller}
+        title={product.title}
+        priceUSD={product.priceUSD}
+        priceCDF={product.priceCDF}
+        location={product.location}
+        getMediaUrl={getMediaUrl}
+      />
     </article>
   );
 };
@@ -269,26 +394,28 @@ interface CategoryPillProps {
   onClick: () => void;
 }
 
+const CATEGORY_SLOT = 'group flex w-[66px] flex-shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none sm:w-24 lg:w-auto lg:min-w-0 lg:flex-1';
+
 const CategoryPill = ({ label, icon, active, count, onClick }: CategoryPillProps) => (
   <button
     type="button"
     onClick={onClick}
     aria-pressed={active}
     title={count ? `${label} (${count})` : label}
-    className="group flex w-20 flex-shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none sm:w-24"
+    className={CATEGORY_SLOT}
   >
     <span
-      className={`flex h-14 w-14 items-center justify-center rounded-full border transition sm:h-16 sm:w-16 group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 ${
+      className={`flex h-12 w-12 items-center justify-center rounded-full transition sm:h-16 sm:w-16 group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 ${
         active
-          ? 'border-[#FF6B00] bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
-          : 'border-[#EAECF0] bg-white text-[#FF6B00] group-hover:border-[#FF6B00] group-hover:bg-[#FFF1E7]'
+          ? 'bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
+          : 'bg-[#FFF1E7] text-[#FF6B00] group-hover:bg-[#FFE4D1]'
       }`}
     >
       {icon}
     </span>
     <span
-      className={`line-clamp-2 break-words text-center text-[11px] leading-tight tracking-tight sm:text-xs ${
-        active ? 'font-semibold text-[#FF6B00]' : 'font-medium text-[#111111]'
+      className={`line-clamp-2 break-words text-center text-[10px] leading-tight tracking-tight sm:text-xs ${
+        active ? 'font-bold text-[#FF6B00]' : 'font-medium text-[#111111]'
       }`}
     >
       {label}
@@ -407,7 +534,7 @@ export default function Home() {
     mobileNav: 'border-t border-[#EAECF0] bg-white shadow-[0_-4px_16px_rgba(16,24,40,0.06)]',
   };
 
-  const iconBtn = 'relative h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
+  const iconBtn = 'relative h-9 w-9 flex-shrink-0 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
 
   const getMediaUrl = useCallback((mediaPath?: string | null) => {
     if (!mediaPath) return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80';
@@ -906,6 +1033,30 @@ export default function Home() {
     return counts;
   }, [products]);
 
+  // Durée des vidéos (lue dans les métadonnées de chaque vidéo, aucune donnée ajoutée côté API).
+  const [reelDurations, setReelDurations] = useState<Record<string, number>>({});
+  const handleReelDuration = useCallback((reelId: string, seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds <= 0) return;
+    setReelDurations((prev) => (prev[reelId] === seconds ? prev : { ...prev, [reelId]: seconds }));
+  }, []);
+
+  // Favoris (cœur des cartes) : mémorisés dans ce navigateur.
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('cbfsoko-favorites') || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const toggleFavorite = useCallback((productId: string) => {
+    setFavoriteIds((prev) => {
+      const next = prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId];
+      try { localStorage.setItem('cbfsoko-favorites', JSON.stringify(next)); } catch { /* stockage indisponible */ }
+      return next;
+    });
+  }, []);
+
   // Reels de « À la une » associés à leur produit (prix, localisation) : mêmes données, aucune donnée ajoutée.
   const featuredItems = useMemo(() => {
     const byId = new Map(products.map((p) => [p.id, p] as const));
@@ -947,6 +1098,9 @@ export default function Home() {
   const mobileItems = navItems.filter((item) => item.mobile);
   const mobileMid = 2;
 
+  // « Autres » (3 points) mène à la liste complète ; si l'API a déjà une catégorie « Autres », on l'appelle « Tout voir ».
+  const hasOthersCategory = categories.some((c) => /^autres?$/.test(normalizeText(c.name).trim()));
+
   return (
     <div
       className={`relative flex min-h-screen flex-col overflow-x-clip ${t.page}`}
@@ -960,39 +1114,38 @@ export default function Home() {
     >
       {/* HEADER */}
       <header className={`sticky top-0 z-50 ${t.header}`}>
-        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-2.5 lg:px-8">
           <Link
             to="/"
             className="flex-shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             aria-label="CBF SOKO, accueil"
           >
-            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" className="h-8 w-auto sm:h-11" />
+            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" className="h-10 w-auto sm:h-12" />
           </Link>
 
           <form onSubmit={handleSearch} role="search" className="min-w-0 flex-1 lg:mx-auto lg:max-w-2xl">
-            <div className="flex h-10 w-full min-w-0 items-center gap-2 rounded-full border border-[#EAECF0] bg-[#F9FAFB] pl-3 pr-1 transition focus-within:border-[#FF6B00] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF6B00]/20 sm:h-11 sm:pl-4">
-              <Search className="hidden h-4 w-4 flex-shrink-0 text-[#667085] sm:block" aria-hidden="true" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Ex : téléphone moins de 150 $"
-                aria-label="Rechercher un produit"
-                maxLength={200}
-                className="min-w-0 flex-1 bg-transparent text-base font-medium text-[#111111] placeholder-[#98A2B3] outline-none sm:text-sm"
-              />
+            <div className="flex h-10 w-full min-w-0 items-center gap-1 rounded-full border border-[#EAECF0] bg-white pl-1 pr-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 sm:h-11 sm:pr-4">
               <button
                 type="submit"
                 disabled={searchLoading}
                 aria-label="Rechercher"
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#FF6B00] text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-1 disabled:opacity-60"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[#111111] transition-colors hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] disabled:opacity-60"
               >
                 {searchLoading ? (
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#FF6B00] border-t-transparent" />
                 ) : (
-                  <Search className="h-4 w-4" />
+                  <Search className="h-5 w-5" />
                 )}
               </button>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Rechercher un produit, une boutique…"
+                aria-label="Rechercher un produit"
+                maxLength={200}
+                className="min-w-0 flex-1 bg-transparent text-base font-medium text-[#111111] placeholder-[#98A2B3] outline-none sm:text-sm"
+              />
             </div>
           </form>
 
@@ -1019,15 +1172,18 @@ export default function Home() {
 
             <Link
               to="/settings"
-              className={`${iconBtn} ${token ? 'inline-flex' : 'hidden sm:inline-flex'} overflow-hidden`}
+              className={`${token ? 'inline-flex' : 'hidden sm:inline-flex'} flex-shrink-0 items-center gap-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]`}
               title="Paramètres"
               aria-label="Paramètres"
             >
-              {token && user?.avatar ? (
-                <img src={getMediaUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <UserIcon className="h-[18px] w-[18px]" />
-              )}
+              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-[#EAECF0] bg-[#F2F4F7] text-[#111111] sm:h-10 sm:w-10">
+                {token && user?.avatar ? (
+                  <img src={getMediaUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <UserIcon className="h-[18px] w-[18px]" />
+                )}
+              </span>
+              <ChevronRight className="h-4 w-4 text-[#667085]" aria-hidden="true" />
             </Link>
 
             {!token && (
@@ -1059,25 +1215,40 @@ export default function Home() {
       </header>
 
       <main className="flex-1 pb-4">
-        {/* HERO : le texte et le bouton font partie de l'image, toute la bannière mène à la destination existante */}
-        <section aria-label="Bienvenue" className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+        {/* HERO (+ bannière vendeur à droite sur ordinateur). Le texte et les boutons font partie des images. */}
+        <section aria-label="Bienvenue" className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4 lg:px-8 lg:pt-6">
           <h1 className="sr-only">CBF SOKO : des produits fiables, près de chez vous</h1>
-          <Link
-            to="/products"
-            aria-label="Explorer maintenant"
-            className="block overflow-hidden rounded-3xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
-          >
-            <img
-              src="/assets/home/hero-banner.png"
-              alt="Des produits fiables, près de chez vous. Neuf ou d'occasion, trouvez ce qu'il vous faut au meilleur prix à Bukavu et partout en RDC. Explorer maintenant."
-              decoding="async"
-              className="block h-auto w-full"
-            />
-          </Link>
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+            <Link
+              to="/products"
+              aria-label="Explorer maintenant"
+              className="block overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:rounded-3xl"
+            >
+              <img
+                src="/assets/home/hero-banner.png"
+                alt="Des produits fiables, près de chez vous. Neuf ou d'occasion, trouvez ce qu'il vous faut au meilleur prix à Bukavu et partout en RDC. Explorer maintenant."
+                decoding="async"
+                className="block h-auto w-full"
+              />
+            </Link>
+
+            <Link
+              to={SELLER_SHOP_ROUTE}
+              aria-label="Créer ma boutique"
+              className="relative hidden overflow-hidden rounded-3xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 lg:block"
+            >
+              <img
+                src="/assets/home/seller-banner.png"
+                alt="Devenez vendeur sur CBF SOKO ! Vendez vos produits en toute simplicité et atteignez plus de clients. Créer ma boutique."
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </Link>
+          </div>
         </section>
 
-        {/* À LA UNE (reels) */}
-        <section aria-label="À la une" className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+        {/* À LA UNE (reels) : défilement horizontal sur mobile, 6 puis 8 vignettes alignées sur ordinateur */}
+        <section aria-label="À la une" className="mx-auto max-w-7xl px-3 pt-5 sm:px-6 sm:pt-8 lg:px-8">
           <SectionHeader
             icon={<Flame className="h-5 w-5 text-[#FF6B00]" aria-hidden="true" />}
             title="À la une"
@@ -1086,132 +1257,135 @@ export default function Home() {
           />
 
           {loadingProducts ? (
-            <div className="-mx-4 flex gap-3 overflow-hidden px-4 sm:mx-0 sm:gap-4 sm:px-0">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-[280px] w-[158px] flex-shrink-0 animate-pulse rounded-2xl bg-[#F2F4F7] sm:w-[190px] lg:w-[208px]" />
+            <div className="-mx-3 flex gap-2.5 overflow-hidden px-3 sm:mx-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-6 xl:grid-cols-8">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-[190px] w-[112px] flex-shrink-0 animate-pulse rounded-2xl bg-[#F2F4F7] sm:h-[260px] sm:w-[150px] lg:h-[250px] lg:w-auto" />
               ))}
             </div>
           ) : featuredItems.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#EAECF0] py-8 text-center text-sm text-[#667085]">Aucune vidéo.</div>
           ) : (
-            <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 pt-1 sm:mx-0 sm:scroll-px-0 sm:gap-4 sm:px-0">
-              {featuredItems.map(({ reel, product }) => {
-                const title = product?.title || reel.caption || 'Vidéo produit';
-                return (
-                  <div key={reel.id} className="w-[158px] flex-shrink-0 snap-start sm:w-[190px] lg:w-[208px]">
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Ouvrir la vidéo : ${title}`}
-                      onClick={() => openFullscreenReelById(reel.id)}
-                      onKeyDown={(e) => {
-                        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
-                          e.preventDefault();
-                          openFullscreenReelById(reel.id);
-                        }
-                      }}
-                      className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-                    >
-                      <div className="relative aspect-[3/4] w-full overflow-hidden bg-[#F2F4F7]">
-                        <video
-                          ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
-                          src={reel.videoUrl}
-                          poster={reel.thumbnail}
-                          loop
-                          playsInline
-                          autoPlay
-                          aria-hidden="true"
-                          className="h-full w-full object-cover"
-                        />
-
-                        <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
-                          <Play className="h-3 w-3 fill-current" aria-hidden="true" />
-                          Reel
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }}
-                          aria-label={isReelMuted(reel.id) ? 'Activer le son' : 'Couper le son'}
-                          className="absolute bottom-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                        >
-                          {isReelMuted(reel.id) ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                        </button>
-                      </div>
-
-                      <div className="flex min-w-0 flex-col gap-1 p-3">
-                        <SellerRow seller={reel.seller} getMediaUrl={getMediaUrl} />
-                        <p className="line-clamp-1 text-sm font-medium text-[#111111]">{title}</p>
-                        {product && <p className="text-base font-bold leading-tight text-[#FF6B00]">{product.priceUSD} $</p>}
-                        {product?.location && (
-                          <p className="flex items-center gap-1 text-xs text-[#667085]">
-                            <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{product.location}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="scrollbar-hide -mx-3 flex snap-x snap-mandatory scroll-px-3 gap-2.5 overflow-x-auto px-3 pb-3 pt-1 sm:mx-0 sm:scroll-px-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-6 lg:overflow-visible xl:grid-cols-8">
+              {featuredItems.map(({ reel, product }, index) => (
+                <div
+                  key={reel.id}
+                  className={`w-[112px] flex-shrink-0 snap-start sm:w-[150px] md:w-[168px] lg:w-auto ${
+                    index >= 8 ? 'lg:hidden' : index >= 6 ? 'lg:hidden xl:block' : ''
+                  }`}
+                >
+                  <ReelCard
+                    reel={reel}
+                    product={product}
+                    getMediaUrl={getMediaUrl}
+                    muted={isReelMuted(reel.id)}
+                    duration={reelDurations[reel.id]}
+                    isFavorite={favoriteIds.includes(reel.productId)}
+                    onOpen={() => openFullscreenReelById(reel.id)}
+                    onToggleMute={() => toggleReelMute(reel.id)}
+                    onToggleFavorite={() => toggleFavorite(reel.productId)}
+                    onDuration={(seconds) => handleReelDuration(reel.id, seconds)}
+                    registerVideo={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
+                  />
+                </div>
+              ))}
             </div>
           )}
         </section>
 
-        {/* CATÉGORIES */}
-        {categories.length > 0 && (
-          <section aria-label="Catégories" className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-            <div className="scrollbar-hide -mx-4 flex gap-1 overflow-x-auto px-4 pb-1 pt-1 sm:mx-0 sm:gap-3 sm:px-0">
-              <CategoryPill
-                label="Tous"
-                icon={<LayoutGrid className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />}
-                active={activeCategoryId === null}
-                onClick={() => setActiveCategoryId(null)}
-              />
-              {categories.map((cat) => (
+        {/* CATÉGORIES (+ illustrations livraison / boutique / support sur ordinateur) */}
+        <section
+          aria-label="Catégories"
+          className={`mx-auto grid max-w-7xl gap-4 px-3 pt-4 sm:px-6 sm:pt-6 lg:px-8 ${
+            categories.length > 0 ? 'lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]' : ''
+          }`}
+        >
+          {categories.length > 0 && (
+            <div className="min-w-0 lg:rounded-2xl lg:border lg:border-[#EAECF0] lg:bg-white lg:p-4 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
+              <div className="scrollbar-hide -mx-3 flex gap-0.5 overflow-x-auto px-3 pb-1 pt-1 sm:mx-0 sm:gap-3 sm:px-0 lg:gap-1 lg:overflow-visible lg:pb-0 lg:pt-0">
                 <CategoryPill
-                  key={cat.id}
-                  label={cat.name}
-                  icon={getCategoryIcon(cat.name)}
-                  active={activeCategoryId === cat.id}
-                  count={categoryCounts[cat.id] ?? 0}
-                  onClick={() => setActiveCategoryId(cat.id)}
+                  label="Tous"
+                  icon={<LayoutGrid className="h-[22px] w-[22px] sm:h-7 sm:w-7" aria-hidden="true" />}
+                  active={activeCategoryId === null}
+                  onClick={() => setActiveCategoryId(null)}
                 />
-              ))}
-              <Link
-                to="/products"
-                aria-label="Tout voir"
-                title="Tout voir"
-                className="group flex w-20 flex-shrink-0 flex-col items-center gap-1.5 focus-visible:outline-none sm:w-24"
-              >
-                <span className="flex h-14 w-14 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#667085] transition group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 sm:h-16 sm:w-16">
-                  <MoreHorizontal className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
-                </span>
-                <span className="text-center text-[11px] font-medium leading-tight text-[#111111] sm:text-xs">Tout voir</span>
-              </Link>
+                {categories.map((cat) => (
+                  <CategoryPill
+                    key={cat.id}
+                    label={cat.name}
+                    icon={getCategoryIcon(cat.name)}
+                    active={activeCategoryId === cat.id}
+                    count={categoryCounts[cat.id] ?? 0}
+                    onClick={() => setActiveCategoryId(cat.id)}
+                  />
+                ))}
+                <Link
+                  to="/products"
+                  aria-label="Voir toutes les annonces"
+                  title="Voir toutes les annonces"
+                  className={CATEGORY_SLOT}
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00] transition group-hover:bg-[#FFE4D1] group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 sm:h-16 sm:w-16">
+                    <MoreHorizontal className="h-[22px] w-[22px] sm:h-7 sm:w-7" aria-hidden="true" />
+                  </span>
+                  <span className="text-center text-[10px] font-medium leading-tight tracking-tight text-[#111111] sm:text-xs">
+                    {hasOthersCategory ? 'Tout voir' : 'Autres'}
+                  </span>
+                </Link>
+              </div>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* BANNIÈRE VENDEUR */}
-        <section aria-label="Devenir vendeur" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="relative flex items-stretch overflow-hidden rounded-3xl border border-[#FFE0CC] bg-[#FFF1E7]">
-            <div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5 p-4 sm:gap-3 sm:p-8 lg:p-12">
-              <h2 className="text-lg font-bold leading-snug text-[#111111] sm:text-2xl lg:text-4xl">
-                Vendez vos produits <span className="text-[#FF6B00]">en toute simplicité !</span>
-              </h2>
-              <p className="text-xs leading-relaxed text-[#667085] sm:text-sm lg:text-base">
-                Créez votre boutique et touchez plus de clients.
-              </p>
-              <Link
-                to={SELLER_SHOP_ROUTE}
-                className="mt-1 inline-flex w-fit items-center gap-2 rounded-full bg-[#FF6B00] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:px-6 sm:py-3"
-              >
-                Créer ma boutique
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+          <div className="hidden min-w-0 rounded-2xl border border-[#EAECF0] bg-white p-3 shadow-[0_1px_3px_rgba(16,24,40,0.06)] lg:block">
+            <div className="grid grid-cols-3 gap-3">
+              <img
+                src="/assets/home/livraison.png"
+                alt="Livreur CBF SOKO à scooter avec un colis"
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full rounded-xl object-cover"
+              />
+              <img
+                src="/assets/home/boutique.png"
+                alt="Boutique CBF SOKO avec son auvent orange"
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full rounded-xl object-cover"
+              />
+              <img
+                src="/assets/home/support.png"
+                alt="Conseillère du support client CBF SOKO avec un casque-micro"
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full rounded-xl object-cover"
+              />
             </div>
-            <div className="relative w-[36%] flex-shrink-0 sm:w-[40%]">
+          </div>
+        </section>
+
+        {/* BANNIÈRE VENDEUR (mobile / tablette ; sur ordinateur la bannière vendeur est à côté du hero) */}
+        <section aria-label="Devenir vendeur" className="mx-auto max-w-7xl px-3 pb-6 pt-4 sm:px-6 lg:hidden">
+          <div className="flex items-stretch overflow-hidden rounded-2xl border border-[#FFE0CC] bg-[#FFF1E7]">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 p-3 sm:gap-4 sm:p-5">
+              <Megaphone className="h-8 w-8 flex-shrink-0 text-[#FF6B00] sm:h-12 sm:w-12" aria-hidden="true" />
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-bold leading-tight text-[#111111] sm:text-2xl">
+                  <span className="text-[#FF6B00]">Vendez vos produits</span>
+                  <br />
+                  en toute simplicité !
+                </h2>
+                <p className="mt-1 text-[11px] leading-snug text-[#667085] sm:text-sm">
+                  Créez votre boutique et touchez plus de clients.
+                </p>
+                <Link
+                  to={SELLER_SHOP_ROUTE}
+                  className="mt-2.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#FF6B00] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:px-5 sm:py-2.5 sm:text-sm"
+                >
+                  Créer ma boutique
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+            <div className="relative w-[30%] flex-shrink-0 sm:w-[36%]">
               <img
                 src="/assets/home/seller-banner.png"
                 alt="Vendeur CBF SOKO souriant, prêt à vendre ses produits en ligne"
@@ -1224,7 +1398,7 @@ export default function Home() {
         </section>
 
         {/* DERNIÈRES ANNONCES / RÉSULTATS DE RECHERCHE */}
-        <section ref={annoncesRef} aria-label="Annonces" className="mx-auto max-w-7xl scroll-mt-32 px-4 pb-8 sm:px-6 lg:px-8">
+        <section ref={annoncesRef} aria-label="Annonces" className="mx-auto max-w-7xl scroll-mt-32 px-3 pb-8 pt-2 sm:px-6 lg:px-8 lg:pt-6">
           <SectionHeader
             icon={<Tag className="h-5 w-5 text-[#FF6B00]" aria-hidden="true" />}
             title={searchResults !== null ? 'Résultats de la recherche' : 'Nos dernières annonces'}
@@ -1270,8 +1444,8 @@ export default function Home() {
           )}
 
           {loadingProducts || searchLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
-              {[...Array(10)].map((_, i) => (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
+              {[...Array(12)].map((_, i) => (
                 <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-[#EAECF0] bg-white">
                   <div className="aspect-[4/5] w-full bg-[#F2F4F7]" />
                   <div className="space-y-2 p-3">
@@ -1287,9 +1461,16 @@ export default function Home() {
               {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
               {displayedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onOpen={goToProductDetails} getMediaUrl={getMediaUrl} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onOpen={goToProductDetails}
+                  getMediaUrl={getMediaUrl}
+                  isFavorite={favoriteIds.includes(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                />
               ))}
             </div>
           )}
@@ -1300,7 +1481,7 @@ export default function Home() {
       <footer className="border-t border-[#EAECF0] bg-[#F9FAFB] pb-28 pt-10 md:pb-8">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
-            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" loading="lazy" className="h-10 w-auto" />
+            <img src="/assets/home/logo-cbf-soko.png" alt="CBF SOKO" loading="lazy" className="h-12 w-auto" />
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-[#667085]">
               CBFSOKO met en relation acheteurs et vendeurs. Chaque annonce est publiée sous la seule responsabilité de son auteur.
             </p>
