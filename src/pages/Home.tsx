@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Search, Camera, MessageSquare, Bell, Package,
   MapPin, ChevronRight, User as UserIcon,
   Volume2, VolumeX, Store,
-  Images, X, Play, Settings as SettingsIcon, Sparkles,
-  Eye, MessageCircle, Share2, Send, MoreHorizontal, RefreshCw
+  Images, X, Play, Sparkles,
+  Eye, MessageCircle, Share2, Send, MoreHorizontal
 } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
@@ -14,7 +14,6 @@ import { useAuth } from '../context/Authcontext';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from '../lib/textPrefs';
 
 const API_ORIGIN = BASE_URL.replace(/\/api\/?$/, '');
-const API_BASE = BASE_URL.replace(/\/+$/, '');
 
 interface User {
   id?: string;
@@ -101,19 +100,11 @@ interface NavItem {
 // Orange #c2410c pour les boutons (texte blanc dessus), orange #f97316 pour les prix et accents sur noir.
 const DEFAULT_BACKGROUND = '#000000';
 
-const PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80';
-
-const COMMENT_MAX_LENGTH = 300;
-
 // L'ancien fond "Kivu Nature" éventuellement enregistré est ignoré au profit du noir.
 const readSavedBg = (): string => {
-  try {
-    const saved = localStorage.getItem('cbfsoko-custom-bg');
-    if (!saved || saved.includes('photo-1507525428034')) return DEFAULT_BACKGROUND;
-    return saved;
-  } catch {
-    return DEFAULT_BACKGROUND;
-  }
+  const saved = localStorage.getItem('cbfsoko-custom-bg');
+  if (!saved || saved.includes('photo-1507525428034')) return DEFAULT_BACKGROUND;
+  return saved;
 };
 
 // Informations légales affichées dans le pied de page. Seules les valeurs renseignées sont affichées :
@@ -145,41 +136,6 @@ const LEGAL_LINKS = [
 
 // 184690000 -> "184 690 000"
 const formatCDF = (value: number): string => String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-
-// 150 -> "150 $", 12.5 -> "12,5 $". Renvoie null quand le prix n'est pas renseigné (0 ou invalide).
-const usdFormatter = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
-const formatUSD = (value: number): string | null => {
-  const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return `${usdFormatter.format(n)} $`;
-};
-
-// Format court façon réseaux sociaux : 1 200 -> "1,2 k", 15 000 -> "15 k".
-const formatCount = (value: number): string => {
-  if (!value || value < 1000) return String(value || 0);
-  const suffix = value < 1_000_000 ? 'k' : 'M';
-  const base = value < 1_000_000 ? value / 1000 : value / 1_000_000;
-  const formatted = base.toFixed(1).replace(/\.0$/, '').replace('.', ',');
-  return `${formatted} ${suffix}`;
-};
-
-// Ancienneté d'une annonce : "Il y a 3 h", "Il y a 2 j"...
-const timeAgo = (iso?: string): string => {
-  if (!iso) return '';
-  const diff = Date.now() - new Date(iso).getTime();
-  if (!Number.isFinite(diff) || diff < 0) return '';
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return "À l'instant";
-  if (minutes < 60) return `Il y a ${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Il y a ${hours} h`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `Il y a ${days} j`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `Il y a ${months} mois`;
-  const years = Math.floor(months / 12);
-  return `Il y a ${years} ${years > 1 ? 'ans' : 'an'}`;
-};
 
 const SectionHeader = ({ title, action }: { title: string; action?: React.ReactNode }) => (
   <div className="mb-3 flex items-center justify-between gap-3 px-1">
@@ -215,7 +171,7 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
       ? 'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold'
       : 'flex w-full flex-col items-center gap-1 text-xs font-semibold transition-colors duration-150';
 
-  const className = `${layout} ${state} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white`;
+  const className = `${layout} ${state} focus-visible:outline-none`;
 
   const content = (
     <>
@@ -238,93 +194,6 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
   );
 };
 
-interface ReelThumbProps {
-  reel: ReelItem;
-  muted: boolean;
-  views: number;
-  onOpen: (reelId: string) => void;
-  onToggleMute: (reelId: string) => void;
-  mediaUrl: (path?: string | null) => string;
-}
-
-// Miniature de reel : la vidéo ne se lit que lorsqu'elle est réellement visible à l'écran
-// (économise données et batterie, important sur mobile) et respecte "réduire les animations".
-const ReelThumb = React.memo(({ reel, muted, views, onOpen, onToggleMute, mediaUrl }: ReelThumbProps) => {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = muted;
-  }, [muted]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || typeof IntersectionObserver === 'undefined') return;
-    const reduceMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) video.play().catch(() => undefined);
-        else video.pause();
-      },
-      { threshold: 0.6 }
-    );
-    observer.observe(video);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div className="group relative aspect-[9/16] w-28 flex-shrink-0 snap-start overflow-hidden rounded-lg border border-neutral-500 bg-black transition-colors duration-200 hover:border-[#f97316] sm:w-32">
-      <video
-        ref={videoRef}
-        src={reel.videoUrl}
-        poster={reel.thumbnail}
-        preload="metadata"
-        muted={muted}
-        loop
-        playsInline
-        aria-hidden="true"
-        className="h-full w-full object-cover"
-      />
-
-      <button
-        type="button"
-        onClick={() => onOpen(reel.id)}
-        aria-label={`Ouvrir la vidéo : ${reel.caption || 'annonce'}`}
-        className="absolute inset-0 z-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-white"
-      />
-
-      <div className="pointer-events-none absolute left-1.5 top-1.5 z-10 flex max-w-[calc(100%-0.75rem)] items-center gap-1.5 rounded-full bg-black py-0.5 pl-0.5 pr-2">
-        <span className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-[#c2410c]">
-          {reel.seller?.avatar ? (
-            <img src={mediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <UserIcon className="h-full w-full p-0.5 text-white" />
-          )}
-        </span>
-        <span className="truncate text-xs font-bold text-white">{reel.seller?.name || 'Vendeur'}</span>
-      </div>
-
-      {views > 0 && (
-        <span className="pointer-events-none absolute bottom-2 left-1.5 z-10 flex items-center gap-1 rounded-full bg-black px-2 py-0.5 text-[11px] font-bold text-white">
-          <Eye className="h-3 w-3 text-[#f97316]" aria-hidden="true" />
-          {formatCount(views)}
-        </span>
-      )}
-
-      <button
-        type="button"
-        onClick={() => onToggleMute(reel.id)}
-        aria-label={muted ? 'Activer le son' : 'Couper le son'}
-        aria-pressed={!muted}
-        className="absolute bottom-2 right-1.5 z-10 rounded-full border border-neutral-500 bg-black p-1.5 text-white hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-      >
-        {muted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-      </button>
-    </div>
-  );
-});
-ReelThumb.displayName = 'ReelThumb';
-
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const location = useLocation();
@@ -335,7 +204,6 @@ export default function Home() {
 
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
-  const [loadError, setLoadError] = useState<string>('');
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
 
@@ -344,11 +212,11 @@ export default function Home() {
   const [searchInfo, setSearchInfo] = useState<SearchInfo | null>(null);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [searchError, setSearchError] = useState<string>('');
-  const searchAbortRef = useRef<AbortController | null>(null);
 
   const [customBg, setCustomBg] = useState<string>(() => readSavedBg());
 
   const [reelMutedMap, setReelMutedMap] = useState<Record<string, boolean>>({});
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const [fullscreenReelIndex, setFullscreenReelIndex] = useState<number | null>(null);
   const fullscreenVideoRef = useRef<HTMLVideoElement | null>(null);
   const [fullscreenMuted, setFullscreenMuted] = useState<boolean>(false);
@@ -357,24 +225,20 @@ export default function Home() {
 
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const wheelLockRef = useRef<boolean>(false);
-  const wheelTimerRef = useRef<number | null>(null);
 
   const [showAuth, setShowAuth] = useState<boolean>(false);
   const [deliveryLoading, setDeliveryLoading] = useState<boolean>(false);
   const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
-  // Confirmation avant d'envoyer une demande de livraison déclenchée par un geste (swipe).
-  const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null);
 
   // Vues / commentaires des reels (colonne d'icônes façon TikTok)
   const [reelStatsOverride, setReelStatsOverride] = useState<Record<string, ReelStats>>({});
-  const viewedReelsRef = useRef<Set<string>>(new Set());
+  const [shareConfirm, setShareConfirm] = useState<boolean>(false);
+  const shareConfirmTimerRef = useRef<number | null>(null);
 
-  // Message de confirmation / d'erreur discret (copie du lien, échec d'une demande...)
-  const [toast, setToast] = useState<string>('');
-  const toastTimerRef = useRef<number | null>(null);
-
-  // Menu "..." des cartes produit
+  // Menu "..." des cartes produit + confirmation de copie du lien
   const [menuProductId, setMenuProductId] = useState<string | null>(null);
+  const [cardShareToast, setCardShareToast] = useState<boolean>(false);
+  const cardShareTimerRef = useRef<number | null>(null);
 
   // Description complète du produit affiché en plein écran (non incluse dans la liste /api/products
   // pour garder celle-ci légère) : récupérée à la demande et mise en cache par produit.
@@ -400,43 +264,15 @@ export default function Home() {
     mobileNav: 'bg-black border-t-2 border-neutral-600',
   };
 
-  const iconBtn = 'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-600 bg-black text-white transition-colors hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
-
-  const showToast = useCallback((message: string) => {
-    setToast(message);
-    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = window.setTimeout(() => setToast(''), 2500);
-  }, []);
+  const iconBtn = 'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-neutral-600 bg-black text-white transition-colors hover:border-white focus-visible:outline-none';
 
   const getMediaUrl = useCallback((mediaPath?: string | null) => {
-    if (!mediaPath) return PLACEHOLDER_IMAGE;
+    if (!mediaPath) return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500&q=80';
     if (mediaPath.startsWith('http') || mediaPath.startsWith('blob:') || mediaPath.startsWith('data:')) {
       return mediaPath;
     }
     const cleanPath = mediaPath.replace(/\\/g, '/').replace(/^\/+/, '');
     return `${API_ORIGIN}/${cleanPath}`;
-  }, []);
-
-  // Image de secours si le fichier d'une annonce est introuvable (évite l'icône d'image cassée).
-  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    if (img.dataset.fallback) return;
-    img.dataset.fallback = '1';
-    img.src = PLACEHOLDER_IMAGE;
-  }, []);
-
-  // Titre d'onglet clair pour le navigateur et le partage.
-  useEffect(() => {
-    document.title = 'CBFSOKO | Achetez et vendez facilement';
-  }, []);
-
-  // Nettoyage des minuteurs à la fermeture de la page.
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
-      if (wheelTimerRef.current) window.clearTimeout(wheelTimerRef.current);
-      if (searchAbortRef.current) searchAbortRef.current.abort();
-    };
   }, []);
 
   // Le fond d'écran est choisi depuis la page Paramètres ; ici on ne fait que
@@ -465,32 +301,18 @@ export default function Home() {
     };
   }, []);
 
-  const loadProducts = useCallback(() => {
-    setLoadingProducts(true);
-    setLoadError('');
+  useEffect(() => {
     apiFetch('/products')
       .then((data) => {
         const list: ProductItem[] = Array.isArray(data) ? data : data.data || [];
         setProducts(list);
       })
-      .catch((err) => {
-        console.error('Erreur chargement produits', err);
-        setLoadError('Impossible de charger les annonces. Vérifiez votre connexion puis réessayez.');
-      })
+      .catch((err) => console.error('Erreur chargement produits', err))
       .finally(() => setLoadingProducts(false));
-  }, []);
-
-  useEffect(() => {
-    loadProducts();
 
     apiFetch('/categories')
       .then((data) => setCategories(data.categories || []))
       .catch((err) => console.error('Erreur chargement catégories', err));
-  }, [loadProducts]);
-
-  const openAuth = useCallback((redirect?: string) => {
-    setPendingRedirect(redirect ?? null);
-    setShowAuth(true);
   }, []);
 
   const displayedReels = useMemo<ReelItem[]>(
@@ -529,7 +351,6 @@ export default function Home() {
   useEffect(() => {
     setShowComments(false);
     setDescriptionExpanded(false);
-    setPendingDeliveryId(null);
   }, [fullscreenReelIndex]);
 
   const currentFullscreenReel = useMemo(() => {
@@ -542,17 +363,6 @@ export default function Home() {
     [currentFullscreenReel, products]
   );
 
-  // Empêche la page de défiler derrière un reel plein écran ou le panneau de connexion.
-  const overlayOpen = fullscreenReelIndex !== null || showAuth;
-  useEffect(() => {
-    if (!overlayOpen) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [overlayOpen]);
-
   useEffect(() => {
     const video = fullscreenVideoRef.current;
     if (fullscreenReelIndex === null || !video) return;
@@ -564,46 +374,26 @@ export default function Home() {
     });
   }, [fullscreenReelIndex]);
 
-  // Clavier (ordinateur) : Échap ferme la couche du dessus, flèches haut/bas changent de reel.
-  const reelOpen = fullscreenReelIndex !== null;
-  const reelCount = displayedReels.length;
-  useEffect(() => {
-    if (!reelOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      const typing = tag === 'INPUT' || tag === 'TEXTAREA';
-      if (e.key === 'Escape') {
-        if (pendingDeliveryId) setPendingDeliveryId(null);
-        else if (showComments) setShowComments(false);
-        else setFullscreenReelIndex(null);
-        return;
-      }
-      if (typing || showComments || pendingDeliveryId) return;
-      if (e.key === 'ArrowDown') {
-        setFullscreenReelIndex((i) => (i !== null && i < reelCount - 1 ? i + 1 : i));
-      } else if (e.key === 'ArrowUp') {
-        setFullscreenReelIndex((i) => (i !== null && i > 0 ? i - 1 : i));
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [reelOpen, reelCount, showComments, pendingDeliveryId]);
-
   // Identifiant anonyme stable (utilisé pour compter une vue par visiteur, même sans compte).
   const getVisitorId = useCallback((): string => {
     const key = 'cbfsoko-visitor-id';
-    try {
-      let id = localStorage.getItem(key);
-      if (!id) {
-        id = typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `v-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        localStorage.setItem(key, id);
-      }
-      return id;
-    } catch {
-      return `v-${Date.now()}`;
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `v-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem(key, id);
     }
+    return id;
+  }, []);
+
+  // Format court façon réseaux sociaux : 1 2 3 -> "1,2 k", 15 000 -> "15 k".
+  const formatCount = useCallback((value: number): string => {
+    if (!value || value < 1000) return String(value || 0);
+    const suffix = value < 1_000_000 ? 'k' : 'M';
+    const base = value < 1_000_000 ? value / 1000 : value / 1_000_000;
+    const formatted = base.toFixed(1).replace(/\.0$/, '').replace('.', ',');
+    return `${formatted} ${suffix}`;
   }, []);
 
   const baseReelStats = useMemo(() => {
@@ -617,9 +407,6 @@ export default function Home() {
     return map;
   }, [products]);
 
-  const baseReelStatsRef = useRef(baseReelStats);
-  baseReelStatsRef.current = baseReelStats;
-
   const getReelStats = useCallback(
     (reelId: string): ReelStats => {
       const base = baseReelStats[reelId] ?? { views: 0, comments: 0 };
@@ -628,17 +415,6 @@ export default function Home() {
     },
     [baseReelStats, reelStatsOverride]
   );
-
-  // Met à jour un seul compteur (vues ou commentaires) sans écraser l'autre ni lire d'état périmé.
-  const patchReelStats = useCallback((reelId: string, patch: Partial<ReelStats>) => {
-    setReelStatsOverride((prev) => ({
-      ...prev,
-      [reelId]: {
-        ...(prev[reelId] ?? baseReelStatsRef.current[reelId] ?? { views: 0, comments: 0 }),
-        ...patch,
-      },
-    }));
-  }, []);
 
   const currentReelStats = useMemo(
     () => (currentFullscreenReel ? getReelStats(currentFullscreenReel.id) : { views: 0, comments: 0 }),
@@ -652,7 +428,7 @@ export default function Home() {
 
   const registerReelView = useCallback(async (reelId: string) => {
     try {
-      const response = await fetch(`${API_BASE}/reels/${reelId}/view`, {
+      const response = await fetch(`${BASE_URL.replace(/\/+$/, '')}/reels/${reelId}/view`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -660,22 +436,22 @@ export default function Home() {
       });
       const result = await response.json();
       if (response.ok && result.success) {
-        patchReelStats(reelId, { views: result.viewsCount });
+        setReelStatsOverride((prev) => ({
+          ...prev,
+          [reelId]: { ...getReelStats(reelId), views: result.viewsCount },
+        }));
       }
     } catch (err) {
       console.error('Erreur enregistrement vue reel', err);
     }
-  }, [getVisitorId, patchReelStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getVisitorId]);
 
-  // Une vue est comptée quand le reel reste affiché en plein écran ~2 secondes, une seule fois par session.
+  // Une vue est comptée quand le reel reste affiché en plein écran ~2 secondes, une fois par ouverture.
   useEffect(() => {
     if (!currentFullscreenReel) return;
     const reelId = currentFullscreenReel.id;
-    if (viewedReelsRef.current.has(reelId)) return;
-    const timer = window.setTimeout(() => {
-      viewedReelsRef.current.add(reelId);
-      registerReelView(reelId);
-    }, 2000);
+    const timer = window.setTimeout(() => registerReelView(reelId), 2000);
     return () => window.clearTimeout(timer);
   }, [currentFullscreenReel, registerReelView]);
 
@@ -685,7 +461,7 @@ export default function Home() {
     const productId = currentFullscreenReel.productId;
     if (reelDescriptions[productId] !== undefined) return;
     let cancelled = false;
-    fetch(`${API_BASE}/products/${productId}`, { credentials: 'include' })
+    fetch(`${BASE_URL.replace(/\/+$/, '')}/products/${productId}`, { credentials: 'include' })
       .then((r) => r.json())
       .then((result) => {
         if (cancelled || !result?.success || !result.data) return;
@@ -701,7 +477,7 @@ export default function Home() {
     setCommentsLoading(true);
     setCommentsError('');
     try {
-      const response = await fetch(`${API_BASE}/reels/${reelId}/comments?page=${page}`, {
+      const response = await fetch(`${BASE_URL.replace(/\/+$/, '')}/reels/${reelId}/comments?page=${page}`, {
         credentials: 'include',
       });
       const result = await response.json();
@@ -739,12 +515,12 @@ export default function Home() {
       return;
     }
     const content = commentText.trim();
-    if (content.length < 1 || content.length > COMMENT_MAX_LENGTH || commentSubmitting) return;
+    if (content.length < 1 || content.length > 300 || commentSubmitting) return;
 
     setCommentSubmitting(true);
     setCommentsError('');
     try {
-      const response = await fetch(`${API_BASE}/reels/${currentFullscreenReel.id}/comments`, {
+      const response = await fetch(`${BASE_URL.replace(/\/+$/, '')}/reels/${currentFullscreenReel.id}/comments`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -754,34 +530,40 @@ export default function Home() {
       if (!response.ok || !result.success) throw new Error(result.error || "Impossible d'envoyer le commentaire.");
       setComments((prev) => [result.comment, ...prev]);
       setCommentText('');
-      patchReelStats(currentFullscreenReel.id, { comments: result.commentsCount });
+      setReelStatsOverride((prev) => ({
+        ...prev,
+        [currentFullscreenReel.id]: { views: getReelStats(currentFullscreenReel.id).views, comments: result.commentsCount },
+      }));
     } catch (err: any) {
       setCommentsError(err.message || "Impossible d'envoyer le commentaire.");
     } finally {
       setCommentSubmitting(false);
     }
-  }, [currentFullscreenReel, token, commentText, commentSubmitting, openAuth, patchReelStats]);
+  }, [currentFullscreenReel, token, commentText, commentSubmitting, getReelStats]);
 
   const deleteComment = useCallback(async (commentId: string) => {
     if (!currentFullscreenReel) return;
     try {
-      const response = await fetch(`${API_BASE}/reels/${currentFullscreenReel.id}/comments/${commentId}`, {
+      const response = await fetch(`${BASE_URL.replace(/\/+$/, '')}/reels/${currentFullscreenReel.id}/comments/${commentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error || 'Suppression impossible.');
       setComments((prev) => prev.filter((c) => c.id !== commentId));
-      patchReelStats(currentFullscreenReel.id, { comments: result.commentsCount });
+      setReelStatsOverride((prev) => ({
+        ...prev,
+        [currentFullscreenReel.id]: { views: getReelStats(currentFullscreenReel.id).views, comments: result.commentsCount },
+      }));
     } catch (err) {
       console.error('Erreur suppression commentaire', err);
-      showToast('Suppression impossible. Réessayez.');
     }
-  }, [currentFullscreenReel, patchReelStats, showToast]);
+  }, [currentFullscreenReel, getReelStats]);
 
-  // Partage d'un lien produit : partage natif si disponible, sinon copie dans le presse-papiers.
-  const shareLink = useCallback(async (productId: string, title: string) => {
-    const url = `${window.location.origin}/products/${productId}`;
+  const shareReel = useCallback(async () => {
+    if (!currentFullscreenReel) return;
+    const url = `${window.location.origin}/products/${currentFullscreenReel.productId}`;
+    const title = fullscreenProduct?.title || currentFullscreenReel.caption || 'CBFSOKO';
 
     if (typeof navigator !== 'undefined' && (navigator as any).share) {
       try {
@@ -794,63 +576,13 @@ export default function Home() {
 
     try {
       await navigator.clipboard.writeText(url);
-      showToast('Lien copié');
+      setShareConfirm(true);
+      if (shareConfirmTimerRef.current) window.clearTimeout(shareConfirmTimerRef.current);
+      shareConfirmTimerRef.current = window.setTimeout(() => setShareConfirm(false), 2000);
     } catch {
-      showToast('Copie impossible sur cet appareil');
+      /* Presse-papiers indisponible : rien d'autre à proposer ici. */
     }
-  }, [showToast]);
-
-  const shareReel = useCallback(() => {
-    if (!currentFullscreenReel) return;
-    shareLink(
-      currentFullscreenReel.productId,
-      fullscreenProduct?.title || currentFullscreenReel.caption || 'CBFSOKO'
-    );
-  }, [currentFullscreenReel, fullscreenProduct, shareLink]);
-
-  const shareProduct = useCallback((product: ProductItem) => {
-    setMenuProductId(null);
-    shareLink(product.id, product.title);
-  }, [shareLink]);
-
-  // "Me faire livrer" : crée la demande de livraison côté serveur (chrono + message
-  // automatique au vendeur), puis envoie l'acheteur sur l'onglet Commande.
-  // En cas d'échec, l'acheteur est prévenu au lieu d'être redirigé sans explication.
-  const handleDeliveryRequest = useCallback(
-    async (productId: string) => {
-      if (!token) { openAuth('/orders'); return; }
-      if (deliveryLoading) return;
-      setDeliveryLoading(true);
-      try {
-        const res = await fetch(`${API_BASE}/orders/delivery-request`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId }),
-        });
-        // 409 : une demande existe déjà pour ce produit, l'acheteur la retrouve dans Commandes.
-        if (res.ok || res.status === 409) {
-          setFullscreenReelIndex(null);
-          navigate('/orders');
-        } else {
-          let message = '';
-          try {
-            const body = await res.json();
-            message = body?.error || '';
-          } catch {
-            /* Réponse non JSON : on affiche le message générique. */
-          }
-          showToast(message || 'Demande de livraison impossible pour le moment. Réessayez.');
-        }
-      } catch (err) {
-        console.error('Erreur demande de livraison', err);
-        showToast('Connexion impossible. Vérifiez votre réseau puis réessayez.');
-      } finally {
-        setDeliveryLoading(false);
-      }
-    },
-    [token, deliveryLoading, navigate, openAuth, showToast]
-  );
+  }, [currentFullscreenReel, fullscreenProduct]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -862,27 +594,28 @@ export default function Home() {
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
     const deltaY = touch.clientY - touchStartRef.current.y;
-    touchStartRef.current = null;
-    const absX = Math.abs(deltaX);
-    const absY = Math.abs(deltaY);
     const threshold = 50;
 
-    if (absX > threshold && absX > absY * 1.5) {
-      // Glissement horizontal net : droite = fiche produit, gauche = demande de livraison (avec confirmation).
-      if (!currentFullscreenReel) return;
-      if (deltaX > 0) {
-        closeFullscreenReel();
-        navigate(`/products/${currentFullscreenReel.productId}`);
-      } else {
-        setPendingDeliveryId(currentFullscreenReel.productId);
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX > threshold) {
+        if (currentFullscreenReel) {
+          closeFullscreenReel();
+          navigate(`/products/${currentFullscreenReel.productId}`);
+        }
+      } else if (deltaX < -threshold) {
+        if (currentFullscreenReel) {
+          closeFullscreenReel();
+          handleDeliveryRequest(currentFullscreenReel.productId);
+        }
       }
-    } else if (absY > threshold && absY > absX * 1.5) {
-      if (deltaY > 0) {
+    } else {
+      if (deltaY > threshold) {
         if (fullscreenReelIndex > 0) setFullscreenReelIndex(fullscreenReelIndex - 1);
-      } else if (fullscreenReelIndex < displayedReels.length - 1) {
-        setFullscreenReelIndex(fullscreenReelIndex + 1);
+      } else if (deltaY < -threshold) {
+        if (fullscreenReelIndex < displayedReels.length - 1) setFullscreenReelIndex(fullscreenReelIndex + 1);
       }
     }
+    touchStartRef.current = null;
   };
 
   // Molette / trackpad : même logique que le swipe tactile, pour naviguer entre reels au scroll
@@ -897,8 +630,7 @@ export default function Home() {
     } else {
       if (fullscreenReelIndex > 0) setFullscreenReelIndex(fullscreenReelIndex - 1);
     }
-    if (wheelTimerRef.current) window.clearTimeout(wheelTimerRef.current);
-    wheelTimerRef.current = window.setTimeout(() => { wheelLockRef.current = false; }, 500);
+    window.setTimeout(() => { wheelLockRef.current = false; }, 500);
   };
 
   const toggleFullscreenPlay = () => {
@@ -915,6 +647,11 @@ export default function Home() {
     setFullscreenMuted(video.muted);
   };
 
+  const openAuth = (redirect?: string) => {
+    setPendingRedirect(redirect ?? null);
+    setShowAuth(true);
+  };
+
   const handleAuthSuccess = (nextUser: User) => {
     authLogin(nextUser);
     setShowAuth(false);
@@ -929,9 +666,32 @@ export default function Home() {
     else navigate(destination);
   };
 
+  // "Me faire livrer" : crée la demande de livraison côté serveur (chrono 24h + message
+  // automatique au vendeur), puis envoie l'acheteur sur l'onglet Commande.
+  const handleDeliveryRequest = useCallback(
+    async (productId: string) => {
+      if (!token) { openAuth('/orders'); return; }
+      if (deliveryLoading) return;
+      setDeliveryLoading(true);
+      try {
+        const res = await fetch(`${BASE_URL.replace(/\/+$/, '')}/orders/delivery-request`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId }),
+        });
+        if (!res.ok) throw new Error('Échec de la demande de livraison');
+      } catch (err) {
+        console.error('Erreur demande de livraison', err);
+      } finally {
+        setDeliveryLoading(false);
+        navigate('/orders');
+      }
+    },
+    [token, deliveryLoading, navigate]
+  );
+
   const clearSearch = () => {
-    if (searchAbortRef.current) searchAbortRef.current.abort();
-    setSearchLoading(false);
     setSearchQuery('');
     setSearchResults(null);
     setSearchInfo(null);
@@ -940,7 +700,6 @@ export default function Home() {
 
   // Recherche intelligente : comprend le français, le swahili, les fautes et les phrases.
   // Si l'IA est indisponible, le serveur renvoie quand même des résultats (recherche simple).
-  // Une nouvelle recherche annule la précédente pour ne jamais afficher un résultat périmé.
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const query = searchQuery.trim();
@@ -948,20 +707,16 @@ export default function Home() {
       clearSearch();
       return;
     }
-
-    if (searchAbortRef.current) searchAbortRef.current.abort();
-    const controller = new AbortController();
-    searchAbortRef.current = controller;
+    if (searchLoading) return;
 
     setSearchLoading(true);
     setSearchError('');
     try {
-      const response = await fetch(`${API_BASE}/products/smart-search`, {
+      const response = await fetch(`${BASE_URL.replace(/\/+$/, '')}/products/smart-search`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
-        signal: controller.signal,
       });
       const result = await response.json();
       if (!response.ok || !result.success) {
@@ -971,10 +726,9 @@ export default function Home() {
       setSearchInfo({ query, ...result.interpretation });
       setActiveCategoryId(null);
     } catch (err: any) {
-      if (controller.signal.aborted) return;
       setSearchError(err.message || 'Recherche indisponible. Réessayez.');
     } finally {
-      if (searchAbortRef.current === controller) setSearchLoading(false);
+      setSearchLoading(false);
     }
   };
 
@@ -1022,6 +776,29 @@ export default function Home() {
     };
   }, [menuProductId]);
 
+  const shareProduct = useCallback(async (product: ProductItem) => {
+    setMenuProductId(null);
+    const url = `${window.location.origin}/products/${product.id}`;
+
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title: product.title, url });
+      } catch {
+        /* Partage annulé : rien à faire. */
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCardShareToast(true);
+      if (cardShareTimerRef.current) window.clearTimeout(cardShareTimerRef.current);
+      cardShareTimerRef.current = window.setTimeout(() => setCardShareToast(false), 2000);
+    } catch {
+      /* Presse-papiers indisponible. */
+    }
+  }, []);
+
   const path = location.pathname;
   const navItems: NavItem[] = [
     { key: 'orders', label: 'Commandes', icon: <Package className="h-6 w-6" />, active: path.startsWith('/orders'), onClick: () => handleProtectedAction('/orders'), mobile: true },
@@ -1049,9 +826,6 @@ export default function Home() {
 
   const mobileItems = navItems;
   const mobileMid = 2;
-
-  const pendingDeliveryProduct = pendingDeliveryId ? products.find((p) => p.id === pendingDeliveryId) ?? null : null;
-  const fullscreenPrice = fullscreenProduct ? formatUSD(fullscreenProduct.priceUSD) : null;
 
   return (
     <div
@@ -1081,7 +855,7 @@ export default function Home() {
               title="À propos"
               className="flex h-8 w-8 flex-shrink-0 items-center justify-center text-[#f97316] transition-transform hover:scale-110 sm:h-9 sm:w-9"
             >
-              <svg className="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg className="h-full w-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"></circle>
                 <circle cx="20" cy="21" r="1"></circle>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
@@ -1089,34 +863,21 @@ export default function Home() {
             </Link>
           </div>
 
-          <form onSubmit={handleSearch} role="search" className="order-last w-full sm:order-none sm:mx-2 sm:w-auto sm:max-w-md sm:flex-1">
-            <div className="flex h-11 w-full min-w-0 items-center gap-1 rounded-full border-2 border-neutral-500 bg-black pl-4 pr-1 transition-colors focus-within:border-[#f97316]">
+          <form onSubmit={handleSearch} className="order-last w-full sm:order-none sm:mx-2 sm:w-auto sm:max-w-md sm:flex-1">
+            <div className="flex h-11 w-full min-w-0 items-center gap-2 rounded-full border-2 border-neutral-500 bg-black pl-4 pr-1 transition-colors focus-within:border-[#f97316]">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Ex : téléphone moins de 150 $"
-                aria-label="Rechercher une annonce"
-                enterKeyHint="search"
-                autoComplete="off"
                 maxLength={200}
                 className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white placeholder-neutral-300 outline-none"
               />
-              {searchQuery.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  aria-label="Effacer la recherche"
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
               <button
                 type="submit"
                 disabled={searchLoading}
                 aria-label="Rechercher"
-                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white transition-colors hover:bg-[#9a3412] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white transition-colors hover:bg-[#9a3412] disabled:opacity-60"
               >
                 {searchLoading ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -1128,33 +889,23 @@ export default function Home() {
           </form>
 
           <div className="ml-auto flex flex-shrink-0 items-center gap-1">
-            <Link to="/settings" className={iconBtn} title="Paramètres" aria-label="Paramètres">
-              <SettingsIcon className="h-4 w-4" />
-            </Link>
+            <button type="button" onClick={() => handleProtectedAction('/profile')} className={`${iconBtn} overflow-hidden`} title="Mon profil" aria-label="Mon profil">
+              {token && user?.avatar ? (
+                <img src={getMediaUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                <UserIcon className="h-4 w-4" />
+              )}
+            </button>
 
-            <button type="button" onClick={() => handleProtectedAction('/notifications')} className={iconBtn} title="Notifications" aria-label="Notifications">
+            <button type="button" onClick={() => handleProtectedAction('/notifications')} className={iconBtn} title="Notifications">
               <Bell className="h-4 w-4" />
             </button>
 
-            {token ? (
-              <button
-                type="button"
-                onClick={() => handleProtectedAction('/profile')}
-                className="ml-1 flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#c2410c] font-bold text-white transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                title="Mon profil"
-                aria-label="Mon profil"
-              >
-                {user?.avatar ? (
-                  <img src={getMediaUrl(user.avatar)} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <UserIcon className="h-4 w-4" />
-                )}
-              </button>
-            ) : (
+            {!token && (
               <button
                 type="button"
                 onClick={() => openAuth()}
-                className="ml-1 flex h-9 flex-shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-black transition-transform hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="ml-1 flex h-9 flex-shrink-0 items-center rounded-full bg-white px-4 text-sm font-bold text-black transition-transform hover:scale-105"
               >
                 Connexion
               </button>
@@ -1169,7 +920,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#ea580c] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#c2410c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#ea580c] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#c2410c]"
             >
               <Camera className="h-5 w-5" />
               Poster
@@ -1180,30 +931,50 @@ export default function Home() {
 
       <main className="flex-1 pb-6">
         {/* NOUVEAUTÉS / REELS MINIATURISÉS */}
-        <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8" aria-label="Vidéos des nouveautés">
+        <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8">
           <SectionHeader title="Découvrir les nouveautés" />
           {loadingProducts ? (
             <div className="flex gap-3 overflow-x-hidden pb-1">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-[9/16] w-28 flex-shrink-0 animate-pulse rounded-lg bg-neutral-800 sm:w-32" />
+                <div key={i} className="aspect-[9/16] w-28 flex-shrink-0 animate-pulse rounded-[50%] bg-neutral-800 sm:w-32" />
               ))}
             </div>
           ) : displayedReels.length === 0 ? (
-            <div className={`rounded-xl border border-dashed py-6 text-center text-xs font-semibold ${t.border} ${t.surface} ${t.muted}`}>
-              Aucune vidéo pour le moment.
-            </div>
+            <div className={`rounded-xl border border-dashed py-6 text-center text-xs ${t.border} ${t.surface} ${t.muted}`}>Aucune vidéo.</div>
           ) : (
             <div className="scrollbar-hide flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
               {displayedReels.map((reel) => (
-                <ReelThumb
+                <div
                   key={reel.id}
-                  reel={reel}
-                  muted={isReelMuted(reel.id)}
-                  views={getReelStats(reel.id).views}
-                  onOpen={openFullscreenReelById}
-                  onToggleMute={toggleReelMute}
-                  mediaUrl={getMediaUrl}
-                />
+                  className="group relative aspect-[9/16] w-28 flex-shrink-0 cursor-pointer snap-start overflow-hidden rounded-[50%] border border-neutral-500 bg-black transition-colors duration-200 hover:border-[#f97316] sm:w-32"
+                  onClick={() => openFullscreenReelById(reel.id)}
+                >
+                  <video
+                    ref={(el) => { videoRefs.current[reel.id] = el; if (el) el.muted = isReelMuted(reel.id); }}
+                    src={reel.videoUrl}
+                    poster={reel.thumbnail}
+                    loop
+                    playsInline
+                    autoPlay
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute left-1/2 top-[9%] z-10 flex max-w-[62%] -translate-x-1/2 items-center gap-1.5 rounded-full bg-black py-0.5 pl-0.5 pr-2">
+                    <span className="h-5 w-5 flex-shrink-0 overflow-hidden rounded-full bg-[#c2410c]">
+                      {reel.seller?.avatar ? (
+                        <img src={getMediaUrl(reel.seller.avatar)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <UserIcon className="h-full w-full p-0.5 text-white" />
+                      )}
+                    </span>
+                    <span className="truncate text-xs font-bold text-white">
+                      {reel.seller?.name || 'Vendeur'}
+                    </span>
+                  </div>
+
+                  <button type="button" onClick={(e) => { e.stopPropagation(); toggleReelMute(reel.id); }} className="absolute bottom-[10%] left-1/2 z-10 -translate-x-1/2 rounded-full border border-neutral-500 bg-black p-1.5 text-white">
+                    {isReelMuted(reel.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -1211,13 +982,13 @@ export default function Home() {
 
         {/* CATÉGORIES */}
         {categories.length > 0 && (
-          <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8" aria-label="Catégories">
+          <section className="mx-auto max-w-7xl px-3 pt-4 sm:px-6 lg:px-8">
             <div className="scrollbar-hide flex gap-2.5 overflow-x-auto pb-1">
               <button
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
                 aria-pressed={activeCategoryId === null}
-                className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
                   activeCategoryId === null ? 'border-[#ea580c] bg-[#ea580c] text-white' : 'border-neutral-700 bg-[#0d0d0d] text-white hover:border-white'
                 }`}
               >
@@ -1229,7 +1000,7 @@ export default function Home() {
                   type="button"
                   onClick={() => setActiveCategoryId(cat.id)}
                   aria-pressed={activeCategoryId === cat.id}
-                  className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  className={`h-10 flex-shrink-0 rounded-full border px-5 text-sm font-bold transition-colors ${
                     activeCategoryId === cat.id ? 'border-[#ea580c] bg-[#ea580c] text-white' : 'border-neutral-700 bg-[#0d0d0d] text-white hover:border-white'
                   }`}
                 >
@@ -1241,7 +1012,7 @@ export default function Home() {
         )}
 
         {/* PRODUITS */}
-        <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8" aria-label="Annonces">
+        <section className="mx-auto max-w-7xl px-3 py-4 sm:px-6 lg:px-8">
           <SectionHeader
             title={searchResults !== null ? 'Résultats de la recherche' : 'Les annonces récentes'}
             action={
@@ -1249,13 +1020,13 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="flex items-center gap-1 rounded-full border border-white bg-black px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-white hover:text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  className="flex items-center gap-1 rounded-full border border-white bg-black px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-white hover:text-black"
                 >
                   <X className="h-4 w-4" />
                   Effacer
                 </button>
               ) : (
-                <Link to="/products" className="flex items-center gap-0.5 rounded-full border border-neutral-500 px-3 py-1.5 text-sm font-bold text-white hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                <Link to="/products" className="flex items-center gap-0.5 rounded-full border border-neutral-500 px-3 py-1.5 text-sm font-bold text-white hover:border-white">
                   Tout voir
                 </Link>
               )
@@ -1263,13 +1034,13 @@ export default function Home() {
           />
 
           {searchError && (
-            <div role="alert" className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">{searchError}</div>
+            <div className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">{searchError}</div>
           )}
 
           {searchInfo && searchResults !== null && (
             <div className="mb-3 rounded-lg border border-neutral-500 bg-black p-3">
               <p className="flex items-center gap-1.5 text-sm font-bold text-white">
-                <Sparkles className="h-4 w-4 flex-shrink-0 text-[#f97316]" aria-hidden="true" />
+                <Sparkles className="h-4 w-4 flex-shrink-0 text-[#f97316]" />
                 <span className="min-w-0 break-words">{searchInfo.ai ? 'Recherche intelligente' : 'Recherche'} : « {searchInfo.query} »</span>
               </p>
               {searchChips.length > 0 && (
@@ -1284,14 +1055,11 @@ export default function Home() {
               {searchInfo.relaxed && (
                 <p className="mt-2 text-xs font-bold text-[#f97316]">Aucun résultat exact : les critères ont été élargis.</p>
               )}
-              <p className="mt-2 text-xs font-semibold text-neutral-300" aria-live="polite">
-                {displayedProducts.length} résultat{displayedProducts.length > 1 ? 's' : ''}
-              </p>
             </div>
           )}
 
           {loadingProducts || searchLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5" aria-busy="true">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
               {[...Array(10)].map((_, i) => (
                 <div key={i} className="animate-pulse rounded-lg border border-neutral-700 bg-black p-3">
                   <div className="aspect-square w-full rounded-md bg-neutral-800" />
@@ -1300,37 +1068,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          ) : loadError && products.length === 0 ? (
-            <div role="alert" className={`flex flex-col items-center gap-3 rounded-xl border border-dashed px-4 py-8 text-center ${t.border}`}>
-              <p className="text-sm font-semibold text-white">{loadError}</p>
-              <button
-                type="button"
-                onClick={loadProducts}
-                className="inline-flex items-center gap-2 rounded-full bg-[#c2410c] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#9a3412] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Réessayer
-              </button>
-            </div>
           ) : displayedProducts.length === 0 ? (
-            <div className={`flex flex-col items-center gap-3 rounded-xl border border-dashed px-4 py-8 text-center ${t.border}`}>
-              <p className={`text-sm font-semibold ${t.muted}`}>
-                {searchResults !== null
-                  ? 'Aucun résultat pour cette recherche. Essayez d\'autres mots ou une autre catégorie.'
-                  : activeCategoryId
-                    ? 'Aucune annonce dans cette catégorie pour le moment.'
-                    : 'Aucune annonce pour le moment.'}
-              </p>
-              {searchResults === null && !activeCategoryId && (
-                <button
-                  type="button"
-                  onClick={() => handleProtectedAction('/create-product')}
-                  className="inline-flex items-center gap-2 rounded-full bg-[#c2410c] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#9a3412] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                >
-                  <Camera className="h-4 w-4" />
-                  Publier la première annonce
-                </button>
-              )}
+            <div className={`rounded-xl border border-dashed py-8 text-center text-sm font-semibold ${t.border} ${t.muted}`}>
+              {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
@@ -1338,23 +1078,19 @@ export default function Home() {
                 const photoCount = product.images?.length ?? 0;
                 const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
                 const menuOpen = menuProductId === product.id;
-                const price = formatUSD(product.priceUSD);
-                const posted = timeAgo(product.createdAt);
                 return (
                   <article
                     key={product.id}
                     onClick={() => goToProductDetails(product.id)}
-                    className="group flex cursor-pointer flex-col rounded-2xl border border-neutral-700 bg-[#0d0d0d] p-2.5 transition-colors duration-200 hover:border-[#f97316]"
+                    className="group cursor-pointer rounded-2xl border border-neutral-700 bg-[#0d0d0d] p-2.5 transition-colors duration-200 hover:border-[#f97316]"
                   >
                     <div className="relative aspect-square w-full">
                       <div className="h-full w-full overflow-hidden rounded-xl bg-neutral-900">
                         <img
                           src={getMediaUrl(product.images?.[0])}
                           alt={product.title}
-                          onError={handleImageError}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           loading="lazy"
-                          decoding="async"
                         />
                       </div>
 
@@ -1375,7 +1111,7 @@ export default function Home() {
                             aria-haspopup="menu"
                             aria-expanded={menuOpen}
                             onClick={(e) => { e.stopPropagation(); setMenuProductId(menuOpen ? null : product.id); }}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-500 bg-black text-white hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-500 bg-black text-white hover:border-white"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
@@ -1408,44 +1144,32 @@ export default function Home() {
 
                       {photoCount > 1 && (
                         <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md border border-neutral-500 bg-black px-1.5 py-0.5 text-xs font-bold text-white">
-                          <Images className="h-3.5 w-3.5 text-[#f97316]" aria-hidden="true" />
+                          <Images className="h-3.5 w-3.5 text-[#f97316]" />
                           {photoCount}
-                          <span className="sr-only"> photos</span>
                         </span>
                       )}
                     </div>
 
-                    <div className="mt-3 min-w-0 flex-1 px-0.5">
+                    <div className="mt-3 min-w-0 px-0.5">
                       <div className="flex items-center justify-between gap-2 text-xs font-semibold text-neutral-200">
                         <span className="truncate">{product.seller?.name || 'Vendeur'}</span>
                         {product.location && (
                           <span className="flex flex-shrink-0 items-center gap-1">
-                            <MapPin className="h-3 w-3 text-[#f97316]" aria-hidden="true" />
+                            <MapPin className="h-3 w-3 text-[#f97316]" />
                             {product.location}
                           </span>
                         )}
                       </div>
-                      {/* Titre sur deux lignes maximum : le nom complet reste lisible au lieu d'être coupé net. */}
-                      <p className="mt-1.5 line-clamp-2 min-h-[2.5rem] break-words text-sm font-semibold leading-5 text-white" title={product.title}>
-                        {product.title}
-                      </p>
-                      {price ? (
-                        <>
-                          <p className="mt-0.5 text-base font-bold text-[#f97316]">{price}</p>
-                          {product.priceCDF > 0 && (
-                            <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="mt-0.5 text-sm font-bold text-neutral-200">Prix à discuter</p>
+                      <p className="mt-1.5 truncate text-sm font-semibold text-white">{product.title}</p>
+                      <p className="text-base font-bold text-[#f97316]">{product.priceUSD} $</p>
+                      {product.priceCDF > 0 && (
+                        <p className="text-[11px] font-semibold text-neutral-400">≈ {formatCDF(product.priceCDF)} CDF</p>
                       )}
-                      {posted && <p className="mt-1 text-[11px] font-semibold text-neutral-400">{posted}</p>}
                     </div>
 
                     <button
                       type="button"
-                      aria-label={`Voir l'annonce : ${product.title}`}
-                      className="mt-3 h-10 w-full rounded-xl border border-[#7c2d12] bg-[#1c0f08] text-sm font-bold text-[#f97316] transition-colors hover:bg-[#2a150a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                      className="mt-3 h-10 w-full rounded-xl border border-[#7c2d12] bg-[#1c0f08] text-sm font-bold text-[#f97316] transition-colors hover:bg-[#2a150a]"
                     >
                       Voir
                     </button>
@@ -1523,10 +1247,9 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* MESSAGE DISCRET (copie du lien, erreurs de demande...) */}
-      {toast && (
-        <div className="pointer-events-none fixed inset-x-0 top-20 z-[90] flex justify-center px-4" role="status" aria-live="polite">
-          <span className="rounded-full border border-neutral-500 bg-black px-4 py-2 text-xs font-bold text-white">{toast}</span>
+      {cardShareToast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[70] flex justify-center px-4 md:bottom-8" role="status">
+          <span className="rounded-full border border-neutral-500 bg-black px-4 py-2 text-xs font-bold text-white">Lien copié</span>
         </div>
       )}
 
@@ -1542,7 +1265,7 @@ export default function Home() {
               type="button"
               onClick={() => handleProtectedAction('/create-product')}
               aria-label="Poster une annonce"
-              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#ea580c] text-white shadow-[0_6px_16px_rgba(234,88,12,0.45)] ring-4 ring-black transition-transform hover:bg-[#c2410c] active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#ea580c] text-white shadow-[0_6px_16px_rgba(234,88,12,0.45)] ring-4 ring-black transition-transform hover:bg-[#c2410c] active:scale-95"
             >
               <Camera className="h-6 w-6" />
             </button>
@@ -1555,12 +1278,7 @@ export default function Home() {
       {/* REEL PLEIN ÉCRAN */}
       <AnimatePresence>
         {currentFullscreenReel && (
-          <motion.div
-            key="reel-dialog"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
+          <div
             className="fixed inset-0 z-[60] bg-black overflow-hidden select-none"
             role="dialog"
             aria-modal="true"
@@ -1584,21 +1302,10 @@ export default function Home() {
 
             <div className="absolute inset-x-3 top-3 z-20 flex items-center justify-end" style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleFullscreenMute}
-                  aria-label={fullscreenMuted ? 'Activer le son' : 'Couper le son'}
-                  aria-pressed={!fullscreenMuted}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white border border-white/30 hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-                >
+                <button type="button" onClick={toggleFullscreenMute} className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white border border-white/30">
                   {fullscreenMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
                 </button>
-                <button
-                  type="button"
-                  onClick={closeFullscreenReel}
-                  aria-label="Fermer la vidéo"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white border border-white/30 hover:border-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-                >
+                <button type="button" onClick={closeFullscreenReel} className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white border border-white/30">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -1612,7 +1319,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* COLONNE D'ICÔNES (vendeur / vues / commentaires / partage), façon TikTok */}
+            {/* COLONNE D'ICÔNES (vues / commentaires / partage), façon TikTok */}
             <div
               className="absolute right-3 z-20 flex flex-col items-center gap-4"
               style={{ bottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
@@ -1638,22 +1345,19 @@ export default function Home() {
 
               <div className="flex flex-col items-center gap-1">
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
-                  <Eye className="h-5 w-5" aria-hidden="true" />
+                  <Eye className="h-5 w-5" />
                 </span>
-                <span className="text-xs font-bold text-[#f97316]">
-                  {formatCount(currentReelStats.views)}
-                  <span className="sr-only"> vues</span>
-                </span>
+                <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.views)}</span>
               </div>
 
               <button
                 type="button"
                 onClick={openComments}
                 className="flex flex-col items-center gap-1"
-                aria-label={`Voir les commentaires (${currentReelStats.comments})`}
+                aria-label="Voir les commentaires"
               >
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
-                  <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                  <MessageCircle className="h-5 w-5" />
                 </span>
                 <span className="text-xs font-bold text-[#f97316]">{formatCount(currentReelStats.comments)}</span>
               </button>
@@ -1665,18 +1369,29 @@ export default function Home() {
                 aria-label="Partager ce produit"
               >
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-neutral-500 bg-black text-white">
-                  <Share2 className="h-5 w-5" aria-hidden="true" />
+                  <Share2 className="h-5 w-5" />
                 </span>
                 <span className="text-xs font-bold text-white">Partager</span>
               </button>
             </div>
 
             {deliveryLoading && (
-              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6" role="status" aria-live="polite">
+              <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-6">
                 <div className="rounded-2xl border border-neutral-500 bg-black px-6 py-5 text-center text-white">
                   <p className="text-sm font-bold">Veuillez patienter…</p>
-                  <p className="mt-1 text-xs font-semibold text-neutral-300">Envoi de votre demande de livraison.</p>
+                  <p className="mt-1 text-xs font-semibold text-neutral-300">Vérification du produit en cours.</p>
                 </div>
+              </div>
+            )}
+
+            {shareConfirm && (
+              <div
+                className="absolute inset-x-0 z-30 flex justify-center px-4"
+                style={{ top: 'calc(4.5rem + env(safe-area-inset-top))' }}
+              >
+                <span className="rounded-full border border-neutral-500 bg-black px-4 py-2 text-xs font-bold text-white">
+                  Lien copié
+                </span>
               </div>
             )}
 
@@ -1694,7 +1409,6 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setDescriptionExpanded((v) => !v)}
-                      aria-expanded={descriptionExpanded}
                       className="mt-0.5 text-xs font-bold text-[#f97316]"
                     >
                       {descriptionExpanded ? 'Voir moins' : 'Voir plus'}
@@ -1704,16 +1418,13 @@ export default function Home() {
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs font-semibold">{fullscreenProduct?.title || currentFullscreenReel.caption}</p>
-                    {fullscreenProduct && (
-                      <p className="text-xs font-bold text-[#f97316]">{fullscreenPrice ?? 'Prix à discuter'}</p>
-                    )}
+                    {fullscreenProduct && <p className="text-xs font-bold text-[#f97316]">{fullscreenProduct.priceUSD} $</p>}
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      disabled={deliveryLoading}
-                      onClick={() => handleDeliveryRequest(currentFullscreenReel.productId)}
-                      className="flex-1 rounded-xl bg-[#c2410c] px-3 py-2 text-xs font-bold text-white hover:bg-[#9a3412] disabled:opacity-60 sm:flex-none"
+                      onClick={() => { closeFullscreenReel(); handleDeliveryRequest(currentFullscreenReel.productId); }}
+                      className="flex-1 rounded-xl bg-[#c2410c] px-3 py-2 text-xs font-bold text-white hover:bg-[#9a3412] sm:flex-none"
                     >
                       Me faire livrer
                     </button>
@@ -1728,46 +1439,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
-            {/* CONFIRMATION DE DEMANDE DE LIVRAISON (geste de glissement vers la gauche) */}
-            {pendingDeliveryId && (
-              <div
-                className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 px-6"
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby="confirm-delivery-title"
-                onClick={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-                onTouchEnd={(e) => e.stopPropagation()}
-                onWheel={(e) => e.stopPropagation()}
-              >
-                <div className="w-full max-w-sm rounded-2xl border border-neutral-500 bg-black p-5 text-white">
-                  <p id="confirm-delivery-title" className="text-base font-bold">Demander la livraison ?</p>
-                  {pendingDeliveryProduct && (
-                    <p className="mt-1 truncate text-sm font-semibold text-[#f97316]">{pendingDeliveryProduct.title}</p>
-                  )}
-                  <p className="mt-2 text-sm font-semibold text-neutral-300">
-                    Nous vérifions d'abord que le produit est toujours disponible. Vous suivrez votre demande dans l'onglet Commandes.
-                  </p>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPendingDeliveryId(null)}
-                      className="flex-1 rounded-xl border border-white bg-black px-3 py-2.5 text-sm font-bold text-white hover:bg-neutral-800"
-                    >
-                      Annuler
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { const id = pendingDeliveryId; setPendingDeliveryId(null); handleDeliveryRequest(id); }}
-                      className="flex-1 rounded-xl bg-[#c2410c] px-3 py-2.5 text-sm font-bold text-white hover:bg-[#9a3412]"
-                    >
-                      Confirmer
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* PANNEAU DE COMMENTAIRES */}
             {showComments && (
@@ -1788,7 +1459,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={closeComments}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-500 bg-black text-white hover:border-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-500 bg-black text-white"
                     aria-label="Fermer les commentaires"
                   >
                     <X className="h-4 w-4" />
@@ -1797,7 +1468,7 @@ export default function Home() {
 
                 <div className="flex-1 overflow-y-auto px-4 py-3">
                   {commentsError && (
-                    <div role="alert" className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">
+                    <div className="mb-3 rounded-lg border border-[#f97316] bg-black p-3 text-sm font-bold text-white">
                       {commentsError}
                     </div>
                   )}
@@ -1820,12 +1491,7 @@ export default function Home() {
                             )}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="flex items-baseline gap-2 text-xs font-bold text-white">
-                              <span className="truncate">{c.user?.name || 'Utilisateur'}</span>
-                              {timeAgo(c.createdAt) && (
-                                <span className="flex-shrink-0 text-[11px] font-semibold text-neutral-400">{timeAgo(c.createdAt)}</span>
-                              )}
-                            </p>
+                            <p className="text-xs font-bold text-white">{c.user?.name || 'Utilisateur'}</p>
                             <p className="mt-0.5 break-words text-sm text-white">{c.content}</p>
                           </div>
                           {token && user?.id === c.userId && (
@@ -1859,34 +1525,26 @@ export default function Home() {
 
                 <div className="flex-shrink-0 border-t-2 border-neutral-600 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5">
                   {token ? (
-                    <>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) submitComment(); }}
-                          maxLength={COMMENT_MAX_LENGTH}
-                          aria-label="Votre commentaire"
-                          placeholder="Écrire un commentaire..."
-                          className="min-w-0 flex-1 rounded-full border border-neutral-500 bg-black px-4 py-2.5 text-sm font-semibold text-white placeholder-neutral-300 outline-none focus:border-[#f97316]"
-                        />
-                        <button
-                          type="button"
-                          onClick={submitComment}
-                          disabled={commentSubmitting || commentText.trim().length === 0}
-                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white disabled:opacity-50"
-                          aria-label="Envoyer le commentaire"
-                        >
-                          <Send className="h-4 w-4" />
-                        </button>
-                      </div>
-                      {commentText.length >= COMMENT_MAX_LENGTH - 50 && (
-                        <p className="mt-1 pr-1 text-right text-[11px] font-semibold text-neutral-300">
-                          {commentText.length}/{COMMENT_MAX_LENGTH}
-                        </p>
-                      )}
-                    </>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') submitComment(); }}
+                        maxLength={300}
+                        placeholder="Écrire un commentaire..."
+                        className="min-w-0 flex-1 rounded-full border border-neutral-500 bg-black px-4 py-2.5 text-sm font-semibold text-white placeholder-neutral-300 outline-none focus:border-[#f97316]"
+                      />
+                      <button
+                        type="button"
+                        onClick={submitComment}
+                        disabled={commentSubmitting || commentText.trim().length === 0}
+                        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#c2410c] text-white disabled:opacity-50"
+                        aria-label="Envoyer le commentaire"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -1899,7 +1557,7 @@ export default function Home() {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
