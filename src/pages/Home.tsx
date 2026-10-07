@@ -5,8 +5,8 @@ import {
   Search, Camera, MessageSquare, Bell, Package,
   MapPin, ChevronRight, User as UserIcon,
   Volume2, VolumeX, Store,
-  Images, X, Play, Sparkles,
-  Eye, MessageCircle, Share2, Send, MoreHorizontal
+  X, Play, Sparkles,
+  Eye, MessageCircle, Share2, Send
 } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
@@ -237,10 +237,6 @@ export default function Home() {
   const [shareConfirm, setShareConfirm] = useState<boolean>(false);
   const shareConfirmTimerRef = useRef<number | null>(null);
 
-  // Menu "..." des cartes produit + confirmation de copie du lien
-  const [menuProductId, setMenuProductId] = useState<string | null>(null);
-  const [cardShareToast, setCardShareToast] = useState<boolean>(false);
-  const cardShareTimerRef = useRef<number | null>(null);
 
   // Description complète du produit affiché en plein écran (non incluse dans la liste /api/products
   // pour garder celle-ci légère) : récupérée à la demande et mise en cache par produit.
@@ -765,42 +761,6 @@ export default function Home() {
     return counts;
   }, [products]);
 
-  // Ferme le menu "..." d'une carte au clic ailleurs ou avec Échap
-  useEffect(() => {
-    if (menuProductId === null) return;
-    const close = () => setMenuProductId(null);
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
-    document.addEventListener('click', close);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('click', close);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [menuProductId]);
-
-  const shareProduct = useCallback(async (product: ProductItem) => {
-    setMenuProductId(null);
-    const url = `${window.location.origin}/products/${product.id}`;
-
-    if (typeof navigator !== 'undefined' && (navigator as any).share) {
-      try {
-        await (navigator as any).share({ title: product.title, url });
-      } catch {
-        /* Partage annulé : rien à faire. */
-      }
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(url);
-      setCardShareToast(true);
-      if (cardShareTimerRef.current) window.clearTimeout(cardShareTimerRef.current);
-      cardShareTimerRef.current = window.setTimeout(() => setCardShareToast(false), 2000);
-    } catch {
-      /* Presse-papiers indisponible. */
-    }
-  }, []);
-
   const path = location.pathname;
   const navItems: NavItem[] = [
     { key: 'orders', label: 'Commandes', icon: <Package className="h-6 w-6" />, active: path.startsWith('/orders'), onClick: () => handleProtectedAction('/orders'), mobile: true },
@@ -968,7 +928,7 @@ export default function Home() {
         {/* CATÉGORIES */}
         {categories.length > 0 && (
           <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-            <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+            <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-0.5">
               <button
                 type="button"
                 onClick={() => setActiveCategoryId(null)}
@@ -992,12 +952,16 @@ export default function Home() {
                   {cat.name}{(categoryCounts[cat.id] ?? 0) > 0 ? ` (${categoryCounts[cat.id]})` : ''}
                 </button>
               ))}
+              <Link to="/products" aria-label="Tout voir" title="Tout voir" className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-neutral-800 bg-[#121212] text-white hover:border-white">
+                <ChevronRight className="h-4 w-4" />
+              </Link>
             </div>
           </section>
         )}
 
         {/* PRODUITS */}
-        <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 pb-4 pt-0.5 sm:px-6 lg:px-8">
+          {(searchResults !== null || categories.length === 0) && (
           <SectionHeader
             title={searchResults !== null ? 'Résultats de la recherche' : ''}
             action={
@@ -1017,6 +981,7 @@ export default function Home() {
               )
             }
           />
+          )}
 
           {searchError && (
             <div className="mb-3 rounded-lg border border-white bg-black p-3 text-sm font-semibold text-white">{searchError}</div>
@@ -1060,19 +1025,17 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayedProducts.map((product) => {
-                const photoCount = product.images?.length ?? 0;
                 const isDemand = product.type?.toUpperCase() === 'DEMANDE' || /^\s*\[demande\]/i.test(product.title);
-                const menuOpen = menuProductId === product.id;
                 return (
                   <article
                     key={product.id}
                     onClick={() => goToProductDetails(product.id)}
-                    className="group cursor-pointer rounded-3xl border border-neutral-800 bg-[#121212] p-1.5 transition-colors duration-200 hover:border-white"
+                    className="group cursor-pointer rounded-none border border-neutral-800 bg-[#121212] p-1.5 transition-colors duration-200 hover:border-white"
                     tabIndex={0}
                     onKeyDown={(e) => { if (e.target === e.currentTarget && e.key === 'Enter') goToProductDetails(product.id); }}
                   >
                     <div className="relative aspect-[4/5] w-full">
-                      <div className="h-full w-full overflow-hidden rounded-[22px] bg-neutral-900">
+                      <div className="h-full w-full overflow-hidden rounded-none bg-neutral-900">
                         <img
                           src={getMediaUrl(product.images?.[0])}
                           alt={product.title}
@@ -1081,65 +1044,14 @@ export default function Home() {
                         />
                       </div>
 
-                      {product.category?.name && (
-                        <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full border border-neutral-700 bg-black px-2.5 py-1 text-xs font-semibold text-white">
-                          {product.category.name}
-                        </span>
+                      {isDemand && (
+                        <span className="absolute right-2 top-2 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">DEMANDE</span>
                       )}
-
-                      <div className="absolute right-2 top-2 flex flex-col items-end gap-1.5">
-                        {isDemand && (
-                          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-black">DEMANDE</span>
-                        )}
-                        <div className="relative">
-                          <button
-                            type="button"
-                            aria-label="Plus d'options"
-                            aria-haspopup="menu"
-                            aria-expanded={menuOpen}
-                            onClick={(e) => { e.stopPropagation(); setMenuProductId(menuOpen ? null : product.id); }}
-                            className="flex h-8 w-8 items-center justify-center rounded-full border border-neutral-700 bg-black text-white hover:border-white"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                          {menuOpen && (
-                            <div
-                              role="menu"
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute right-0 top-10 z-20 w-44 rounded-xl border border-neutral-700 bg-black p-1"
-                            >
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => shareProduct(product)}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-white hover:bg-neutral-800"
-                              >
-                                <Share2 className="h-4 w-4" /> Partager
-                              </button>
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => { setMenuProductId(null); goToProductDetails(product.id); }}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold text-white hover:bg-neutral-800"
-                              >
-                                <ChevronRight className="h-4 w-4" /> Voir l'annonce
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
 
                       {product.location && (
                         <span className="absolute bottom-2 left-2 flex max-w-[55%] items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-medium text-white">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
                           <span className="truncate">{product.location}</span>
-                        </span>
-                      )}
-
-                      {photoCount > 1 && (
-                        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-neutral-700 bg-black px-2 py-0.5 text-xs font-semibold text-white">
-                          <Images className="h-3.5 w-3.5 text-white" />
-                          {photoCount}
                         </span>
                       )}
                     </div>
@@ -1225,12 +1137,6 @@ export default function Home() {
           </p>
         </div>
       </footer>
-
-      {cardShareToast && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[70] flex justify-center px-4 md:bottom-8" role="status">
-          <span className="rounded-full border border-neutral-700 bg-black px-4 py-2 text-xs font-semibold text-white">Lien copié</span>
-        </div>
-      )}
 
       {/* BARRE DU BAS (mobile) */}
       <nav
