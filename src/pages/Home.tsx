@@ -113,13 +113,13 @@ const readSavedBg = (): string => {
 };
 
 // Informations légales affichées dans le pied de page. Seules les valeurs renseignées sont affichées :
-// complétez-les avec les vraies informations de votre entreprise avant la mise en production.
+
 const LEGAL_INFO = {
   companyName: 'CBFSOKO',
   rccm: '',
   idNat: '',
   nif: '',
-  address: '',
+  address: 'RDC/SUD-KIVU/BUKAVU ',
   email: '',
   phone: '',
 };
