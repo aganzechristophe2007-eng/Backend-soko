@@ -1,18 +1,25 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import A30Icon from "./A30Icon";
 
-const HIDDEN_ON = ["/a30-ia", "/login", "/register"];
+// Pages où le bouton ne s'affiche pas
+const HIDDEN_ON = ["/login", "/register", "/a30-ia"];
 
 export default function A30Fab() {
   const { pathname } = useLocation();
-  if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
+  const navigate = useNavigate();
+
+  if (HIDDEN_ON.includes(pathname)) return null;
 
   return (
-    <Link
-      to="/a30-ia"
+    <button
+      onClick={() => navigate("/a30-ia")}
       aria-label="Ouvrir A30 IA"
-      className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 md:bottom-6"
+      className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white hover:bg-orange-600 active:scale-95"
     >
-      A30
-    </Link>
+      <A30Icon className="h-7 w-7" />
+      <span className="absolute -right-1 -top-1 rounded-full bg-green-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+        IA
+      </span>
+    </button>
   );
 }

@@ -1,21 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import A30Icon from "../components/A30icon";
 
 const API = ((import.meta as any).env?.VITE_API_URL ?? "").replace(/\/$/, "");
-const BRAND = "bg-blue-600 text-white hover:bg-blue-700";
+
+// Couleurs de la plateforme : orange, vert, blanc (à ajuster ici si besoin)
+const ORANGE_BTN = "bg-orange-500 text-white hover:bg-orange-600";
+const GREEN_BADGE = "bg-green-600 text-white";
 
 type Msg = { id: string; role: "user" | "assistant"; content: string };
 type Conv = { id: string; title: string; updatedAt: string };
 type Usage = { hourLeft: number; dayLeft: number };
 
+// Si ton app envoie le token autrement (autre nom de clé), adapte cette fonction.
+function authHeaders(): Record<string, string> {
+  try {
+    const t =
+      localStorage.getItem("token") ??
+      localStorage.getItem("accessToken") ??
+      localStorage.getItem("authToken");
+    return t ? { Authorization: `Bearer ${t}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API}/api/ai${path}`, {
+  // VITE_API_URL vaut déjà "/api" sur ton projet : on ajoute seulement "/ai".
+  const res = await fetch(`${API}/ai${path}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers: { "Content-Type": "application/json", ...authHeaders() },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(data.error ?? "Erreur"), { data });
+  if (!res.ok) {
+    throw Object.assign(new Error(data.error ?? data.message ?? "Erreur"), { data });
+  }
   return data as T;
 }
 
@@ -116,8 +136,12 @@ export default function A30IA() {
   };
 
   const sidebar = (
-    <div className="flex h-full w-full flex-col bg-gray-100 p-3">
-      <button onClick={newConv} className={`mb-3 rounded-lg px-4 py-2 text-sm font-semibold ${BRAND}`}>
+    <div className="flex h-full w-full flex-col bg-orange-50 p-3">
+      <button
+        onClick={newConv}
+        className={`mb-3 flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold ${ORANGE_BTN}`}
+      >
+        <A30Icon className="h-4 w-4" />
         Nouvelle conversation
       </button>
       <div className="flex-1 space-y-1 overflow-y-auto">
@@ -126,7 +150,7 @@ export default function A30IA() {
           <div
             key={c.id}
             className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
-              c.id === convId ? "bg-blue-100 text-blue-900" : "hover:bg-gray-200"
+              c.id === convId ? "bg-green-100 text-green-900" : "hover:bg-orange-100"
             }`}
           >
             <button onClick={() => openConv(c.id)} className="flex-1 truncate text-left">
@@ -160,21 +184,24 @@ export default function A30IA() {
       )}
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-2 bg-blue-600 px-3 py-3 text-white">
-          <button onClick={() => navigate(-1)} className="rounded px-2 py-1 text-sm hover:bg-blue-700">
+        <header className="flex items-center gap-2 bg-orange-500 px-3 py-3 text-white">
+          <button onClick={() => navigate(-1)} className="rounded px-2 py-1 text-sm hover:bg-orange-600">
             Retour
           </button>
           <button
             onClick={() => setMenuOpen(true)}
-            className="rounded px-2 py-1 text-sm hover:bg-blue-700 md:hidden"
+            className="rounded px-2 py-1 text-sm hover:bg-orange-600 md:hidden"
           >
             Historique
           </button>
-          <h1 className="flex-1 text-base font-bold">A30 IA</h1>
+          <h1 className="flex flex-1 items-center gap-2 text-base font-bold">
+            <A30Icon className="h-5 w-5" />
+            A30 IA
+          </h1>
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            aria-label="Choisir le modele"
+            aria-label="Choisir le modèle"
             className="max-w-[45%] rounded-lg bg-white px-2 py-1 text-sm text-gray-900 outline-none"
           >
             {models.map((m) => (
@@ -186,29 +213,46 @@ export default function A30IA() {
         </header>
 
         {usage && (
-          <p className="bg-gray-100 px-4 py-1 text-xs text-gray-700">
+          <p className="bg-green-50 px-4 py-1 text-xs text-green-800">
             Restant : {usage.hourLeft} message(s) cette heure, {usage.dayLeft} aujourd'hui
           </p>
         )}
 
         <div className="flex-1 space-y-3 overflow-y-auto p-4">
           {messages.length === 0 && !loading && (
-            <p className="mt-10 text-center text-gray-600">
-              Pose ta question a A30 IA : produits, vente, livraison, paiement.
-            </p>
+            <div className="mt-10 flex flex-col items-center gap-3 text-center">
+              <span className={`flex h-16 w-16 items-center justify-center rounded-full ${GREEN_BADGE}`}>
+                <A30Icon className="h-9 w-9" />
+              </span>
+              <p className="max-w-xs text-gray-700">
+                Pose ta question à A30 IA : produits, vente, livraison, paiement.
+              </p>
+            </div>
           )}
           {messages.map((m) => (
             <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              {m.role === "assistant" && (
+                <span
+                  className={`mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${GREEN_BADGE}`}
+                >
+                  <A30Icon className="h-4 w-4" />
+                </span>
+              )}
               <div
                 className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2 text-sm ${
-                  m.role === "user" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-900"
+                  m.role === "user" ? "bg-green-600 text-white" : "bg-orange-50 text-gray-900"
                 }`}
               >
                 {m.content}
               </div>
             </div>
           ))}
-          {loading && <p className="text-sm text-gray-600">A30 IA ecrit...</p>}
+          {loading && (
+            <div className="flex items-center gap-2 text-sm text-green-700">
+              <A30Icon className="h-4 w-4 animate-pulse" />
+              A30 IA écrit...
+            </div>
+          )}
           {error && <p className="rounded-lg bg-red-100 px-3 py-2 text-sm text-red-800">{error}</p>}
           <div ref={endRef} />
         </div>
@@ -225,13 +269,13 @@ export default function A30IA() {
             }}
             maxLength={2000}
             rows={1}
-            placeholder="Ecris ton message"
-            className="max-h-32 flex-1 resize-none rounded-xl bg-gray-100 px-3 py-2 text-sm outline-none focus:bg-gray-200"
+            placeholder="Écris ton message"
+            className="max-h-32 flex-1 resize-none rounded-xl bg-orange-50 px-3 py-2 text-sm outline-none focus:bg-orange-100"
           />
           <button
             onClick={send}
             disabled={loading || !input.trim() || !model}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-500 ${BRAND}`}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold disabled:bg-gray-300 disabled:text-gray-500 ${ORANGE_BTN}`}
           >
             Envoyer
           </button>
