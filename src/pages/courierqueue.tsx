@@ -88,9 +88,9 @@ function VerificationForm({
   };
 
   return (
-    <div className="mt-3 space-y-2.5 rounded-lg border border-neutral-800 bg-neutral-950/60 p-3">
+    <div className="mt-3 space-y-2.5 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] p-3">
       <div>
-        <label className="mb-1 block text-[11px] font-semibold text-neutral-400">
+        <label className="mb-1 block text-[11px] font-semibold text-[#667085]">
           Remarque sur l'état de l'article (optionnel)
         </label>
         <textarea
@@ -98,27 +98,27 @@ function VerificationForm({
           onChange={(e) => setNote(e.target.value.slice(0, 500))}
           placeholder="Conforme à la description, emballage correct…"
           rows={2}
-          className="w-full resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-500 focus:border-orange-500 focus:outline-none"
+          className="w-full resize-none rounded-lg border border-[#EAECF0] bg-white px-3 py-2 text-xs text-[#111111] placeholder:text-[#98A2B3] focus:border-[#FF6B00] focus:outline-none"
         />
       </div>
       <div>
-        <label className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-neutral-400">
+        <label className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#667085]">
           <Camera className="h-3.5 w-3.5" /> Photos de contrôle (liens, séparés par une virgule)
         </label>
         <input
           value={photosInput}
           onChange={(e) => setPhotosInput(e.target.value)}
           placeholder="https://…, https://…"
-          className="w-full rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-500 focus:border-orange-500 focus:outline-none"
+          className="w-full rounded-lg border border-[#EAECF0] bg-white px-3 py-2 text-xs text-[#111111] placeholder:text-[#98A2B3] focus:border-[#FF6B00] focus:outline-none"
         />
       </div>
-      {error && <p className="text-xs font-semibold text-red-400">{error}</p>}
+      {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onCancel}
           disabled={submitting}
-          className="flex-1 rounded-lg border border-neutral-700 px-4 py-2 text-xs font-bold text-neutral-300 transition-colors hover:bg-neutral-800 disabled:opacity-50"
+          className="flex-1 rounded-lg border border-[#EAECF0] px-4 py-2 text-xs font-bold text-[#344054] transition-colors hover:bg-[#F2F4F7] disabled:opacity-50"
         >
           Annuler
         </button>
@@ -126,7 +126,7 @@ function VerificationForm({
           type="button"
           onClick={submit}
           disabled={submitting}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-orange-600 disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#FF6B00] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#E85F00] disabled:opacity-50"
         >
           {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
           {submitting ? 'Validation…' : 'Vérifié par CBFSOKO'}
@@ -144,23 +144,23 @@ function PendingCard({ order, onVerified }: { order: CourierOrder; onVerified: (
   if (!product) return null;
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4">
+    <div className="rounded-xl border border-[#EAECF0] bg-white p-4">
       <div className="flex items-center gap-3">
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F2F4F7]">
           {product.images?.[0] && (
             <img src={getMediaUrl(product.images[0])} alt={product.title} className="h-full w-full object-cover" />
           )}
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-sm font-semibold">{product.title}</h2>
-          <p className="truncate text-xs text-neutral-400">Vendeur : {product.seller?.name}</p>
-          <p className="truncate text-xs text-neutral-400">Acheteur : {order.buyer?.name}</p>
+          <p className="truncate text-xs text-[#667085]">Vendeur : {product.seller?.name}</p>
+          <p className="truncate text-xs text-[#667085]">Acheteur : {order.buyer?.name}</p>
         </div>
-        <span className="shrink-0 text-sm font-bold text-orange-500">{order.totalUSD} $</span>
+        <span className="shrink-0 text-sm font-bold text-[#FF6B00]">{order.totalUSD} $</span>
       </div>
 
-      <div className="mt-3 flex items-start gap-2 text-neutral-300">
-        <Package className="mt-0.5 h-4 w-4 shrink-0 text-neutral-500" />
+      <div className="mt-3 flex items-start gap-2 text-[#344054]">
+        <Package className="mt-0.5 h-4 w-4 shrink-0 text-[#667085]" />
         <p className="text-xs">
           {order.deliveryAddress?.trim()
             ? order.deliveryAddress
@@ -172,7 +172,7 @@ function PendingCard({ order, onVerified }: { order: CourierOrder; onVerified: (
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="mt-3 w-full rounded-lg bg-orange-500 px-4 py-2.5 text-center text-sm font-bold text-white transition-colors hover:bg-orange-600"
+          className="mt-3 w-full rounded-lg bg-[#FF6B00] px-4 py-2.5 text-center text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
         >
           Vérifier la collecte
         </button>
@@ -189,18 +189,18 @@ function DoneCard({ order }: { order: CourierOrder }) {
   if (!product) return null;
 
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 opacity-80">
+    <div className="rounded-xl border border-[#EAECF0] bg-[#F9FAFB] p-4 opacity-80">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#F2F4F7]">
           {product.images?.[0] && (
             <img src={getMediaUrl(product.images[0])} alt={product.title} className="h-full w-full object-cover" />
           )}
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-sm font-semibold">{product.title}</h2>
-          <p className="truncate text-xs text-neutral-500">Acheteur : {order.buyer?.name}</p>
+          <p className="truncate text-xs text-[#667085]">Acheteur : {order.buyer?.name}</p>
         </div>
-        <div className="flex items-center gap-1 text-emerald-400">
+        <div className="flex items-center gap-1 text-emerald-600">
           <CheckCircle2 className="h-4 w-4" />
           <span className="text-[11px] font-bold">Vérifié</span>
         </div>
@@ -255,9 +255,9 @@ export default function CourierQueue() {
 
   if (forbidden) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center text-neutral-300">
+      <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB] px-6 text-center text-[#344054]">
         <div>
-          <X className="mx-auto mb-3 h-10 w-10 text-red-400" />
+          <X className="mx-auto mb-3 h-10 w-10 text-red-600" />
           <p className="text-sm font-semibold">Cet espace est réservé aux livreurs CBFSOKO.</p>
         </div>
       </div>
@@ -265,11 +265,11 @@ export default function CourierQueue() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 pb-20 text-neutral-100">
-      <header className="sticky top-0 z-40 flex items-center space-x-3 border-b border-neutral-800 bg-neutral-900/90 px-4 py-3">
+    <div className="min-h-screen bg-white pb-20 text-[#111111]">
+      <header className="sticky top-0 z-40 flex items-center space-x-3 border-b border-[#EAECF0] bg-white/95 backdrop-blur px-4 py-3">
         <button
           onClick={() => navigate('/')}
-          className="rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-800 hover:text-neutral-100"
+          className="rounded-lg p-1.5 text-[#667085] transition hover:bg-[#F2F4F7] hover:text-[#111111]"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -277,10 +277,10 @@ export default function CourierQueue() {
       </header>
 
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
-        {loading && <p className="py-8 text-center text-sm text-neutral-400">Chargement…</p>}
+        {loading && <p className="py-8 text-center text-sm text-[#667085]">Chargement…</p>}
 
         {!loading && error && (
-          <div className="rounded-xl border border-red-600/40 bg-red-600/10 p-4 text-center text-sm text-red-400">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">
             {error}
           </div>
         )}
@@ -289,11 +289,11 @@ export default function CourierQueue() {
           <>
             <section>
               <div className="mb-3 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-orange-400" />
-                <h2 className="text-sm font-bold text-orange-400">À collecter et vérifier ({pending.length})</h2>
+                <Clock className="h-4 w-4 text-[#FF6B00]" />
+                <h2 className="text-sm font-bold text-[#FF6B00]">À collecter et vérifier ({pending.length})</h2>
               </div>
               {pending.length === 0 ? (
-                <div className="rounded-xl border border-neutral-800 bg-neutral-900 py-10 text-center text-neutral-500">
+                <div className="rounded-xl border border-[#EAECF0] bg-white py-10 text-center text-[#667085]">
                   <Package className="mx-auto mb-2 h-8 w-8 opacity-40" />
                   <p className="text-sm">Aucune collecte assignée pour le moment.</p>
                 </div>
@@ -308,7 +308,7 @@ export default function CourierQueue() {
 
             {done.length > 0 && (
               <section>
-                <h2 className="mb-3 text-sm font-bold text-neutral-400">Traitées récemment</h2>
+                <h2 className="mb-3 text-sm font-bold text-[#667085]">Traitées récemment</h2>
                 <div className="space-y-2">
                   {done.map((order) => (
                     <DoneCard key={order.id} order={order} />

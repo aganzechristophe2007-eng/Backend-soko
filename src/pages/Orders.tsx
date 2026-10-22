@@ -91,14 +91,14 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 };
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
-  PENDING: 'bg-neutral-600',
-  AWAITING_SELLER_CONFIRMATION: 'bg-orange-600',
+  PENDING: 'bg-[#D0D5DD]',
+  AWAITING_SELLER_CONFIRMATION: 'bg-[#FF6B00]',
   CONFIRMED: 'bg-blue-600',
   COURIER_VERIFIED: 'bg-emerald-600',
   SHIPPED: 'bg-violet-600',
   DELIVERED: 'bg-emerald-700',
   CANCELLED: 'bg-red-600',
-  EXPIRED: 'bg-neutral-600',
+  EXPIRED: 'bg-[#D0D5DD]',
 };
 
 // Étape en cours pour chaque statut (les étapes précédentes sont terminées).
@@ -124,10 +124,10 @@ interface StatusInfo {
 }
 
 const TONE_BG: Record<Tone, string> = {
-  wait: 'bg-orange-500',
+  wait: 'bg-[#FF6B00]',
   ok: 'bg-emerald-500',
   bad: 'bg-red-500',
-  neutral: 'bg-neutral-600',
+  neutral: 'bg-[#D0D5DD]',
 };
 
 // Ce que l'acheteur doit comprendre à chaque étape : où en est sa commande, ce qui va se passer,
@@ -284,17 +284,17 @@ function SellerRatingBlock({
 
   if (order.review) {
     return (
-      <div className="mt-4 rounded-xl bg-neutral-800 p-4">
-        <p className="mb-1.5 text-xs font-semibold text-neutral-300">Votre note pour ce vendeur</p>
+      <div className="mt-4 rounded-xl bg-[#F2F4F7] p-4">
+        <p className="mb-1.5 text-xs font-semibold text-[#344054]">Votre note pour ce vendeur</p>
         <div className="flex items-center gap-0.5">
           {[1, 2, 3, 4, 5].map((n) => (
             <Star
               key={n}
-              className={`h-4 w-4 ${n <= order.review!.rating ? 'fill-orange-500 text-orange-500' : 'text-neutral-600'}`}
+              className={`h-4 w-4 ${n <= order.review!.rating ? 'fill-[#FF6B00] text-[#FF6B00]' : 'text-[#667085]'}`}
             />
           ))}
         </div>
-        {order.review.comment && <p className="mt-2 text-xs text-neutral-300">{order.review.comment}</p>}
+        {order.review.comment && <p className="mt-2 text-xs text-[#344054]">{order.review.comment}</p>}
       </div>
     );
   }
@@ -326,8 +326,8 @@ function SellerRatingBlock({
   };
 
   return (
-    <div className="mt-4 rounded-xl bg-neutral-800 p-4">
-      <p className="mb-2 text-xs font-semibold text-neutral-200">Noter ce vendeur</p>
+    <div className="mt-4 rounded-xl bg-[#F2F4F7] p-4">
+      <p className="mb-2 text-xs font-semibold text-[#344054]">Noter ce vendeur</p>
       <div className="flex items-center gap-1" role="radiogroup" aria-label="Note sur 5 étoiles">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -341,7 +341,7 @@ function SellerRatingBlock({
           >
             <Star
               className={`h-6 w-6 transition-colors ${
-                n <= (hoverRating || rating) ? 'fill-orange-500 text-orange-500' : 'text-neutral-600'
+                n <= (hoverRating || rating) ? 'fill-[#FF6B00] text-[#FF6B00]' : 'text-[#667085]'
               }`}
             />
           </button>
@@ -352,14 +352,14 @@ function SellerRatingBlock({
         onChange={(e) => setComment(e.target.value.slice(0, 500))}
         placeholder="Un commentaire (optionnel)"
         rows={2}
-        className="mt-3 w-full resize-none rounded-lg bg-neutral-900 px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-500 focus:bg-neutral-950 focus:outline-none"
+        className="mt-3 w-full resize-none rounded-lg bg-white px-3 py-2 text-xs text-[#111111] placeholder:text-[#98A2B3] focus:bg-white focus:outline-none"
       />
-      {error && <p className="mt-1.5 text-xs font-semibold text-red-400">{error}</p>}
+      {error && <p className="mt-1.5 text-xs font-semibold text-red-600">{error}</p>}
       <button
         type="button"
         onClick={submit}
         disabled={submitting}
-        className="mt-3 w-full rounded-lg bg-orange-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-orange-700 disabled:opacity-50"
+        className="mt-3 w-full rounded-lg bg-[#FF6B00] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#E85F00] disabled:opacity-50"
       >
         {submitting ? 'Envoi…' : 'Envoyer ma note'}
       </button>
@@ -382,13 +382,13 @@ function ProgressSteps({ current }: { current: number }) {
             {i > 0 && (
               <span
                 aria-hidden="true"
-                className={`absolute left-0 right-1/2 top-3.5 h-0.5 -translate-y-1/2 ${i <= current ? 'bg-emerald-500' : 'bg-neutral-700'}`}
+                className={`absolute left-0 right-1/2 top-3.5 h-0.5 -translate-y-1/2 ${i <= current ? 'bg-emerald-500' : 'bg-[#EAECF0]'}`}
               />
             )}
             {i < STEPS.length - 1 && (
               <span
                 aria-hidden="true"
-                className={`absolute left-1/2 right-0 top-3.5 h-0.5 -translate-y-1/2 ${i < current ? 'bg-emerald-500' : 'bg-neutral-700'}`}
+                className={`absolute left-1/2 right-0 top-3.5 h-0.5 -translate-y-1/2 ${i < current ? 'bg-emerald-500' : 'bg-[#EAECF0]'}`}
               />
             )}
             <span
@@ -396,15 +396,15 @@ function ProgressSteps({ current }: { current: number }) {
                 state === 'done'
                   ? 'bg-emerald-500 text-white'
                   : state === 'current'
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-neutral-700 text-neutral-400'
+                  ? 'bg-[#FF6B00] text-white'
+                  : 'bg-[#EAECF0] text-[#667085]'
               }`}
             >
               {state === 'done' ? <Check className="h-4 w-4" aria-hidden="true" /> : i + 1}
             </span>
             <span
               className={`mt-1.5 text-[10px] leading-tight sm:text-xs ${
-                state === 'todo' ? 'text-neutral-500' : state === 'current' ? 'font-bold text-white' : 'font-semibold text-neutral-300'
+                state === 'todo' ? 'text-[#667085]' : state === 'current' ? 'font-bold text-[#111111]' : 'font-semibold text-[#344054]'
               }`}
             >
               {label}
@@ -434,60 +434,60 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
   const extraItems = order.items.length - 1;
 
   return (
-    <article className="rounded-2xl bg-neutral-900 p-5" aria-label={`Commande ${ref} : ${product.title}`}>
+    <article className="rounded-2xl bg-white p-5" aria-label={`Commande ${ref} : ${product.title}`}>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-neutral-400">
-          Réf. <span className="font-mono font-semibold text-neutral-200">{ref}</span>
+        <p className="text-xs text-[#667085]">
+          Réf. <span className="font-mono font-semibold text-[#344054]">{ref}</span>
         </p>
-        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold text-white ${STATUS_BADGE[order.status]}`}>
+        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold text-[#111111] ${STATUS_BADGE[order.status]}`}>
           {STATUS_LABEL[order.status]}
         </span>
       </div>
 
       <div className="mt-4 flex items-center gap-3.5">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-neutral-800">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#F2F4F7]">
           {product.images?.[0] && (
             <img src={getMediaUrl(product.images[0])} alt={product.title} className="h-full w-full object-cover" />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-bold text-white">{product.title}</h2>
-          <p className="mt-0.5 truncate text-xs text-neutral-400">Vendeur : {product.seller?.name}</p>
-          <p className="mt-0.5 text-xs text-neutral-400">
-            Quantité : <span className="font-semibold text-neutral-200">{item.quantity}</span>
+          <h2 className="truncate text-sm font-bold text-[#111111]">{product.title}</h2>
+          <p className="mt-0.5 truncate text-xs text-[#667085]">Vendeur : {product.seller?.name}</p>
+          <p className="mt-0.5 text-xs text-[#667085]">
+            Quantité : <span className="font-semibold text-[#344054]">{item.quantity}</span>
             {extraItems > 0 && <span> · +{extraItems} autre{extraItems > 1 ? 's' : ''} article{extraItems > 1 ? 's' : ''}</span>}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <span className="block text-[11px] text-neutral-400">Montant des articles</span>
-          <span className="block text-base font-extrabold text-orange-500">{primary}</span>
-          {secondary && <span className="block text-[11px] text-neutral-400">{secondary}</span>}
+          <span className="block text-[11px] text-[#667085]">Montant des articles</span>
+          <span className="block text-base font-extrabold text-[#FF6B00]">{primary}</span>
+          {secondary && <span className="block text-[11px] text-[#667085]">{secondary}</span>}
         </div>
       </div>
 
       {PRE_PAYMENT.includes(order.status) && (
-        <p className="mt-3 text-[11px] leading-relaxed text-neutral-400">
+        <p className="mt-3 text-[11px] leading-relaxed text-[#667085]">
           Les frais de livraison et la commission de la plateforme sont détaillés avant votre paiement : aucune surprise.
         </p>
       )}
 
       {progress !== undefined && <ProgressSteps current={progress} />}
 
-      <div className="mt-5 flex gap-3 rounded-xl bg-neutral-800 p-4">
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${TONE_BG[info.tone]}`}>
+      <div className="mt-5 flex gap-3 rounded-xl bg-[#F2F4F7] p-4">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#111111] ${TONE_BG[info.tone]}`}>
           <InfoIcon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1 space-y-2">
-          <h3 className="text-sm font-bold text-white">{info.title}</h3>
-          <p className="text-xs leading-relaxed text-neutral-300">{info.text}</p>
+          <h3 className="text-sm font-bold text-[#111111]">{info.title}</h3>
+          <p className="text-xs leading-relaxed text-[#344054]">{info.text}</p>
           {order.status === 'AWAITING_SELLER_CONFIRMATION' && countdown && (
-            <div className="flex items-center justify-between rounded-lg bg-neutral-900 px-3 py-2">
-              <span className="text-[11px] font-semibold text-neutral-300">Temps restant pour le vendeur</span>
-              <span className="font-mono text-sm font-bold text-orange-400">{countdown}</span>
+            <div className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
+              <span className="text-[11px] font-semibold text-[#344054]">Temps restant pour le vendeur</span>
+              <span className="font-mono text-sm font-bold text-[#FF6B00]">{countdown}</span>
             </div>
           )}
           {info.note && (
-            <p className="flex items-start gap-1.5 text-xs font-semibold text-emerald-400">
+            <p className="flex items-start gap-1.5 text-xs font-semibold text-emerald-600">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
               <span>{info.note}</span>
             </p>
@@ -499,12 +499,12 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
         <div className="mt-4 space-y-2">
           <Link
             to={`/pay/${order.id}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-700"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF6B00] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
           >
             <Lock className="h-4 w-4" aria-hidden="true" />
             Payer maintenant
           </Link>
-          <p className="text-center text-[11px] text-neutral-400">
+          <p className="text-center text-[11px] text-[#667085]">
             Paiement par Airtel Money, Orange Money, M-Pesa ou Afrimoney. Vous confirmez sur votre téléphone.
           </p>
         </div>
@@ -520,17 +520,17 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
 
       {order.status === 'EXPIRED' && !!order.similarProducts?.length && (
         <div className="mt-4">
-          <p className="mb-2 text-xs font-semibold text-neutral-300">Produits similaires</p>
+          <p className="mb-2 text-xs font-semibold text-[#344054]">Produits similaires</p>
           <div className="flex gap-3 overflow-x-auto pb-1">
             {order.similarProducts.map((p) => (
               <Link key={p.id} to={`/products/${p.id}`} className="w-28 shrink-0">
-                <div className="mb-1.5 h-20 w-full overflow-hidden rounded-lg bg-neutral-800">
+                <div className="mb-1.5 h-20 w-full overflow-hidden rounded-lg bg-[#F2F4F7]">
                   {p.images?.[0] && (
                     <img src={getMediaUrl(p.images[0])} alt={p.title} className="h-full w-full object-cover" />
                   )}
                 </div>
-                <p className="truncate text-[11px] font-semibold text-neutral-100">{p.title}</p>
-                <p className="text-[11px] font-bold text-orange-500">{fmtUSD(p.priceUSD)}</p>
+                <p className="truncate text-[11px] font-semibold text-[#111111]">{p.title}</p>
+                <p className="text-[11px] font-bold text-[#FF6B00]">{fmtUSD(p.priceUSD)}</p>
               </Link>
             ))}
           </div>
@@ -539,19 +539,19 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
 
       <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
         <div>
-          <dt className="text-neutral-400">Commande passée le</dt>
-          <dd className="mt-0.5 font-semibold text-neutral-100">{fmtDate(order.createdAt)}</dd>
+          <dt className="text-[#667085]">Commande passée le</dt>
+          <dd className="mt-0.5 font-semibold text-[#111111]">{fmtDate(order.createdAt)}</dd>
         </div>
         {order.paidAt && (
           <div>
-            <dt className="text-neutral-400">Paiement confirmé le</dt>
-            <dd className="mt-0.5 font-semibold text-neutral-100">{fmtDate(order.paidAt)}</dd>
+            <dt className="text-[#667085]">Paiement confirmé le</dt>
+            <dd className="mt-0.5 font-semibold text-[#111111]">{fmtDate(order.paidAt)}</dd>
           </div>
         )}
         {order.deliveryAddress && (order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
           <div className="col-span-2">
-            <dt className="text-neutral-400">Adresse de livraison</dt>
-            <dd className="mt-0.5 break-words font-semibold text-neutral-100">{order.deliveryAddress}</dd>
+            <dt className="text-[#667085]">Adresse de livraison</dt>
+            <dd className="mt-0.5 break-words font-semibold text-[#111111]">{order.deliveryAddress}</dd>
           </div>
         )}
       </dl>
@@ -561,7 +561,7 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
           href={whatsappHref(`Bonjour, j'ai une question sur ma commande ${ref}.`)}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300"
+          className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700"
         >
           <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
           Une question sur cette commande ? Écrivez-nous
@@ -614,19 +614,19 @@ export default function Orders() {
   const hasOrders = orders.length > 0;
 
   return (
-    <div className="min-h-screen bg-neutral-950 pb-20 text-neutral-100">
-      <header className="sticky top-0 z-40 flex items-center gap-3 bg-neutral-900 px-4 py-3">
+    <div className="min-h-screen bg-white pb-20 text-[#111111]">
+      <header className="sticky top-0 z-40 flex items-center gap-3 bg-white px-4 py-3">
         <button
           type="button"
           onClick={() => navigate('/')}
           aria-label="Retour à l'accueil"
-          className="rounded-lg p-2 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+          className="rounded-lg p-2 text-[#344054] transition-colors hover:bg-[#F2F4F7] hover:text-[#111111]"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
           <h1 className="text-base font-bold leading-tight">Mes commandes</h1>
-          <p className="text-[11px] text-neutral-400">Suivi et paiement sécurisés par CBFSOKO</p>
+          <p className="text-[11px] text-[#667085]">Suivi et paiement sécurisés par CBFSOKO</p>
         </div>
       </header>
 
@@ -635,23 +635,23 @@ export default function Orders() {
           <div className="space-y-4" role="status">
             <span className="sr-only">Chargement de vos commandes</span>
             {[0, 1].map((i) => (
-              <div key={i} className="h-64 animate-pulse rounded-2xl bg-neutral-900" />
+              <div key={i} className="h-64 animate-pulse rounded-2xl bg-white" />
             ))}
           </div>
         )}
 
         {!loading && error && !hasOrders && (
-          <div className="space-y-4 rounded-2xl bg-neutral-900 p-6 text-center" role="alert">
-            <AlertTriangle className="mx-auto h-10 w-10 text-red-500" aria-hidden="true" />
-            <p className="text-sm font-semibold text-neutral-100">{error}</p>
-            <p className="text-xs text-neutral-400">Vos commandes et vos paiements ne sont pas affectés.</p>
+          <div className="space-y-4 rounded-2xl bg-white p-6 text-center" role="alert">
+            <AlertTriangle className="mx-auto h-10 w-10 text-red-600" aria-hidden="true" />
+            <p className="text-sm font-semibold text-[#111111]">{error}</p>
+            <p className="text-xs text-[#667085]">Vos commandes et vos paiements ne sont pas affectés.</p>
             <button
               type="button"
               onClick={() => {
                 setLoading(true);
                 loadOrders();
               }}
-              className="rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700"
+              className="rounded-xl bg-[#FF6B00] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
             >
               Réessayer
             </button>
@@ -659,22 +659,22 @@ export default function Orders() {
         )}
 
         {error && hasOrders && (
-          <p role="alert" className="rounded-xl bg-orange-600 px-4 py-3 text-xs font-semibold text-white">
+          <p role="alert" className="rounded-xl bg-[#FF6B00] px-4 py-3 text-xs font-semibold text-white">
             Actualisation impossible pour le moment. Les informations affichées peuvent ne pas être à jour.
           </p>
         )}
 
         {!loading && !error && !hasOrders && (
-          <div className="rounded-2xl bg-neutral-900 px-6 py-14 text-center">
-            <Package className="mx-auto mb-4 h-12 w-12 text-neutral-600" aria-hidden="true" />
-            <p className="text-sm font-bold text-neutral-100">Aucune commande pour le moment</p>
-            <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-neutral-400">
+          <div className="rounded-2xl bg-white px-6 py-14 text-center">
+            <Package className="mx-auto mb-4 h-12 w-12 text-[#667085]" aria-hidden="true" />
+            <p className="text-sm font-bold text-[#111111]">Aucune commande pour le moment</p>
+            <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-[#667085]">
               Quand vous commanderez, vous pourrez suivre chaque étape ici. Vous ne payez qu'après la vérification de l'article.
             </p>
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="mt-6 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700"
+              className="mt-6 rounded-xl bg-[#FF6B00] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
             >
               Découvrir les produits
             </button>
@@ -697,8 +697,8 @@ export default function Orders() {
               </div>
             )}
 
-            <section aria-labelledby="protection-title" className="rounded-2xl bg-neutral-900 p-5">
-              <h2 id="protection-title" className="text-sm font-bold text-white">
+            <section aria-labelledby="protection-title" className="rounded-2xl bg-white p-5">
+              <h2 id="protection-title" className="text-sm font-bold text-[#111111]">
                 Votre protection sur CBFSOKO
               </h2>
               <ul className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -710,8 +710,8 @@ export default function Orders() {
                         <Icon className="h-5 w-5" aria-hidden="true" />
                       </span>
                       <div>
-                        <p className="text-xs font-bold text-white">{p.title}</p>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400">{p.text}</p>
+                        <p className="text-xs font-bold text-[#111111]">{p.title}</p>
+                        <p className="mt-0.5 text-[11px] leading-relaxed text-[#667085]">{p.text}</p>
                       </div>
                     </li>
                   );
@@ -720,11 +720,11 @@ export default function Orders() {
             </section>
 
             <div className="flex items-center justify-between px-1">
-              <p className="text-xs font-semibold text-neutral-300">
+              <p className="text-xs font-semibold text-[#344054]">
                 {orders.length} commande{orders.length > 1 ? 's' : ''}
               </p>
               {updatedAt && (
-                <p className="text-[11px] text-neutral-500">
+                <p className="text-[11px] text-[#667085]">
                   Mis à jour à {updatedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} · actualisation automatique
                 </p>
               )}
@@ -734,19 +734,19 @@ export default function Orders() {
               <OrderCard key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
             ))}
 
-            <section aria-labelledby="how-title" className="rounded-2xl bg-neutral-900 p-5">
-              <h2 id="how-title" className="text-sm font-bold text-white">
+            <section aria-labelledby="how-title" className="rounded-2xl bg-white p-5">
+              <h2 id="how-title" className="text-sm font-bold text-[#111111]">
                 Comment fonctionne votre commande
               </h2>
               <ol className="mt-4 space-y-4">
                 {HOW_IT_WORKS.map((s, i) => (
                   <li key={s.title} className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FF6B00] text-xs font-bold text-white">
                       {i + 1}
                     </span>
                     <div>
-                      <p className="text-xs font-bold text-white">{s.title}</p>
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-400">{s.text}</p>
+                      <p className="text-xs font-bold text-[#111111]">{s.title}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-[#667085]">{s.text}</p>
                     </div>
                   </li>
                 ))}
@@ -754,11 +754,11 @@ export default function Orders() {
             </section>
 
             {(SUPPORT_PHONE || WHATSAPP_NUMBER) && (
-              <section aria-labelledby="help-title" className="rounded-2xl bg-neutral-900 p-5">
-                <h2 id="help-title" className="text-sm font-bold text-white">
+              <section aria-labelledby="help-title" className="rounded-2xl bg-white p-5">
+                <h2 id="help-title" className="text-sm font-bold text-[#111111]">
                   Besoin d'aide ?
                 </h2>
-                <p className="mt-1 text-xs leading-relaxed text-neutral-400">
+                <p className="mt-1 text-xs leading-relaxed text-[#667085]">
                   Notre équipe répond à vos questions sur une commande, un paiement ou une livraison. Indiquez la référence de
                   la commande pour un traitement plus rapide.
                 </p>
@@ -766,9 +766,9 @@ export default function Orders() {
                   {SUPPORT_PHONE && (
                     <a
                       href={`tel:${SUPPORT_PHONE}`}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-neutral-800 py-3 text-xs font-bold text-white transition-colors hover:bg-neutral-700"
+                      className="flex items-center justify-center gap-2 rounded-xl bg-[#F2F4F7] py-3 text-xs font-bold text-[#111111] transition-colors hover:bg-[#EAECF0]"
                     >
-                      <Phone className="h-4 w-4 text-orange-500" aria-hidden="true" />
+                      <Phone className="h-4 w-4 text-[#FF6B00]" aria-hidden="true" />
                       Appeler le support
                     </a>
                   )}

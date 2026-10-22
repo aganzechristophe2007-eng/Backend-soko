@@ -22,10 +22,10 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-neutral-950 text-white antialiased selection:bg-orange-500 selection:text-white md:items-center md:justify-center">
+    <div className="flex h-[100dvh] w-full flex-col overflow-hidden bg-gradient-to-b from-[#FFF8F3] to-white text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white md:items-center md:justify-center">
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center md:mb-6 md:flex-none">
-        <h1 className="text-4xl font-black tracking-wider text-white sm:text-5xl">CBFSOKO</h1>
-        <p className="mt-2 text-base font-semibold text-orange-500">Votre marketplace en ligne</p>
+        <img src="/logo-cbf-soko.png" alt="CBF SOKO" className="h-16 w-auto sm:h-20" />
+        <p className="mt-3 text-base font-semibold text-[#667085]">Votre marketplace en ligne</p>
       </div>
 
       <AuthSheet onClose={handleClose} onSuccess={handleSuccess} showBackdrop={false} />

@@ -70,29 +70,29 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center px-4 py-8 sm:px-6 lg:px-8 selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-[#F9FAFB] text-[#111111] flex flex-col justify-center px-4 py-8 sm:px-6 lg:px-8 selection:bg-[#FF6B00] selection:text-white">
       
       {/* Conteneur principal SaaS Centré */}
-      <div className="max-w-md w-full mx-auto bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/50">
+      <div className="max-w-md w-full mx-auto bg-white border border-[#EAECF0] rounded-3xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(16,24,40,0.08)]">
         
         {/* En-tête */}
         <div className="mb-6">
           <Link 
             to="/" 
-            className="inline-flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 text-xs font-medium mb-4 transition"
+            className="inline-flex items-center space-x-1.5 text-[#667085] hover:text-[#FF6B00] text-xs font-medium mb-4 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Retour à l'accueil</span>
           </Link>
           
           <div className="flex items-center justify-between">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Créer un compte</h1>
-            <div className="flex items-center space-x-1 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full text-xs font-semibold">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#111111]">Créer un compte</h1>
+            <div className="flex items-center space-x-1 text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Sécurisé</span>
             </div>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">Plateforme de grande envergure - Inscription officielle</p>
+          <p className="text-xs sm:text-sm text-[#667085] mt-1">Plateforme de grande envergure - Inscription officielle</p>
         </div>
 
         {/* Message d'erreur dynamique */}
@@ -106,11 +106,11 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-4">
           
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[#344054] uppercase tracking-wider mb-1.5">
               Nom complet
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-slate-900 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition">
-              <User className="w-4 h-4 mr-2.5 text-slate-400 flex-shrink-0" />
+            <div className="flex items-center rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[#111111] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 transition">
+              <User className="w-4 h-4 mr-2.5 text-[#98A2B3] flex-shrink-0" />
               <input 
                 type="text" 
                 name="name" 
@@ -118,17 +118,17 @@ export default function Register() {
                 placeholder="Ex: Jean Mukendi" 
                 value={formData.name}
                 onChange={handleChange}
-                className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400"
+                className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[#344054] uppercase tracking-wider mb-1.5">
               Adresse Email
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-slate-900 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition">
-              <Mail className="w-4 h-4 mr-2.5 text-slate-400 flex-shrink-0" />
+            <div className="flex items-center rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[#111111] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 transition">
+              <Mail className="w-4 h-4 mr-2.5 text-[#98A2B3] flex-shrink-0" />
               <input 
                 type="email" 
                 name="email" 
@@ -136,34 +136,34 @@ export default function Register() {
                 placeholder="nom@domaine.com" 
                 value={formData.email}
                 onChange={handleChange}
-                className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400"
+                className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-              Téléphone <span className="text-slate-400 font-normal">(Optionnel)</span>
+            <label className="block text-xs font-semibold text-[#344054] uppercase tracking-wider mb-1.5">
+              Téléphone <span className="text-[#98A2B3] font-normal">(Optionnel)</span>
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-slate-900 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition">
-              <Phone className="w-4 h-4 mr-2.5 text-slate-400 flex-shrink-0" />
+            <div className="flex items-center rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[#111111] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 transition">
+              <Phone className="w-4 h-4 mr-2.5 text-[#98A2B3] flex-shrink-0" />
               <input 
                 type="tel" 
                 name="phone" 
                 placeholder="+243..." 
                 value={formData.phone}
                 onChange={handleChange}
-                className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400"
+                className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[#344054] uppercase tracking-wider mb-1.5">
               Mot de passe
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-slate-900 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition">
-              <Lock className="w-4 h-4 mr-2.5 text-slate-400 flex-shrink-0" />
+            <div className="flex items-center rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[#111111] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 transition">
+              <Lock className="w-4 h-4 mr-2.5 text-[#98A2B3] flex-shrink-0" />
               <input 
                 type="password" 
                 name="password" 
@@ -171,17 +171,17 @@ export default function Register() {
                 placeholder="8 caractères minimum" 
                 value={formData.password}
                 onChange={handleChange}
-                className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400"
+                className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-[#344054] uppercase tracking-wider mb-1.5">
               Confirmer le mot de passe
             </label>
-            <div className="flex items-center rounded-xl border border-slate-300 bg-slate-50/50 px-3.5 py-2.5 text-slate-900 focus-within:border-indigo-600 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-600/10 transition">
-              <Lock className="w-4 h-4 mr-2.5 text-slate-400 flex-shrink-0" />
+            <div className="flex items-center rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-2.5 text-[#111111] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 transition">
+              <Lock className="w-4 h-4 mr-2.5 text-[#98A2B3] flex-shrink-0" />
               <input 
                 type="password" 
                 name="confirmPassword" 
@@ -189,7 +189,7 @@ export default function Register() {
                 placeholder="Répétez le mot de passe" 
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="bg-transparent border-none outline-none w-full text-sm text-slate-900 placeholder:text-slate-400"
+                className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
               />
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function Register() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full mt-2 py-3.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white rounded-xl font-medium text-sm transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 shadow-lg shadow-slate-900/10"
+            className="w-full mt-2 py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-semibold text-sm transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
           >
             {loading ? (
               <>
@@ -211,10 +211,10 @@ export default function Register() {
         </form>
 
         {/* Pied de page du formulaire */}
-        <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-          <p className="text-xs text-slate-500">
+        <div className="mt-6 pt-5 border-t border-[#EAECF0] text-center">
+          <p className="text-xs text-[#667085]">
             Déjà inscrit sur la plateforme ?{' '}
-            <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold transition">
+            <Link to="/login" className="text-[#FF6B00] hover:text-[#E85F00] font-semibold transition">
               Se connecter
             </Link>
           </p>

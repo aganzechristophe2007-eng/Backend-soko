@@ -23,24 +23,24 @@ const ENDPOINT = `${ROOT}/api/admin-seller/dashboard`;
 const REFRESH_MS = 60_000;
 
 const C = {
-  page: '#121212',
-  panel: '#181818',
-  border: '#2C2C2C',
-  green: '#22C55E',
-  orange: '#F97316',
-  red: '#EF4444',
-  muted: '#9CA3AF',
+  page: '#FFFFFF',
+  panel: '#FFFFFF',
+  border: '#EAECF0',
+  green: '#16A34A',
+  orange: '#FF6B00',
+  red: '#DC2626',
+  muted: '#667085',
 };
 
 const STATUS: Record<string, { label: string; color: string }> = {
-  PENDING: { label: 'En attente', color: '#FACC15' },
-  AWAITING_SELLER_CONFIRMATION: { label: 'Attente vendeur', color: '#F97316' },
-  CONFIRMED: { label: 'Confirmées', color: '#3B82F6' },
-  COURIER_VERIFIED: { label: 'Vérifiées', color: '#14B8A6' },
-  SHIPPED: { label: 'Expédiées', color: '#A855F7' },
-  DELIVERED: { label: 'Livrées', color: '#22C55E' },
-  CANCELLED: { label: 'Annulées', color: '#EF4444' },
-  EXPIRED: { label: 'Expirées', color: '#9CA3AF' },
+  PENDING: { label: 'En attente', color: '#CA8A04' },
+  AWAITING_SELLER_CONFIRMATION: { label: 'Attente vendeur', color: '#FF6B00' },
+  CONFIRMED: { label: 'Confirmées', color: '#2563EB' },
+  COURIER_VERIFIED: { label: 'Vérifiées', color: '#0D9488' },
+  SHIPPED: { label: 'Expédiées', color: '#9333EA' },
+  DELIVERED: { label: 'Livrées', color: '#16A34A' },
+  CANCELLED: { label: 'Annulées', color: '#DC2626' },
+  EXPIRED: { label: 'Expirées', color: '#667085' },
 };
 const statusMeta = (s: string) => STATUS[s] ?? { label: s, color: C.muted };
 
@@ -65,7 +65,7 @@ const ORDER_ACTIONS: Record<string, OrderAction[]> = {
   AWAITING_SELLER_CONFIRMATION: [ACT_CANCEL],
   PENDING: [ACT_CANCEL],
 };
-const PIE_COLORS = ['#22C55E', '#EF4444', '#FACC15', '#3B82F6', '#A855F7', '#F97316'];
+const PIE_COLORS = ['#16A34A', '#DC2626', '#F59E0B', '#2563EB', '#9333EA', '#FF6B00'];
 
 /* ---------- Types (reflet de la réponse de l'API) ---------- */
 interface Person { id: string; name: string; phone: string | null; avatar: string | null }
@@ -173,7 +173,7 @@ const Avatar = ({ src, name, size = 40 }: { src?: string | null; name: string; s
   safeUrl(src) ? (
     <img src={safeUrl(src)!} alt="" width={size} height={size} referrerPolicy="no-referrer" loading="lazy" className="rounded-full object-cover shrink-0" style={{ width: size, height: size }} />
   ) : (
-    <div className="rounded-full flex items-center justify-center font-semibold text-white shrink-0" style={{ width: size, height: size, background: '#3F3F46' }}>
+    <div className="rounded-full flex items-center justify-center font-semibold text-[#111111] shrink-0" style={{ width: size, height: size, background: '#F2F4F7' }}>
       {(name || '?').trim().charAt(0).toUpperCase()}
     </div>
   );
@@ -201,7 +201,7 @@ const Contact = ({ phone, userId }: { phone: string | null; userId?: string }) =
           WhatsApp
         </a>
       ) : (
-        <span className="h-9 px-3 rounded-lg flex items-center text-sm font-semibold" style={{ background: '#27272A', color: C.muted }}>Sans numéro</span>
+        <span className="h-9 px-3 rounded-lg flex items-center text-sm font-semibold" style={{ background: '#F2F4F7', color: C.muted }}>Sans numéro</span>
       )}
     </div>
   );
@@ -229,7 +229,7 @@ const chartTooltip = {
   contentStyle: { background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, color: '#fff' },
   itemStyle: { color: '#fff' },
   labelStyle: { color: C.muted },
-  cursor: { fill: '#232323' },
+  cursor: { fill: '#F9FAFB' },
 };
 
 /* ---------- Changement de statut d'une commande ---------- */
@@ -270,12 +270,12 @@ function StatusActions({ order, onChanged }: { order: OrderDto; onChanged: () =>
     <div className="mt-2 space-y-2">
       {asking ? (
         <div className="space-y-2">
-          <p className="text-xs text-white">{asking.question}</p>
+          <p className="text-xs text-[#111111]">{asking.question}</p>
           <div className="flex gap-2">
             <button type="button" disabled={busy} onClick={() => run(asking)} className={btn} style={{ background: asking.color }}>
               {busy ? 'Envoi...' : 'Confirmer'}
             </button>
-            <button type="button" disabled={busy} onClick={() => { setAsking(null); setErr(''); }} className={btn} style={{ background: '#3F3F46' }}>
+            <button type="button" disabled={busy} onClick={() => { setAsking(null); setErr(''); }} className={btn} style={{ background: '#667085' }}>
               Retour
             </button>
           </div>
@@ -289,7 +289,7 @@ function StatusActions({ order, onChanged }: { order: OrderDto; onChanged: () =>
           ))}
         </div>
       )}
-      {err && <p role="alert" className="text-xs font-semibold" style={{ color: '#F87171' }}>{err}</p>}
+      {err && <p role="alert" className="text-xs font-semibold" style={{ color: '#DC2626' }}>{err}</p>}
     </div>
   );
 }
@@ -327,16 +327,16 @@ function AttentionTable({ rows, q, onChanged, emptyText = 'Aucune commande à tr
                   {safeUrl(o.product?.image) ? (
                     <img src={safeUrl(o.product?.image)!} alt="" referrerPolicy="no-referrer" loading="lazy" className="h-12 w-12 rounded-md object-cover bg-white" />
                   ) : (
-                    <div className="h-12 w-12 rounded-md" style={{ background: '#27272A' }} />
+                    <div className="h-12 w-12 rounded-md" style={{ background: '#F2F4F7' }} />
                   )}
                 </td>
-                <td className="px-3 py-3 font-medium text-white">
+                <td className="px-3 py-3 font-medium text-[#111111]">
                   {o.product?.title ?? 'Produit indisponible'}
                   {o.itemsCount > 1 && <span style={{ color: C.muted }}> (+{o.itemsCount - 1})</span>}
                 </td>
-                <td className="px-3 py-3 text-white">{o.seller ? o.seller.shopName || o.seller.name : '—'}</td>
+                <td className="px-3 py-3 text-[#111111]">{o.seller ? o.seller.shopName || o.seller.name : '—'}</td>
                 <td className="px-3 py-3">
-                  <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: waiting ? '#EA580C' : verified ? '#0D9488' : '#2563EB' }}>
+                  <span className="inline-block rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ background: waiting ? '#FF6B00' : verified ? '#0D9488' : '#2563EB' }}>
                     {label}
                   </span>
                   <StatusActions order={o} onChanged={onChanged} />
@@ -367,13 +367,13 @@ function DashboardView({ d, q, onChanged }: { d: DashboardData; q: string; onCha
         {cards.map((c) => (
           <Panel key={c.label} className="p-5">
             <div className="text-sm" style={{ color: C.muted }}>{c.label}</div>
-            <div className="mt-2 text-3xl font-bold text-white">{c.value}</div>
+            <div className="mt-2 text-3xl font-bold text-[#111111]">{c.value}</div>
             {c.sub && <div className="mt-1 text-sm" style={{ color: C.muted }}>{c.sub}</div>}
           </Panel>
         ))}
       </div>
       <Panel className="mt-6 overflow-hidden">
-        <div className="px-5 py-4 text-lg font-bold text-white" style={{ borderBottom: `1px solid ${C.border}` }}>
+        <div className="px-5 py-4 text-lg font-bold text-[#111111]" style={{ borderBottom: `1px solid ${C.border}` }}>
           Commandes à traiter et récemment vérifiées
         </div>
         <AttentionTable rows={[...d.attentionOrders, ...d.verifiedOrders]} q={q} onChanged={onChanged} />
@@ -390,8 +390,8 @@ function VerificationsView({ d, q, onChanged }: { d: DashboardData; q: string; o
     <button
       type="button"
       onClick={() => setTab(id)}
-      className="flex-1 rounded-xl px-5 py-3 text-left text-base font-semibold text-white"
-      style={{ background: tab === id ? C.orange : '#27272A' }}
+      className="flex-1 rounded-xl px-5 py-3 text-left text-base font-semibold text-[#111111]"
+      style={{ background: tab === id ? C.orange : '#F2F4F7', color: tab === id ? '#fff' : '#111111' }}
     >
       {label} <span style={{ color: tab === id ? '#fff' : C.muted }}>({num(count)})</span>
     </button>
@@ -417,7 +417,7 @@ function OrdersView({ d, q, onChanged }: { d: DashboardData; q: string; onChange
   const list = d.recentOrders.filter((o) => has(q, o.id, o.product?.title, o.buyer.name, o.seller?.name, o.seller?.shopName));
   return (
     <Panel className="overflow-hidden">
-      <div className="px-5 py-4 text-lg font-bold text-white" style={{ borderBottom: `1px solid ${C.border}` }}>Dernières commandes</div>
+      <div className="px-5 py-4 text-lg font-bold text-[#111111]" style={{ borderBottom: `1px solid ${C.border}` }}>Dernières commandes</div>
       {!list.length ? (
         <Empty text="Aucune commande trouvée." />
       ) : (
@@ -434,7 +434,7 @@ function OrdersView({ d, q, onChanged }: { d: DashboardData; q: string; onChange
               {list.map((o) => {
                 const m = statusMeta(o.status);
                 return (
-                  <tr key={o.id} style={{ borderBottom: `1px solid ${C.border}` }} className="text-white">
+                  <tr key={o.id} style={{ borderBottom: `1px solid ${C.border}` }} className="text-[#111111]">
                     <td className="px-4 py-3" style={{ color: C.muted }}>{o.id.slice(-8).toUpperCase()}</td>
                     <td className="px-4 py-3">{o.product?.title ?? '—'}{o.itemsCount > 1 && <span style={{ color: C.muted }}> (+{o.itemsCount - 1})</span>}</td>
                     <td className="px-4 py-3">{o.buyer.name}</td>
@@ -464,7 +464,7 @@ function SellersView({ d, q }: { d: DashboardData; q: string }) {
     <button
       type="button"
       onClick={() => setTab(id)}
-      className="flex-1 rounded-xl px-5 py-4 text-left text-lg font-semibold text-white"
+      className="flex-1 rounded-xl px-5 py-4 text-left text-lg font-semibold text-[#111111]"
       style={{ background: C.panel, border: `2px solid ${tab === id ? C.orange : C.border}` }}
     >
       {label} <span style={{ color: C.muted }}>({num(count)})</span>
@@ -472,11 +472,11 @@ function SellersView({ d, q }: { d: DashboardData; q: string }) {
   );
   const meta = (s: SellerStats) => (
     <>
-      <span className="whitespace-nowrap text-white">
+      <span className="whitespace-nowrap text-[#111111]">
         {s.rating !== null ? `${s.rating.toFixed(1)}/5` : 'Pas de note'}
         <span style={{ color: C.muted }}> ({s.reviewsCount})</span>
       </span>
-      <span className="whitespace-nowrap text-white">{num(s.availableProducts)} marchandises dispos.</span>
+      <span className="whitespace-nowrap text-[#111111]">{num(s.availableProducts)} marchandises dispos.</span>
     </>
   );
 
@@ -493,15 +493,15 @@ function SellersView({ d, q }: { d: DashboardData; q: string }) {
               <div className="flex items-center gap-3 w-64 min-w-0">
                 <Avatar src={s.logo} name={s.name} size={36} />
                 <div className="min-w-0">
-                  <div className="truncate font-semibold text-white">{s.name}</div>
+                  <div className="truncate font-semibold text-[#111111]">{s.name}</div>
                   <div className="text-xs font-semibold" style={{ color: s.verified ? C.green : C.orange }}>{s.verified ? 'Vérifiée' : 'Non vérifiée'}</div>
                 </div>
               </div>
-              <div className="w-44 truncate text-white">{s.owner.name}</div>
+              <div className="w-44 truncate text-[#111111]">{s.owner.name}</div>
               {meta(s)}
               <div className="min-w-0 flex-1 truncate" style={{ color: C.muted }}>{s.description || 'Aucune description.'}</div>
               <Contact phone={s.owner.phone} userId={s.owner.id} />
-              <button type="button" onClick={() => navigate(`/users/${s.owner.id}`)} className="h-9 w-9 rounded-lg flex items-center justify-center text-white" style={{ background: '#27272A' }}>
+              <button type="button" onClick={() => navigate(`/users/${s.owner.id}`)} className="h-9 w-9 rounded-lg flex items-center justify-center text-[#111111]" style={{ background: '#F2F4F7' }}>
                 <Icon name="chevron" size={18} />
               </button>
             </div>
@@ -513,12 +513,12 @@ function SellersView({ d, q }: { d: DashboardData; q: string }) {
             <div key={u.id} className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-sm" style={{ borderBottom: `1px solid ${C.border}` }}>
               <div className="flex items-center gap-3 w-64 min-w-0">
                 <Avatar src={u.avatar} name={u.name} size={36} />
-                <div className="truncate font-semibold text-white">{u.name}</div>
+                <div className="truncate font-semibold text-[#111111]">{u.name}</div>
               </div>
               {meta(u)}
               <div className="min-w-0 flex-1 truncate" style={{ color: C.muted }}>Inscrit le {new Date(u.createdAt).toLocaleDateString('fr-FR')}</div>
               <Contact phone={u.phone} userId={u.id} />
-              <button type="button" onClick={() => navigate(`/users/${u.id}`)} className="h-9 w-9 rounded-lg flex items-center justify-center text-white" style={{ background: '#27272A' }}>
+              <button type="button" onClick={() => navigate(`/users/${u.id}`)} className="h-9 w-9 rounded-lg flex items-center justify-center text-[#111111]" style={{ background: '#F2F4F7' }}>
                 <Icon name="chevron" size={18} />
               </button>
             </div>
@@ -535,11 +535,11 @@ function CouriersView({ d, q }: { d: DashboardData; q: string }) {
     o.status === 'SHIPPED'
       ? { text: 'En cours de livraison', color: C.green, action: 'À livrer' }
       : o.status === 'COURIER_VERIFIED'
-      ? { text: 'Vérifié, prêt à expédier', color: '#14B8A6', action: 'À livrer' }
-      : { text: 'Prêt pour ramassage', color: '#FACC15', action: 'À récupérer' };
+      ? { text: 'Vérifié, prêt à expédier', color: '#0D9488', action: 'À livrer' }
+      : { text: 'Prêt pour ramassage', color: '#CA8A04', action: 'À récupérer' };
   return (
     <Panel className="overflow-hidden">
-      <div className="px-5 py-4 text-lg font-bold text-white" style={{ borderBottom: `1px solid ${C.border}` }}>
+      <div className="px-5 py-4 text-lg font-bold text-[#111111]" style={{ borderBottom: `1px solid ${C.border}` }}>
         Suivi des livraisons en direct <span className="text-sm font-normal" style={{ color: C.muted }}>({num(d.couriers.total)} livreurs)</span>
       </div>
       {!rows.length ? (
@@ -551,13 +551,13 @@ function CouriersView({ d, q }: { d: DashboardData; q: string }) {
             <div key={o.id} className="flex flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3 text-sm" style={{ borderBottom: `1px solid ${C.border}` }}>
               <div className="flex items-center gap-3 w-56 min-w-0">
                 <Avatar src={o.courier?.avatar} name={o.courier?.name ?? '?'} size={40} />
-                <div className="truncate font-semibold text-white">{o.courier?.name}</div>
+                <div className="truncate font-semibold text-[#111111]">{o.courier?.name}</div>
               </div>
               <div className="min-w-0 flex-1 basis-64">
                 <span className="font-semibold" style={{ color: s.color }}>{s.text}</span>
-                <span className="text-white"> - {o.deliveryAddress || 'Adresse non renseignée'}</span>
+                <span className="text-[#111111]"> - {o.deliveryAddress || 'Adresse non renseignée'}</span>
               </div>
-              <div className="min-w-0 basis-56 text-white">
+              <div className="min-w-0 basis-56 text-[#111111]">
                 {o.product?.title ?? 'Produit'} - <span className="font-semibold" style={{ color: C.orange }}>{s.action}</span>
               </div>
               <Contact phone={o.courier?.phone ?? null} userId={o.courier?.id} />
@@ -586,7 +586,7 @@ function StatsView({ d }: { d: DashboardData }) {
           return (
             <Panel key={k.label} className="p-5">
               <div className="text-sm" style={{ color: C.muted }}>{k.label}</div>
-              <div className="mt-1 flex items-baseline gap-3 text-2xl font-bold text-white">
+              <div className="mt-1 flex items-baseline gap-3 text-2xl font-bold text-[#111111]">
                 {k.fmt(k.metric.total)} <span className="text-base font-medium"><Delta value={k.metric.deltaPct} /></span>
               </div>
               <Spark series={k.metric.series} color={up ? C.green : C.red} />
@@ -596,15 +596,15 @@ function StatsView({ d }: { d: DashboardData }) {
       </div>
 
       <Panel className="mt-6 p-5">
-        <div className="mb-3 text-lg font-semibold text-white">Répartition des commandes par statut (7 derniers jours)</div>
+        <div className="mb-3 text-lg font-semibold text-[#111111]">Répartition des commandes par statut (7 derniers jours)</div>
         <div style={{ height: 280 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statusData} margin={{ top: 24, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="label" tick={{ fill: '#D4D4D8', fontSize: 12 }} axisLine={{ stroke: C.border }} tickLine={false} />
+              <XAxis dataKey="label" tick={{ fill: '#344054', fontSize: 12 }} axisLine={{ stroke: C.border }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: C.muted, fontSize: 12 }} axisLine={false} tickLine={false} width={36} />
               <Tooltip {...chartTooltip} />
-              <Bar dataKey="count" name="Commandes" radius={[4, 4, 0, 0]} isAnimationActive={false} label={{ position: 'top', fill: '#fff', fontSize: 12 }}>
+              <Bar dataKey="count" name="Commandes" radius={[4, 4, 0, 0]} isAnimationActive={false} label={{ position: 'top', fill: '#111111', fontSize: 12 }}>
                 {statusData.map((s) => <Cell key={s.label} fill={s.color} />)}
               </Bar>
             </BarChart>
@@ -614,7 +614,7 @@ function StatsView({ d }: { d: DashboardData }) {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Panel className="p-5">
-          <div className="mb-3 text-lg font-semibold text-white">Catégories populaires</div>
+          <div className="mb-3 text-lg font-semibold text-[#111111]">Catégories populaires</div>
           {!w.popularCategories.length ? <Empty text="Aucune vente cette semaine." /> : (
             <div className="flex items-center gap-4">
               <div style={{ width: 150, height: 150 }}>
@@ -629,7 +629,7 @@ function StatsView({ d }: { d: DashboardData }) {
               </div>
               <ul className="min-w-0 flex-1 space-y-1.5 text-sm">
                 {w.popularCategories.map((c, i) => (
-                  <li key={c.id} className="flex items-center gap-2 text-white">
+                  <li key={c.id} className="flex items-center gap-2 text-[#111111]">
                     <span className="h-3 w-3 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                     <span className="truncate">{c.name}</span>
                     <span className="ml-auto" style={{ color: C.muted }}>{num(c.quantity)}</span>
@@ -641,11 +641,11 @@ function StatsView({ d }: { d: DashboardData }) {
         </Panel>
 
         <Panel className="p-5">
-          <div className="mb-3 text-lg font-semibold text-white">Top vendeurs</div>
+          <div className="mb-3 text-lg font-semibold text-[#111111]">Top vendeurs</div>
           {!w.topSellers.length ? <Empty text="Aucune livraison cette semaine." /> : (
             <ul>
               {w.topSellers.map((s) => (
-                <li key={s.id} className="flex items-center justify-between py-2 text-white" style={{ borderBottom: `1px solid ${C.border}` }}>
+                <li key={s.id} className="flex items-center justify-between py-2 text-[#111111]" style={{ borderBottom: `1px solid ${C.border}` }}>
                   <span className="truncate">{s.name}</span>
                   <span className="font-semibold">{num(s.orders)}</span>
                 </li>
@@ -655,7 +655,7 @@ function StatsView({ d }: { d: DashboardData }) {
         </Panel>
 
         <Panel className="p-5">
-          <div className="mb-3 text-lg font-semibold text-white">Heures de pointe</div>
+          <div className="mb-3 text-lg font-semibold text-[#111111]">Heures de pointe</div>
           <div style={{ height: 170 }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={hours} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -752,7 +752,7 @@ export default function AdminSeller() {
     return (
       <div className="flex min-h-screen items-center justify-center p-6" style={{ background: C.page }}>
         <Panel className="max-w-md p-8 text-center">
-          <p className="text-lg font-semibold text-white">Accès refusé</p>
+          <p className="text-lg font-semibold text-[#111111]">Accès refusé</p>
           <p className="mt-2 text-sm" style={{ color: C.muted }}>Cette page est réservée aux administrateurs.</p>
         </Panel>
       </div>
@@ -761,7 +761,7 @@ export default function AdminSeller() {
 
 
   return (
-    <div className="flex min-h-screen text-gray-100" style={{ background: C.page }}>
+    <div className="flex min-h-screen text-[#111111]" style={{ background: C.page }}>
       {/* Barre latérale */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-72 shrink-0 transform transition-transform lg:static lg:translate-x-0 ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -785,7 +785,7 @@ export default function AdminSeller() {
                 <Icon name={n.icon} />
                 <span className="flex-1">{n.label}</span>
                 {n.badge > 0 && (
-                  <span className="min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-xs font-bold text-white" style={{ background: n.id === 'sellers' ? C.orange : C.red }}>
+                  <span className="min-w-[22px] rounded-full px-1.5 py-0.5 text-center text-xs font-bold text-[#111111]" style={{ background: n.id === 'sellers' ? C.orange : C.red }}>
                     {n.badge}
                   </span>
                 )}
@@ -798,7 +798,7 @@ export default function AdminSeller() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* En-tête */}
         <header className="flex items-center gap-3 px-4 py-3 lg:px-6" style={{ background: C.panel, borderBottom: `1px solid ${C.border}` }}>
-          <button type="button" className="lg:hidden text-white" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu">
+          <button type="button" className="lg:hidden text-[#111111]" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu">
             <Icon name="menu" size={24} />
           </button>
           <div className="flex h-11 flex-1 max-w-xl items-center gap-2 rounded-lg px-3" style={{ background: '#222222', border: `1px solid ${C.border}` }}>
@@ -807,12 +807,12 @@ export default function AdminSeller() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Rechercher"
-              className="w-full bg-transparent text-sm text-white outline-none placeholder-gray-500"
+              className="w-full bg-transparent text-sm text-[#111111] outline-none placeholder-[#98A2B3]"
             />
           </div>
           <div className="ml-auto flex items-center gap-4">
-            <button type="button" onClick={() => load()} title="Actualiser" className="text-gray-300"><Icon name="refresh" size={20} /></button>
-            <div className="relative text-gray-300">
+            <button type="button" onClick={() => load()} title="Actualiser" className="text-[#344054]"><Icon name="refresh" size={20} /></button>
+            <div className="relative text-[#344054]">
               <Icon name="bell" size={22} />
               {attention > 0 && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full" style={{ background: C.red }} />}
             </div>
@@ -827,7 +827,7 @@ export default function AdminSeller() {
         <main className="flex-1 p-4 lg:p-6">
           <div className="mb-5 flex items-center gap-3 rounded-xl px-5 py-4" style={{ background: C.panel, border: `1px solid ${C.border}` }}>
             <span style={{ color: C.muted }}><Icon name={nav.find((n) => n.id === view)!.icon} size={26} /></span>
-            <h1 className="text-xl font-semibold text-white">{titles[view]}</h1>
+            <h1 className="text-xl font-semibold text-[#111111]">{titles[view]}</h1>
             {data && <span className="ml-auto text-xs" style={{ color: C.muted }}>Mis à jour à {new Date(data.generatedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>}
           </div>
 
@@ -838,16 +838,16 @@ export default function AdminSeller() {
             </div>
           ) : error && !data ? (
             <Panel className="p-8 text-center">
-              <p className="text-white">{error.message}</p>
+              <p className="text-[#111111]">{error.message}</p>
               {error.status !== 403 && error.status !== 401 && (
-                <button type="button" onClick={() => { setLoading(true); load(); }} className="mt-4 rounded-lg px-5 py-2 text-sm font-semibold text-white" style={{ background: C.orange }}>
+                <button type="button" onClick={() => { setLoading(true); load(); }} className="mt-4 rounded-lg px-5 py-2 text-sm font-semibold text-[#111111]" style={{ background: C.orange }}>
                   Réessayer
                 </button>
               )}
             </Panel>
           ) : data ? (
             <>
-              {error && <div className="mb-4 rounded-lg px-4 py-2 text-sm text-white" style={{ background: '#7F1D1D' }}>{error.message} Les données affichées peuvent être obsolètes.</div>}
+              {error && <div className="mb-4 rounded-lg px-4 py-2 text-sm text-[#111111]" style={{ background: '#7F1D1D' }}>{error.message} Les données affichées peuvent être obsolètes.</div>}
               {view === 'dashboard' && <DashboardView d={data} q={q} onChanged={() => load()} />}
               {view === 'orders' && <OrdersView d={data} q={q} onChanged={() => load()} />}
               {view === 'verifications' && <VerificationsView d={data} q={q} onChanged={() => load()} />}

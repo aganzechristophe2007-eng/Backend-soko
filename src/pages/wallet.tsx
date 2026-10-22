@@ -103,18 +103,18 @@ function withdrawalFailure(code: string | null): string {
 }
 
 const INPUT =
-  'w-full rounded-xl bg-neutral-800 px-4 py-3 text-sm text-neutral-100 placeholder:text-neutral-500 focus:bg-neutral-700 focus:outline-none';
+  'w-full rounded-xl bg-[#F2F4F7] px-4 py-3 text-sm text-[#111111] placeholder:text-[#98A2B3] focus:bg-white focus:outline-none';
 const BTN_PRIMARY =
-  'w-full rounded-xl bg-[#c2410c] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#9a3412] disabled:cursor-not-allowed disabled:opacity-40';
+  'w-full rounded-xl bg-[#FF6B00] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] disabled:cursor-not-allowed disabled:opacity-40';
 
 function Field({ label, htmlFor, hint, children }: { label: string; htmlFor?: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="ml-1 block text-xs font-semibold text-neutral-300">
+      <label htmlFor={htmlFor} className="ml-1 block text-xs font-semibold text-[#344054]">
         {label}
       </label>
       {children}
-      {hint && <p className="ml-1 text-[11px] text-neutral-500">{hint}</p>}
+      {hint && <p className="ml-1 text-[11px] text-[#667085]">{hint}</p>}
     </div>
   );
 }
@@ -131,7 +131,7 @@ function CurrencyToggle({ value, onChange, disabled }: { value: Currency; onChan
           disabled={disabled}
           onClick={() => onChange(c)}
           className={`rounded-xl px-4 py-2.5 text-sm font-bold transition-colors disabled:opacity-50 ${
-            value === c ? 'bg-[#c2410c] text-white' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'
+            value === c ? 'bg-[#FF6B00] text-white' : 'bg-[#F2F4F7] text-[#344054] hover:bg-[#EAECF0]'
           }`}
         >
           {c === 'CDF' ? 'Francs (CDF)' : 'Dollars (USD)'}
@@ -144,7 +144,7 @@ function CurrencyToggle({ value, onChange, disabled }: { value: Currency; onChan
 function ErrorLine({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-xl bg-red-950 px-4 py-3 text-xs font-semibold text-red-300">
+    <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
       {message}
     </p>
   );
@@ -239,32 +239,32 @@ function DepositForm({ limits, onChanged }: { limits: WalletDto['limits']; onCha
     if (!op || op.status === 'PENDING') {
       return (
         <div className="space-y-4 py-2 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-orange-500" />
-          <h3 className="text-sm font-bold text-white">Confirmez le dépôt sur votre téléphone</h3>
-          <p className="text-xs text-neutral-400">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#FF6B00]" />
+          <h3 className="text-sm font-bold text-[#111111]">Confirmez le dépôt sur votre téléphone</h3>
+          <p className="text-xs text-[#667085]">
             {op ? `Une demande a été envoyée au numéro ${op.phoneMasked}. ` : ''}Saisissez votre code PIN Mobile Money pour valider.
           </p>
-          {warning && <p className="text-xs font-semibold text-orange-400">Connexion instable : nous continuons de vérifier votre dépôt.</p>}
-          <p className="text-[11px] text-neutral-500">La demande expire après 10 minutes. Vous pouvez quitter cette page : votre solde se mettra à jour automatiquement.</p>
+          {warning && <p className="text-xs font-semibold text-[#FF6B00]">Connexion instable : nous continuons de vérifier votre dépôt.</p>}
+          <p className="text-[11px] text-[#667085]">La demande expire après 10 minutes. Vous pouvez quitter cette page : votre solde se mettra à jour automatiquement.</p>
         </div>
       );
     }
     if (op.status === 'SUCCESS') {
       return (
         <div className="space-y-3 py-2 text-center">
-          <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-400" />
-          <h3 className="text-sm font-bold text-white">Dépôt confirmé</h3>
-          <p className="text-sm font-semibold text-emerald-400">{formatMoney(op.amount, op.currency)}</p>
+          <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-600" />
+          <h3 className="text-sm font-bold text-[#111111]">Dépôt confirmé</h3>
+          <p className="text-sm font-semibold text-emerald-600">{formatMoney(op.amount, op.currency)}</p>
           <button type="button" onClick={reset} className={BTN_PRIMARY}>Faire un autre dépôt</button>
         </div>
       );
     }
     return (
       <div className="space-y-3 py-2 text-center">
-        <XCircle className="mx-auto h-11 w-11 text-red-400" />
-        <h3 className="text-sm font-bold text-white">Dépôt non abouti</h3>
-        <p className="text-xs text-neutral-400">{depositFailure(op.failureCode)}</p>
-        <p className="break-all text-[11px] text-neutral-500">Référence : {op.id}</p>
+        <XCircle className="mx-auto h-11 w-11 text-red-600" />
+        <h3 className="text-sm font-bold text-[#111111]">Dépôt non abouti</h3>
+        <p className="text-xs text-[#667085]">{depositFailure(op.failureCode)}</p>
+        <p className="break-all text-[11px] text-[#667085]">Référence : {op.id}</p>
         {op.failureCode !== 'AMOUNT_MISMATCH' && (
           <button type="button" onClick={reset} className={BTN_PRIMARY}>Réessayer</button>
         )}
@@ -301,7 +301,7 @@ function DepositForm({ limits, onChanged }: { limits: WalletDto['limits']; onCha
       <button type="button" disabled={submitting || !amount.trim() || !phone.trim()} onClick={submit} className={BTN_PRIMARY}>
         {submitting ? 'Envoi de la demande…' : 'Déposer'}
       </button>
-      <p className="text-center text-[11px] text-neutral-500">Des frais de l'opérateur peuvent s'ajouter. Le montant exact à confirmer s'affiche sur votre téléphone.</p>
+      <p className="text-center text-[11px] text-[#667085]">Des frais de l'opérateur peuvent s'ajouter. Le montant exact à confirmer s'affiche sur votre téléphone.</p>
     </div>
   );
 }
@@ -361,29 +361,29 @@ function WithdrawForm({ wallet, onChanged }: { wallet: WalletDto; onChanged: () 
     if (!op || op.status === 'PENDING') {
       return (
         <div className="space-y-4 py-2 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-orange-500" />
-          <h3 className="text-sm font-bold text-white">Retrait en cours</h3>
-          <p className="text-xs text-neutral-400">Votre argent est en route vers {op?.phoneMasked ?? 'votre téléphone'}. Cela prend généralement moins d'une minute.</p>
-          {warning && <p className="text-xs font-semibold text-orange-400">Connexion instable : nous continuons de vérifier votre retrait.</p>}
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#FF6B00]" />
+          <h3 className="text-sm font-bold text-[#111111]">Retrait en cours</h3>
+          <p className="text-xs text-[#667085]">Votre argent est en route vers {op?.phoneMasked ?? 'votre téléphone'}. Cela prend généralement moins d'une minute.</p>
+          {warning && <p className="text-xs font-semibold text-[#FF6B00]">Connexion instable : nous continuons de vérifier votre retrait.</p>}
         </div>
       );
     }
     if (op.status === 'COMPLETED') {
       return (
         <div className="space-y-3 py-2 text-center">
-          <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-400" />
-          <h3 className="text-sm font-bold text-white">Retrait effectué</h3>
-          <p className="text-sm font-semibold text-emerald-400">{formatMoney(op.amount, op.currency)}</p>
-          <p className="text-xs text-neutral-400">Envoyé sur {op.phoneMasked}. Aucun frais.</p>
+          <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-600" />
+          <h3 className="text-sm font-bold text-[#111111]">Retrait effectué</h3>
+          <p className="text-sm font-semibold text-emerald-600">{formatMoney(op.amount, op.currency)}</p>
+          <p className="text-xs text-[#667085]">Envoyé sur {op.phoneMasked}. Aucun frais.</p>
           <button type="button" onClick={reset} className={BTN_PRIMARY}>Faire un autre retrait</button>
         </div>
       );
     }
     return (
       <div className="space-y-3 py-2 text-center">
-        <XCircle className="mx-auto h-11 w-11 text-red-400" />
-        <h3 className="text-sm font-bold text-white">Retrait non abouti</h3>
-        <p className="text-xs text-neutral-400">{withdrawalFailure(op.failureCode)}</p>
+        <XCircle className="mx-auto h-11 w-11 text-red-600" />
+        <h3 className="text-sm font-bold text-[#111111]">Retrait non abouti</h3>
+        <p className="text-xs text-[#667085]">{withdrawalFailure(op.failureCode)}</p>
         <button type="button" onClick={reset} className={BTN_PRIMARY}>Réessayer</button>
       </div>
     );
@@ -498,10 +498,10 @@ function TransferForm({ wallet, onChanged }: { wallet: WalletDto; onChanged: () 
   if (done) {
     return (
       <div className="space-y-3 py-2 text-center">
-        <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-400" />
-        <h3 className="text-sm font-bold text-white">Envoi effectué</h3>
-        <p className="text-sm font-semibold text-emerald-400">{formatMoney(done.amount, done.currency)}</p>
-        <p className="text-xs text-neutral-400">Envoyé à {done.name}.</p>
+        <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-600" />
+        <h3 className="text-sm font-bold text-[#111111]">Envoi effectué</h3>
+        <p className="text-sm font-semibold text-emerald-600">{formatMoney(done.amount, done.currency)}</p>
+        <p className="text-xs text-[#667085]">Envoyé à {done.name}.</p>
         <button type="button" onClick={restart} className={BTN_PRIMARY}>Faire un autre envoi</button>
       </div>
     );
@@ -526,7 +526,7 @@ function TransferForm({ wallet, onChanged }: { wallet: WalletDto; onChanged: () 
             type="button"
             onClick={search}
             disabled={searching || !numberInput.trim()}
-            className="shrink-0 rounded-xl bg-neutral-100 px-4 text-sm font-bold text-neutral-900 transition-colors hover:bg-white disabled:opacity-40"
+            className="shrink-0 rounded-xl bg-[#F2F4F7] px-4 text-sm font-bold text-[#111111] transition-colors hover:bg-white disabled:opacity-40"
           >
             {searching ? '…' : 'Vérifier'}
           </button>
@@ -534,11 +534,11 @@ function TransferForm({ wallet, onChanged }: { wallet: WalletDto; onChanged: () 
       </Field>
 
       {recipient && (
-        <div className="flex items-center gap-3 rounded-xl bg-emerald-950 px-4 py-3">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
+        <div className="flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-white">{recipient.name}</p>
-            <p className="text-[11px] text-emerald-300">{recipient.number}</p>
+            <p className="truncate text-sm font-bold text-[#111111]">{recipient.name}</p>
+            <p className="text-[11px] text-emerald-700">{recipient.number}</p>
           </div>
         </div>
       )}
@@ -608,19 +608,19 @@ function TxRow({ tx }: { tx: TxDto }) {
   const pending = tx.status === 'PENDING';
   const who = tx.counterpartyName ? (tx.type === 'TRANSFER_IN' ? ` de ${tx.counterpartyName}` : ` à ${tx.counterpartyName}`) : '';
   const date = new Date(tx.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  const amountColor = failed ? 'text-neutral-500 line-through' : pending ? 'text-orange-400' : credit ? 'text-emerald-400' : 'text-red-400';
+  const amountColor = failed ? 'text-[#667085] line-through' : pending ? 'text-[#FF6B00]' : credit ? 'text-emerald-600' : 'text-red-600';
 
   return (
     <li className="flex items-center gap-3 py-3">
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${credit ? 'bg-emerald-950 text-emerald-400' : 'bg-neutral-800 text-orange-400'}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${credit ? 'bg-emerald-50 text-emerald-600' : 'bg-[#F2F4F7] text-[#FF6B00]'}`}>
         <TxIcon type={tx.type} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-neutral-100">
+        <p className="truncate text-sm font-semibold text-[#111111]">
           {TX_LABEL[tx.type]}
           {who}
         </p>
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-[11px] text-[#667085]">
           {date}
           {pending && ' · En cours'}
           {failed && ' · Échoué, montant remis'}
@@ -699,33 +699,33 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 pb-20 text-white">
-      <header className="sticky top-0 z-40 flex items-center gap-3 bg-neutral-950 px-4 py-3.5">
+    <div className="min-h-screen bg-white pb-20 text-[#111111]">
+      <header className="sticky top-0 z-40 flex items-center gap-3 bg-[#F9FAFB] px-4 py-3.5">
         <button
           type="button"
           onClick={() => navigate(-1)}
           aria-label="Retour"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-900 text-neutral-300 transition-colors hover:bg-neutral-800 hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#344054] transition-colors hover:bg-[#F2F4F7] hover:text-[#111111]"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
           <h1 className="text-sm font-bold leading-tight">Mon portefeuille</h1>
-          <p className="text-[11px] text-neutral-400">Déposez, payez, retirez ou envoyez de l'argent</p>
+          <p className="text-[11px] text-[#667085]">Déposez, payez, retirez ou envoyez de l'argent</p>
         </div>
       </header>
 
       <main className="mx-auto max-w-md space-y-5 px-4 pt-3" aria-live="polite">
         {loading && (
           <div className="py-20 text-center">
-            <Loader2 className="mx-auto h-6 w-6 animate-spin text-orange-500" />
+            <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#FF6B00]" />
           </div>
         )}
 
         {!loading && loadError && (
-          <div className="space-y-3 rounded-2xl bg-neutral-900 p-5 text-center">
-            <p className="text-sm font-semibold text-red-400">{loadError}</p>
-            <button type="button" onClick={refresh} className="rounded-xl bg-neutral-800 px-4 py-2 text-xs font-bold text-orange-400 transition-colors hover:bg-neutral-700">
+          <div className="space-y-3 rounded-2xl bg-white p-5 text-center">
+            <p className="text-sm font-semibold text-red-600">{loadError}</p>
+            <button type="button" onClick={refresh} className="rounded-xl bg-[#F2F4F7] px-4 py-2 text-xs font-bold text-[#FF6B00] transition-colors hover:bg-[#EAECF0]">
               Réessayer
             </button>
           </div>
@@ -733,30 +733,30 @@ export default function WalletPage() {
 
         {!loading && wallet && (
           <>
-            <section className="space-y-2 rounded-2xl bg-[#181818] p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Numéro de portefeuille</p>
+            <section className="space-y-2 rounded-2xl bg-white p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#667085]">Numéro de portefeuille</p>
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xl font-extrabold tracking-wide text-white">{wallet.number}</p>
+                <p className="text-xl font-extrabold tracking-wide text-[#111111]">{wallet.number}</p>
                 <button
                   type="button"
                   onClick={copyNumber}
-                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-neutral-800 px-3 py-2 text-xs font-bold text-neutral-200 transition-colors hover:bg-neutral-700"
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#F2F4F7] px-3 py-2 text-xs font-bold text-[#344054] transition-colors hover:bg-[#EAECF0]"
                 >
-                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                   {copied ? 'Copié' : 'Copier'}
                 </button>
               </div>
-              <p className="text-[11px] text-neutral-500">Donnez ce numéro pour recevoir de l'argent d'un autre utilisateur.</p>
+              <p className="text-[11px] text-[#667085]">Donnez ce numéro pour recevoir de l'argent d'un autre utilisateur.</p>
             </section>
 
             <section className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-[#181818] p-4">
-                <p className="text-[11px] font-semibold text-neutral-400">Solde en francs</p>
-                <p className="mt-1 break-words text-lg font-extrabold text-orange-500">{formatMoney(wallet.balanceCDF, 'CDF')}</p>
+              <div className="rounded-2xl bg-white p-4">
+                <p className="text-[11px] font-semibold text-[#667085]">Solde en francs</p>
+                <p className="mt-1 break-words text-lg font-extrabold text-[#FF6B00]">{formatMoney(wallet.balanceCDF, 'CDF')}</p>
               </div>
-              <div className="rounded-2xl bg-[#181818] p-4">
-                <p className="text-[11px] font-semibold text-neutral-400">Solde en dollars</p>
-                <p className="mt-1 break-words text-lg font-extrabold text-orange-500">{formatMoney(wallet.balanceUSD, 'USD')}</p>
+              <div className="rounded-2xl bg-white p-4">
+                <p className="text-[11px] font-semibold text-[#667085]">Solde en dollars</p>
+                <p className="mt-1 break-words text-lg font-extrabold text-[#FF6B00]">{formatMoney(wallet.balanceUSD, 'USD')}</p>
               </div>
             </section>
 
@@ -765,7 +765,7 @@ export default function WalletPage() {
                 type="button"
                 onClick={() => toggle('deposit')}
                 aria-pressed={panel === 'deposit'}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-white transition-colors ${panel === 'deposit' ? 'bg-[#9a3412]' : 'bg-[#c2410c] hover:bg-[#9a3412]'}`}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-white transition-colors ${panel === 'deposit' ? 'bg-[#E85F00]' : 'bg-[#FF6B00] hover:bg-[#E85F00]'}`}
               >
                 <ArrowDownToLine className="h-5 w-5" />
                 Déposer
@@ -783,7 +783,7 @@ export default function WalletPage() {
                 type="button"
                 onClick={() => toggle('transfer')}
                 aria-pressed={panel === 'transfer'}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-neutral-900 transition-colors ${panel === 'transfer' ? 'bg-neutral-300' : 'bg-neutral-100 hover:bg-white'}`}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-[#111111] transition-colors ${panel === 'transfer' ? 'bg-[#D0D5DD]' : 'bg-[#F2F4F7] hover:bg-white'}`}
               >
                 <Send className="h-5 w-5" />
                 Envoyer
@@ -791,20 +791,20 @@ export default function WalletPage() {
             </section>
 
             {panel && (
-              <section className="space-y-4 rounded-2xl bg-[#181818] p-4">
-                <h2 className="text-sm font-bold text-white">{PANEL_TITLE[panel]}</h2>
+              <section className="space-y-4 rounded-2xl bg-white p-4">
+                <h2 className="text-sm font-bold text-[#111111]">{PANEL_TITLE[panel]}</h2>
                 {panel === 'deposit' && <DepositForm limits={wallet.limits} onChanged={refresh} />}
                 {panel === 'withdraw' && <WithdrawForm wallet={wallet} onChanged={refresh} />}
                 {panel === 'transfer' && <TransferForm wallet={wallet} onChanged={refresh} />}
               </section>
             )}
 
-            <section className="rounded-2xl bg-[#181818] p-4">
-              <h2 className="mb-1 text-sm font-bold text-white">Historique</h2>
+            <section className="rounded-2xl bg-white p-4">
+              <h2 className="mb-1 text-sm font-bold text-[#111111]">Historique</h2>
               {txs.length === 0 ? (
-                <p className="py-6 text-center text-xs text-neutral-500">Aucune opération pour le moment.</p>
+                <p className="py-6 text-center text-xs text-[#667085]">Aucune opération pour le moment.</p>
               ) : (
-                <ul className="divide-y divide-neutral-800">
+                <ul className="divide-y divide-[#EAECF0]">
                   {txs.map((tx) => (
                     <TxRow key={tx.id} tx={tx} />
                   ))}
@@ -815,15 +815,15 @@ export default function WalletPage() {
                   type="button"
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="mt-2 w-full rounded-xl bg-neutral-800 py-2.5 text-xs font-bold text-neutral-200 transition-colors hover:bg-neutral-700 disabled:opacity-50"
+                  className="mt-2 w-full rounded-xl bg-[#F2F4F7] py-2.5 text-xs font-bold text-[#344054] transition-colors hover:bg-[#EAECF0] disabled:opacity-50"
                 >
                   {loadingMore ? 'Chargement…' : 'Voir plus'}
                 </button>
               )}
             </section>
 
-            <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-neutral-500">
-              <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+            <div className="flex items-center justify-center gap-1.5 pt-1 text-[11px] text-[#667085]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
               <span>Soldes et montants vérifiés par nos serveurs</span>
             </div>
           </>

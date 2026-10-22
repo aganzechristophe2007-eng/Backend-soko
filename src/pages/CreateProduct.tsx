@@ -434,20 +434,20 @@ export default function CreateProduct() {
   const selectedCategoryName = categories.find(c => c.id === formData.categoryId)?.name;
 
   return (
-    <div className="min-h-screen bg-black text-white pb-28">
+    <div className="min-h-screen bg-white text-[#111111] pb-28">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-black border-b border-neutral-600 px-4 py-3">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#EAECF0] px-4 py-3">
         <div className="max-w-xl mx-auto flex items-center gap-3">
           <button
             type="button"
             onClick={() => (createdProduct ? navigate('/') : handleBack())}
-            className="p-2 rounded-full hover:bg-white/10 hover:text-white text-neutral-300 transition flex-shrink-0"
+            className="p-2 rounded-full hover:bg-[#F2F4F7] hover:text-[#111111] text-[#344054] transition flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="min-w-0">
-            <h1 className="font-bold text-base text-white truncate">Publier un article</h1>
-            <p className="text-xs text-neutral-300">
+            <h1 className="font-bold text-base text-[#111111] truncate">Publier un article</h1>
+            <p className="text-xs text-[#344054]">
               {createdProduct ? 'Publication terminée' : `Étape ${stepIndex + 1} sur ${STEPS.length} — ${STEP_LABELS[step]}`}
             </p>
           </div>
@@ -462,20 +462,20 @@ export default function CreateProduct() {
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
                     i < stepIndex
-                      ? 'bg-[#c2410c] text-white'
+                      ? 'bg-[#FF6B00] text-white'
                       : i === stepIndex
                       ? 'bg-white text-black'
-                      : 'bg-black border border-neutral-600 text-neutral-400'
+                      : 'bg-white border border-[#EAECF0] text-[#667085]'
                   }`}
                 >
                   {i < stepIndex ? <Check className="w-3.5 h-3.5" /> : i + 1}
                 </div>
-                <span className={`text-[10px] whitespace-nowrap ${i === stepIndex ? 'text-white font-semibold' : 'text-neutral-400'}`}>
+                <span className={`text-[10px] whitespace-nowrap ${i === stepIndex ? 'text-[#111111] font-semibold' : 'text-[#667085]'}`}>
                   {STEP_LABELS[s]}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-px mx-1.5 mb-4 ${i < stepIndex ? 'bg-[#c2410c]' : 'bg-neutral-600'}`} />
+                <div className={`flex-1 h-px mx-1.5 mb-4 ${i < stepIndex ? 'bg-[#FF6B00]' : 'bg-[#D0D5DD]'}`} />
               )}
             </React.Fragment>
           ))}
@@ -485,21 +485,21 @@ export default function CreateProduct() {
 
       <main className="max-w-xl mx-auto px-4 py-6">
         {error && (
-          <div className="mb-5 p-3.5 rounded-lg bg-black border border-[#c2410c] text-white text-sm flex items-start gap-2.5">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#c2410c]" />
+          <div className="mb-5 p-3.5 rounded-lg bg-white border border-[#FF6B00] text-[#111111] text-sm flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#FF6B00]" />
             <span>{error}</span>
           </div>
         )}
 
         {createdProduct ? (
           <div className="space-y-5">
-            <div className="bg-black border border-neutral-600 rounded-lg p-5 text-center space-y-4">
-              <div className="w-12 h-12 rounded-full bg-[#c2410c] flex items-center justify-center mx-auto">
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-5 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-[#FF6B00] flex items-center justify-center mx-auto">
                 <Check className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-white text-lg">Article publié avec succès</h2>
-                <p className="text-xs text-neutral-300 mt-1">Code QR sécurisé généré et enregistré en base.</p>
+                <h2 className="font-bold text-[#111111] text-lg">Article publié avec succès</h2>
+                <p className="text-xs text-[#344054] mt-1">Code QR sécurisé généré et enregistré en base.</p>
               </div>
 
               <div className="bg-white rounded-lg p-4 inline-block">
@@ -511,17 +511,17 @@ export default function CreateProduct() {
               </div>
 
               {(createdProduct.sku || createdProduct.id) && (
-                <p className="text-xs text-neutral-300">
-                  Code : <span className="text-white font-mono">{createdProduct.sku || createdProduct.id}</span>
+                <p className="text-xs text-[#344054]">
+                  Code : <span className="text-[#111111] font-mono">{createdProduct.sku || createdProduct.id}</span>
                 </p>
               )}
             </div>
 
-            <div className="bg-black border border-neutral-600 rounded-lg p-4">
-              <h2 className="font-bold text-white mb-3">Photos publiées ({photoPreviews.length})</h2>
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
+              <h2 className="font-bold text-[#111111] mb-3">Photos publiées ({photoPreviews.length})</h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {photoPreviews.map((url, idx) => (
-                  <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-black border border-neutral-600">
+                  <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-white border border-[#EAECF0]">
                     <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
@@ -531,7 +531,7 @@ export default function CreateProduct() {
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="w-full py-3.5 bg-[#c2410c] hover:bg-[#a8380a] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
             >
               Retour à l'accueil
             </button>
@@ -541,25 +541,25 @@ export default function CreateProduct() {
         {/* ÉTAPE 1 : MÉDIAS */}
         {step === 'media' && (
           <div className="space-y-5">
-            <div className="bg-black border border-neutral-600 rounded-lg p-4">
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black border border-neutral-600 flex items-center justify-center text-[#c2410c] flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Camera className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-white">Photos de l'article</h2>
-                  <p className="text-xs text-neutral-300">3 photos minimum, 7 maximum (JPG, PNG, WEBP).</p>
+                  <h2 className="font-bold text-[#111111]">Photos de l'article</h2>
+                  <p className="text-xs text-[#344054]">3 photos minimum, 7 maximum (JPG, PNG, WEBP).</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2.5">
                 {photoPreviews.map((url, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-black border border-neutral-600">
+                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-white border border-[#EAECF0]">
                     <img src={url} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black text-white hover:bg-[#c2410c] transition"
+                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white text-white hover:bg-[#E85F00] transition"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -567,8 +567,8 @@ export default function CreateProduct() {
                 ))}
 
                 {photoFiles.length < 7 && (
-                  <label className="aspect-square rounded-lg bg-black border border-neutral-600 hover:border-white transition flex flex-col items-center justify-center text-neutral-300 hover:text-white cursor-pointer">
-                    <Plus className="w-6 h-6 mb-1 text-[#c2410c]" />
+                  <label className="aspect-square rounded-lg bg-white border border-[#EAECF0] hover:border-[#FF6B00] transition flex flex-col items-center justify-center text-[#344054] hover:text-[#111111] cursor-pointer">
+                    <Plus className="w-6 h-6 mb-1 text-[#FF6B00]" />
                     <span className="text-xs font-semibold">Ajouter</span>
                     <input
                       type="file"
@@ -582,19 +582,19 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-black border border-neutral-600 rounded-lg p-4">
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-black border border-neutral-600 flex items-center justify-center text-[#c2410c] flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Video className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-white">Vidéo d'accueil (optionnel)</h2>
-                  <p className="text-xs text-neutral-300">Mise en avant dynamique dans les Reels.</p>
+                  <h2 className="font-bold text-[#111111]">Vidéo d'accueil (optionnel)</h2>
+                  <p className="text-xs text-[#344054]">Mise en avant dynamique dans les Reels.</p>
                 </div>
               </div>
 
               {videoPreview ? (
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-video">
+                <div className="relative rounded-lg overflow-hidden bg-white aspect-video">
                   <video src={videoPreview} controls className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -603,14 +603,14 @@ export default function CreateProduct() {
                       setVideoFile(null);
                       setVideoPreview(null);
                     }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black text-white hover:bg-[#c2410c] transition"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-white text-white hover:bg-[#E85F00] transition"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <label className="w-full py-3.5 rounded-lg bg-black border border-neutral-600 hover:border-white transition text-sm font-semibold flex items-center justify-center gap-2 text-white cursor-pointer">
-                  <Video className="w-4 h-4 text-[#c2410c]" />
+                <label className="w-full py-3.5 rounded-lg bg-white border border-[#EAECF0] hover:border-[#FF6B00] transition text-sm font-semibold flex items-center justify-center gap-2 text-[#111111] cursor-pointer">
+                  <Video className="w-4 h-4 text-[#FF6B00]" />
                   <span>Sélectionner une vidéo</span>
                   <input type="file" accept="video/mp4, video/webm, video/quicktime" onChange={handleVideoSelection} className="hidden" />
                 </label>
@@ -621,7 +621,7 @@ export default function CreateProduct() {
               type="button"
               disabled={photoFiles.length < 3}
               onClick={handleValidateMedia}
-              className="w-full py-3.5 bg-[#c2410c] hover:bg-[#a8380a] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition"
             >
               Continuer ({photoFiles.length}/7 photos)
             </button>
@@ -638,20 +638,20 @@ export default function CreateProduct() {
               <button
                 type="button"
                 onClick={() => setStep('media')}
-                className="text-xs font-semibold text-[#c2410c] hover:underline px-2 flex-shrink-0"
+                className="text-xs font-semibold text-[#FF6B00] hover:underline px-2 flex-shrink-0"
               >
                 Modifier
               </button>
             </div>
 
-            <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-4">
-              <h2 className="font-bold text-white">Détails du produit</h2>
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
+              <h2 className="font-bold text-[#111111]">Détails du produit</h2>
 
               <button
                 type="button"
                 onClick={handleAiFill}
                 disabled={aiLoading || photoFiles.length === 0}
-                className="w-full py-3 rounded-lg bg-white hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed text-black text-sm font-bold transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-lg bg-white hover:bg-[#EAECF0] disabled:opacity-50 disabled:cursor-not-allowed text-black text-sm font-bold transition flex items-center justify-center gap-2"
               >
                 {aiLoading ? (
                   <>
@@ -660,19 +660,19 @@ export default function CreateProduct() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 text-[#c2410c]" />
+                    <Sparkles className="w-4 h-4 text-[#FF6B00]" />
                     <span>Remplir automatiquement avec l’IA</span>
                   </>
                 )}
               </button>
               {aiNotice && (
-                <p className="text-xs text-white bg-black border border-[#c2410c] rounded-lg p-3">{aiNotice}</p>
+                <p className="text-xs text-[#111111] bg-white border border-[#FF6B00] rounded-lg p-3">{aiNotice}</p>
               )}
 
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">Nom du produit</label>
-                <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                  <Tag className="w-4 h-4 mr-2.5 text-[#c2410c] flex-shrink-0" />
+                <label className="block text-xs text-[#344054] mb-1.5">Nom du produit</label>
+                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <Tag className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
                     name="title"
@@ -681,25 +681,25 @@ export default function CreateProduct() {
                     placeholder="Ex: Appareil professionnel..."
                     value={formData.title}
                     onChange={handleChange}
-                    className="bg-transparent border-none outline-none w-full text-sm text-white placeholder:text-neutral-300"
+                    className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">Catégorie</label>
-                <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                  <Layers className="w-4 h-4 mr-2.5 text-[#c2410c] flex-shrink-0" />
+                <label className="block text-xs text-[#344054] mb-1.5">Catégorie</label>
+                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <Layers className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <select
                     name="categoryId"
                     required
                     value={formData.categoryId}
                     onChange={handleChange}
-                    className="bg-transparent border-none outline-none w-full text-sm text-white cursor-pointer"
+                    className="bg-transparent border-none outline-none w-full text-sm text-[#111111] cursor-pointer"
                   >
-                    <option value="" className="bg-black border border-neutral-600 text-neutral-300">Sélectionnez une catégorie</option>
+                    <option value="" className="bg-white border border-[#EAECF0] text-[#344054]">Sélectionnez une catégorie</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-black border border-neutral-600 text-white">
+                      <option key={cat.id} value={cat.id} className="bg-white border border-[#EAECF0] text-[#111111]">
                         {cat.name}
                       </option>
                     ))}
@@ -708,7 +708,7 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">Description</label>
+                <label className="block text-xs text-[#344054] mb-1.5">Description</label>
                 <textarea
                   name="description"
                   rows={4}
@@ -716,15 +716,15 @@ export default function CreateProduct() {
                   placeholder="Description détaillée..."
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full rounded-lg bg-black border border-neutral-600 focus:border-[#c2410c] p-3.5 text-sm text-white placeholder:text-neutral-300 resize-none outline-none transition-colors"
+                  className="w-full rounded-lg bg-white border border-[#EAECF0] focus:border-[#FF6B00] p-3.5 text-sm text-[#111111] placeholder:text-[#98A2B3] resize-none outline-none transition-colors"
                 />
               </div>
             </div>
 
-            <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-3">
-              <h2 className="font-bold text-white">Options de vente</h2>
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-3">
+              <h2 className="font-bold text-[#111111]">Options de vente</h2>
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">Type de vente</label>
+                <label className="block text-xs text-[#344054] mb-1.5">Type de vente</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: 'DETAIL', label: 'Vente au détail' },
@@ -736,15 +736,15 @@ export default function CreateProduct() {
                       onClick={() => handleSaleTypeChange(opt.value)}
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
                         formData.type === opt.value
-                          ? 'bg-[#c2410c] text-white'
-                          : 'bg-black border border-neutral-600 text-neutral-300 hover:border-white'
+                          ? 'bg-[#FF6B00] text-white'
+                          : 'bg-white border border-[#EAECF0] text-[#344054] hover:border-[#FF6B00]'
                       }`}
                     >
                       {opt.label}
                     </button>
                   ))}
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-1.5">
+                <p className="text-[11px] text-[#667085] mt-1.5">
                   {formData.type === 'GROS'
                     ? 'Vente en gros : jusqu’à 96 unités (8 douzaines).'
                     : 'Vente au détail : 4 unités maximum.'}
@@ -752,18 +752,18 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-3">
-              <h2 className="font-bold text-white">Prix et devises</h2>
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-3">
+              <h2 className="font-bold text-[#111111]">Prix et devises</h2>
               {exchangeRate && (
-                <p className="text-[11px] text-neutral-400">
+                <p className="text-[11px] text-[#667085]">
                   Taux du jour : 1 $ ≈ {Math.round(exchangeRate).toLocaleString('fr-FR')} Fc — conversion automatique.
                 </p>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1.5">Prix (USD)</label>
-                  <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                    <DollarSign className="w-4 h-4 mr-2 text-[#c2410c] flex-shrink-0" />
+                  <label className="block text-xs text-[#344054] mb-1.5">Prix (USD)</label>
+                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                    <DollarSign className="w-4 h-4 mr-2 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
                       name="priceUSD"
@@ -772,14 +772,14 @@ export default function CreateProduct() {
                       placeholder="0.00"
                       value={formData.priceUSD}
                       onChange={handleChange}
-                      className="bg-transparent border-none outline-none w-full text-sm text-white placeholder:text-neutral-300"
+                      className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1.5">Prix (CDF)</label>
-                  <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                    <span className="mr-2 text-xs font-bold text-[#c2410c] flex-shrink-0">Fc</span>
+                  <label className="block text-xs text-[#344054] mb-1.5">Prix (CDF)</label>
+                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                    <span className="mr-2 text-xs font-bold text-[#FF6B00] flex-shrink-0">Fc</span>
                     <input
                       type="number"
                       name="priceCDF"
@@ -788,7 +788,7 @@ export default function CreateProduct() {
                       placeholder="0.00"
                       value={formData.priceCDF}
                       onChange={handleChange}
-                      className="bg-transparent border-none outline-none w-full text-sm text-white placeholder:text-neutral-300"
+                      className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
                     />
                   </div>
                 </div>
@@ -798,7 +798,7 @@ export default function CreateProduct() {
             <button
               type="button"
               onClick={handleValidateDetails}
-              className="w-full py-3.5 bg-[#c2410c] hover:bg-[#a8380a] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
             >
               Continuer vers le stock
             </button>
@@ -808,18 +808,18 @@ export default function CreateProduct() {
         {/* ÉTAPE 3 : STOCK & LIEU */}
         {step === 'stock' && (
           <div className="space-y-5">
-            <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-black border border-neutral-600 flex items-center justify-center text-[#c2410c] flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Package className="w-5 h-5" />
                 </div>
-                <h2 className="font-bold text-white">Stock et lieu</h2>
+                <h2 className="font-bold text-[#111111]">Stock et lieu</h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1.5">
-                    Quantité <span className="text-neutral-400">(max {formData.type === 'GROS' ? 96 : 4})</span>
+                  <label className="block text-xs text-[#344054] mb-1.5">
+                    Quantité <span className="text-[#667085]">(max {formData.type === 'GROS' ? 96 : 4})</span>
                   </label>
                   <input
                     type="number"
@@ -829,13 +829,13 @@ export default function CreateProduct() {
                     required
                     value={formData.quantity}
                     onChange={handleChange}
-                    className="w-full rounded-lg bg-black border border-neutral-600 focus:border-[#c2410c] px-3.5 py-3 text-sm text-white outline-none transition-colors"
+                    className="w-full rounded-lg bg-white border border-[#EAECF0] focus:border-[#FF6B00] px-3.5 py-3 text-sm text-[#111111] outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-neutral-300 mb-1.5">Poids (kg) *</label>
-                  <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                    <Scale className="w-4 h-4 mr-2.5 text-[#c2410c] flex-shrink-0" />
+                  <label className="block text-xs text-[#344054] mb-1.5">Poids (kg) *</label>
+                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                    <Scale className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
                       name="weight"
@@ -845,15 +845,15 @@ export default function CreateProduct() {
                       placeholder="Ex: 1.5"
                       value={formData.weight}
                       onChange={handleChange}
-                      className="bg-transparent border-none outline-none w-full text-sm text-white placeholder:text-neutral-300"
+                      className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
                     />
                   </div>
-                  <p className="text-[11px] text-neutral-300 mt-1.5">Poids d'une unité, vérifié par l'IA à partir des photos.</p>
+                  <p className="text-[11px] text-[#344054] mt-1.5">Poids d'une unité, vérifié par l'IA à partir des photos.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">État du produit</label>
+                <label className="block text-xs text-[#344054] mb-1.5">État du produit</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: 'NEUF', label: 'Neuf' },
@@ -867,7 +867,7 @@ export default function CreateProduct() {
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
                         formData.state === opt.value
                           ? 'bg-white text-black'
-                          : 'bg-black border border-neutral-600 text-neutral-300 hover:border-white'
+                          : 'bg-white border border-[#EAECF0] text-[#344054] hover:border-[#FF6B00]'
                       }`}
                     >
                       {opt.label}
@@ -877,9 +877,9 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-neutral-300 mb-1.5">Localisation</label>
-                <div className="flex items-center rounded-lg bg-black border border-neutral-600 focus-within:border-[#c2410c] px-3.5 py-3 transition-colors">
-                  <MapPin className="w-4 h-4 mr-2.5 text-[#c2410c] flex-shrink-0" />
+                <label className="block text-xs text-[#344054] mb-1.5">Localisation</label>
+                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <MapPin className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
                     name="location"
@@ -887,7 +887,7 @@ export default function CreateProduct() {
                     placeholder="Ex: Bagira, Bukavu"
                     value={formData.location}
                     onChange={handleChange}
-                    className="bg-transparent border-none outline-none w-full text-sm text-white placeholder:text-neutral-300"
+                    className="bg-transparent border-none outline-none w-full text-sm text-[#111111] placeholder:text-[#98A2B3]"
                   />
                 </div>
               </div>
@@ -896,7 +896,7 @@ export default function CreateProduct() {
             <button
               type="button"
               onClick={handleValidateStock}
-              className="w-full py-3.5 bg-[#c2410c] hover:bg-[#a8380a] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
             >
               Continuer vers la publication
             </button>
@@ -906,12 +906,12 @@ export default function CreateProduct() {
         {/* ÉTAPE 4 : PUBLIER */}
         {step === 'publish' && (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="bg-black border border-neutral-600 rounded-lg p-4 space-y-4">
-              <h2 className="font-bold text-white">Résumé de l'article</h2>
+            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
+              <h2 className="font-bold text-[#111111]">Résumé de l'article</h2>
 
               <div>
-                <p className="font-semibold text-white truncate">{formData.title || 'Sans titre'}</p>
-                <p className="text-xs text-neutral-300 truncate mb-2">{selectedCategoryName || 'Catégorie non définie'}</p>
+                <p className="font-semibold text-[#111111] truncate">{formData.title || 'Sans titre'}</p>
+                <p className="text-xs text-[#344054] truncate mb-2">{selectedCategoryName || 'Catégorie non définie'}</p>
                 <div className="flex items-center gap-2 overflow-x-auto pb-1">
                   {photoPreviews.map((url, idx) => (
                     <img key={idx} src={url} alt={`Photo ${idx + 1}`} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
@@ -920,31 +920,31 @@ export default function CreateProduct() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-black border border-neutral-600 rounded-lg p-3">
-                  <p className="text-xs text-neutral-300 mb-0.5">Prix</p>
-                  <p className="font-bold text-[#c2410c]">
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
+                  <p className="text-xs text-[#344054] mb-0.5">Prix</p>
+                  <p className="font-bold text-[#FF6B00]">
                     {formData.priceUSD ? `$${formData.priceUSD}` : '—'}
                     {formData.priceCDF ? ` / Fc ${formData.priceCDF}` : ''}
                   </p>
                 </div>
-                <div className="bg-black border border-neutral-600 rounded-lg p-3">
-                  <p className="text-xs text-neutral-300 mb-0.5">Stock</p>
-                  <p className="font-bold text-white">{formData.quantity} unité(s) · {formData.weight || '—'} kg</p>
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
+                  <p className="text-xs text-[#344054] mb-0.5">Stock</p>
+                  <p className="font-bold text-[#111111]">{formData.quantity} unité(s) · {formData.weight || '—'} kg</p>
                 </div>
-                <div className="bg-black border border-neutral-600 rounded-lg p-3">
-                  <p className="text-xs text-neutral-300 mb-0.5">État</p>
-                  <p className="font-bold text-white">{formData.state.replace(/_/g, ' ')}</p>
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
+                  <p className="text-xs text-[#344054] mb-0.5">État</p>
+                  <p className="font-bold text-[#111111]">{formData.state.replace(/_/g, ' ')}</p>
                 </div>
-                <div className="bg-black border border-neutral-600 rounded-lg p-3">
-                  <p className="text-xs text-neutral-300 mb-0.5">Localisation</p>
-                  <p className="font-bold text-white truncate">{formData.location || '—'}</p>
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
+                  <p className="text-xs text-[#344054] mb-0.5">Localisation</p>
+                  <p className="font-bold text-[#111111] truncate">{formData.location || '—'}</p>
                 </div>
               </div>
 
               {formData.description && (
                 <div>
-                  <p className="text-xs text-neutral-300 mb-1">Description</p>
-                  <p className="text-sm text-neutral-300 line-clamp-3">{formData.description}</p>
+                  <p className="text-xs text-[#344054] mb-1">Description</p>
+                  <p className="text-sm text-[#344054] line-clamp-3">{formData.description}</p>
                 </div>
               )}
             </div>
@@ -952,7 +952,7 @@ export default function CreateProduct() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-[#c2410c] hover:bg-[#a8380a] disabled:opacity-50 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-50 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
