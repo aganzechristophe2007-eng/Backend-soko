@@ -19,6 +19,8 @@ import About from './pages/About';
 import PayPage from './pages/Paypage';
 import AdminSeller from './pages/admin-seller';
 import Walletpage from './pages/wallet';
+import A30IA from './pages/A30IA';
+import A30Fab from './components/A30Fab';
 
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from './api/client';
@@ -73,9 +75,13 @@ export default function App() {
               {/* Tableau de bord admin (accès contrôlé côté serveur par requireRole) */}
               <Route path="/admin-seller" element={<AdminSeller />} />
 
+              {/* A30 IA : l'accès est contrôlé côté serveur (cookie de session) */}
+              <Route path="/a30-ia" element={<A30IA />} />
+
               {/* Redirection globale par défaut */}
               <Route path="*" element={<Home />} />
             </Routes>
+            <A30Fab />
           </Router>
           <CallModal />
         </CallProvider>
