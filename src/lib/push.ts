@@ -15,10 +15,12 @@ export type PushUiState =
 export const isPushSupported = (): boolean =>
   typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
   const raw = atob((base64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+  const output = new Uint8Array(new ArrayBuffer(raw.length)); // ArrayBuffer (et non SharedArrayBuffer) exigé par pushManager.subscribe
+  for (let i = 0; i < raw.length; i += 1) output[i] = raw.charCodeAt(i);
+  return output;
 }
 
 async function currentSubscription(): Promise<PushSubscription | null> {
@@ -63,7 +65,7 @@ export async function enablePush(): Promise<EnablePushResult> {
   const registration = await navigator.serviceWorker.ready;
   const subscription =
     (await registration.pushManager.getSubscription()) ||
-    (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(config.publicKey) }));
+    (await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(config.publicKey) as BufferSource }));
 
   try {
     await api('/push/subscribe', { method: 'POST', body: { subscription: subscription.toJSON(), userAgent: navigator.userAgent } });
