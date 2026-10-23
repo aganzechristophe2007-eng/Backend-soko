@@ -22,7 +22,7 @@ import Walletpage from './pages/wallet';
 import A30IA from './pages/A30IA';
 import Notifications from './pages/Notifications';
 import A30Fab from './components/A30Fab';
-
+import { useNotificationSound } from './lib/Son';
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from './api/client';
 import { getSocket } from './lib/socket';
@@ -31,6 +31,7 @@ import CallModal from './components/CallModal';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from './lib/textPrefs';
 
 export default function App() {
+  useNotificationSound();
   useEffect(() => {
     applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
     const syncTextPrefs = () => applyTextPrefs(readSavedTextSize(), readSavedTextFamily());
