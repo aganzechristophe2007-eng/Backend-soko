@@ -3,8 +3,8 @@
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
-const ICON = '/logo-cbf-soko.png'; // dans public/
-const BADGE = '/logo-cbf-soko.png'; // idéal : un PNG blanc sur fond transparent (petite icône de la barre d'état)
+const ICON = '/favicon.png'; // dans public/
+const BADGE = '/favicon.png'; // idéal : un PNG blanc sur fond transparent (petite icône de la barre d'état)
 
 // Seules les routes internes sont acceptées ("//" et les URL externes sont rejetées)
 const safeUrl = (u) => (typeof u === 'string' && u.startsWith('/') && !u.startsWith('//') ? u : '/notifications');
