@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, Images, MapPin, Minus, Plus, Store, Info, Star, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Heart, Images, Loader2, MapPin, Minus, Plus, Store, Info, Star, MessageCircle } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
+import { api, ApiError } from '../lib/http';
+import { TourHelpButton, useGuidedTour } from '../components/guidedtour';
+import { PRODUCT_TOUR } from '../components/guidedtour/tours';
 import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
 
@@ -82,6 +85,7 @@ export default function ProductDetails() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, login: authLogin } = useAuth();
+  const loggedIn = !!user;
 
   // Thème toujours sombre sur cette page : ce sont les couleurs exactes voulues
   // (fond noir, accents orange), indépendamment du thème clair/sombre choisi
@@ -99,6 +103,18 @@ export default function ProductDetails() {
   const deliveryRef = useRef<HTMLDivElement | null>(null);
 
   const [showAuth, setShowAuth] = useState<boolean>(false);
+
+  const addressRef = useRef<HTMLTextAreaElement | null>(null);
+  const [deliveryBusy, setDeliveryBusy] = useState<boolean>(false);
+  const [deliveryError, setDeliveryError] = useState<string | null>(null);
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
+  const [favBusy, setFavBusy] = useState<boolean>(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const flash = (text: string) => {
+    setNotice(text);
+    window.setTimeout(() => setNotice((current) => (current === text ? null : current)), 3500);
+  };
 
   const t = darkMode
     ? {
@@ -148,6 +164,16 @@ export default function ProductDetails() {
     }
   }, [product, searchParams]);
 
+  // Statut « favori » réel (base de données) pour l'utilisateur connecté
+  useEffect(() => {
+    if (!loggedIn || !id) { setIsFavorite(false); return; }
+    let cancelled = false;
+    api<{ ids: string[] }>('/favorites/ids')
+      .then((res) => { if (!cancelled) setIsFavorite(res.ids.includes(id)); })
+      .catch(() => { if (!cancelled) setIsFavorite(false); });
+    return () => { cancelled = true; };
+  }, [loggedIn, id]);
+
   /* ------------------------------- Actions ------------------------------- */
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate('/'));
 
@@ -164,13 +190,47 @@ export default function ProductDetails() {
     setShowAuth(false);
   };
 
-  const handleConfirmDelivery = () => {
+  const toggleFavorite = async () => {
+    if (!user) { setShowAuth(true); return; }
+    if (!product || favBusy) return;
+    const next = !isFavorite;
+    setFavBusy(true);
+    setIsFavorite(next); // affichage immédiat, annulé si le serveur refuse
+    try {
+      await api(`/favorites/${product.id}`, { method: next ? 'POST' : 'DELETE' });
+      flash(next ? 'Ajouté à vos favoris.' : 'Retiré de vos favoris.');
+    } catch (e) {
+      setIsFavorite(!next);
+      if (e instanceof ApiError && e.status === 401) setShowAuth(true);
+      else flash(e instanceof Error ? e.message : 'Action impossible pour le moment.');
+    } finally {
+      setFavBusy(false);
+    }
+  };
+
+  const handleConfirmDelivery = async () => {
     if (!user) {
       setShowAuth(true);
       return;
     }
-    // À configurer plus tard : création de la commande avec livraison
-    // (product.id, quantity, deliveryAddress) vers l'API des commandes.
+    if (!product || deliveryBusy) return;
+    const address = deliveryAddress.trim();
+    if (address.length < 5) {
+      setDeliveryError('Indiquez votre adresse de livraison : commune, quartier, avenue, numéro.');
+      addressRef.current?.focus();
+      return;
+    }
+    setDeliveryError(null);
+    setDeliveryBusy(true);
+    try {
+      await api('/orders/delivery-request', { method: 'POST', body: { productId: product.id, quantity, deliveryAddress: address } });
+      navigate('/orders');
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) setShowAuth(true);
+      else setDeliveryError(e instanceof Error ? e.message : 'La demande de livraison a échoué. Réessayez.');
+    } finally {
+      setDeliveryBusy(false);
+    }
   };
 
   /* ------------------------------ Dérivés ------------------------------ */
@@ -179,6 +239,9 @@ export default function ProductDetails() {
   const isRequest = String(product?.type || '').toUpperCase() === 'REQUEST';
   const maxQuantity = Math.max(1, product?.quantity ?? 99);
   const total = product ? Number((product.priceUSD * quantity).toFixed(2)) : 0;
+
+  /* ------------------------------- Tutoriel ------------------------------- */
+  const { start, tour } = useGuidedTour({ id: 'product-details', steps: PRODUCT_TOUR, ready: !loading && !error && !!product });
 
   /* -------------------------------- Rendu -------------------------------- */
   return (
@@ -192,7 +255,17 @@ export default function ProductDetails() {
             <span className="text-[#10b981]">CBF</span>
             <span className="text-[#f97316]">SOKO</span>
           </Link>
-          <span className="h-10 w-10 flex-shrink-0" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={toggleFavorite}
+            disabled={!product || favBusy}
+            aria-pressed={isFavorite}
+            aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            data-tour="product-favorite"
+            className={iconBtn}
+          >
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-orange-500 text-orange-500' : ''}`} />
+          </button>
         </div>
       </header>
 
@@ -218,7 +291,7 @@ export default function ProductDetails() {
           <div className="space-y-6">
             {/* ------------------------- Médias ------------------------- */}
             <div className="space-y-4">
-              <div className={`relative overflow-hidden rounded-2xl ${t.border} ${t.soft}`}>
+              <div data-tour="product-gallery" className={`relative overflow-hidden rounded-2xl ${t.border} ${t.soft}`}>
                 <div
                   ref={galleryRef}
                   onScroll={handleGalleryScroll}
@@ -239,7 +312,7 @@ export default function ProductDetails() {
               </div>
 
               {product.videoUrl && (
-                <div>
+                <div data-tour="product-video">
                   <h2 className="mb-2 text-sm font-bold">Vidéo du produit</h2>
                   <video
                     src={getMediaUrl(product.videoUrl)}
@@ -255,7 +328,7 @@ export default function ProductDetails() {
 
             {/* --------------------- Informations ---------------------- */}
             <div className="space-y-5">
-              <div>
+              <div data-tour="product-price">
                 <h2 className="text-xl font-bold tracking-tight sm:text-2xl">{product.title}</h2>
                 <p className="mt-2 text-2xl font-bold text-orange-600">{product.priceUSD} $</p>
                 {product.priceCDF > 0 && (
@@ -268,12 +341,14 @@ export default function ProductDetails() {
                   <button
                     type="button"
                     onClick={scrollToDelivery}
+                    data-tour="product-deliver"
                     className="flex-1 rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                   >
                     Me faire livrer
                   </button>
                   <Link
                     to={`/products/${product.id}/renseignement`}
+                    data-tour="product-info"
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-3 text-sm font-bold transition-colors hover:border-orange-500 ${t.border} ${t.surface}`}
                   >
                     <Info className="h-4 w-4" />
@@ -317,7 +392,7 @@ export default function ProductDetails() {
               )}
 
               {product.seller && (
-                <div className={`space-y-3 rounded-2xl p-4 ${t.border} ${t.surface}`}>
+                <div data-tour="product-seller" className={`space-y-3 rounded-2xl p-4 ${t.border} ${t.surface}`}>
                   <h3 className={`text-xs font-bold uppercase tracking-wide ${t.muted}`}>Identité du vendeur</h3>
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-500 text-white">
@@ -341,6 +416,7 @@ export default function ProductDetails() {
                   {/* Contact uniquement par message : pas d'appel, sur demande explicite */}
                   <Link
                     to={`/messages/${product.seller.id}`}
+                    data-tour="product-contact"
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -350,7 +426,7 @@ export default function ProductDetails() {
               )}
 
               {product.similar && product.similar.length > 0 && (
-                <div>
+                <div data-tour="product-similar">
                   <h3 className="mb-2 text-sm font-bold">Produits similaires</h3>
                   <div className="scrollbar-hide -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
                     {product.similar.map((p) => (
@@ -379,7 +455,7 @@ export default function ProductDetails() {
 
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-semibold">Quantité</span>
-                    <div className={`flex items-center rounded-lg ${t.border}`}>
+                    <div data-tour="product-quantity" className={`flex items-center rounded-lg ${t.border}`}>
                       <button
                         type="button"
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -402,12 +478,15 @@ export default function ProductDetails() {
                     </div>
                   </div>
 
-                  <div>
+                  <div data-tour="product-address">
                     <label htmlFor="delivery-address" className="mb-1.5 block text-sm font-semibold">Adresse de livraison</label>
                     <textarea
                       id="delivery-address"
+                      ref={addressRef}
                       value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      onChange={(e) => { setDeliveryAddress(e.target.value); if (deliveryError) setDeliveryError(null); }}
+                      aria-invalid={!!deliveryError}
+                      aria-describedby={deliveryError ? 'delivery-error' : undefined}
                       rows={2}
                       placeholder="Commune, quartier, avenue, numéro"
                       className={`w-full resize-none rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 ${t.border} ${t.soft}`}
@@ -419,12 +498,20 @@ export default function ProductDetails() {
                     <span className="text-lg font-bold text-orange-600">{total} $</span>
                   </div>
 
+                  {deliveryError && (
+                    <p id="delivery-error" role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                      {deliveryError}
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={handleConfirmDelivery}
-                    className="w-full rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    disabled={deliveryBusy}
+                    data-tour="product-confirm"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-60"
                   >
-                    Confirmer la livraison
+                    {deliveryBusy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                    {deliveryBusy ? 'Envoi en cours…' : 'Confirmer la livraison'}
                   </button>
                 </div>
               )}
@@ -432,6 +519,15 @@ export default function ProductDetails() {
           </div>
         )}
       </main>
+
+      {notice && (
+        <div role="status" aria-live="polite" className="fixed inset-x-0 bottom-20 z-50 mx-auto w-fit max-w-[90vw] rounded-full bg-white px-4 py-2.5 text-xs font-semibold text-neutral-950 shadow-lg">
+          {notice}
+        </div>
+      )}
+
+      {!loading && !error && product && <TourHelpButton onClick={start} />}
+      {tour}
 
       <AnimatePresence>
         {showAuth && <AuthSheet onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} />}
