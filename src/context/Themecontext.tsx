@@ -9,7 +9,10 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [customBg, setCustomBgState] = useState<string>(() => {
-    return localStorage.getItem('cbfsoko-custom-bg') || '#080808';
+    const saved = localStorage.getItem('cbfsoko-custom-bg');
+    // Migre l’ancien fond sombre par défaut vers le fond blanc, sans écraser les choix personnalisés.
+    if (!saved || saved.toLowerCase() === '#080808' || saved.toLowerCase() === '#000000') return '#FFFFFF';
+    return saved;
   });
 
   const setCustomBg = (bg: string) => {

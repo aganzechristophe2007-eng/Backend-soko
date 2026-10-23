@@ -21,6 +21,7 @@ import AdminSeller from './pages/admin-seller';
 import Walletpage from './pages/wallet';
 import A30IA from './pages/A30IA';
 import Notifications from './pages/Notifications';
+import NotFound from './pages/NotFound';
 import A30Fab from './components/A30Fab';
 import { useNotificationSound } from './lib/Son';
 import { io, Socket } from 'socket.io-client';
@@ -84,7 +85,7 @@ export default function App() {
               <Route path="/a30-ia" element={<A30IA />} />
 
               {/* Redirection globale par défaut */}
-              <Route path="*" element={<Home />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
             <A30Fab />
           </Router>

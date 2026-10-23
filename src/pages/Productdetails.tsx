@@ -87,10 +87,8 @@ export default function ProductDetails() {
   const { user, login: authLogin } = useAuth();
   const loggedIn = !!user;
 
-  // Thème toujours sombre sur cette page : ce sont les couleurs exactes voulues
-  // (fond noir, accents orange), indépendamment du thème clair/sombre choisi
-  // ailleurs dans l'app.
-  const [darkMode] = useState<boolean>(true);
+  // Thème clair par défaut pour une expérience cohérente avec le reste de CBF SOKO.
+  const [darkMode] = useState<boolean>(false);
   const [product, setProduct] = useState<ProductItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -247,7 +245,7 @@ export default function ProductDetails() {
   return (
     <div className={`min-h-screen ${t.page}`}>
       <header className={`sticky top-0 z-40 ${t.borderStrong} ${t.header}`}>
-        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <button type="button" onClick={goBack} className={iconBtn} aria-label="Retour">
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -269,7 +267,7 @@ export default function ProductDetails() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-6 pb-16">
+      <main className="mx-auto w-full max-w-7xl px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-16">
         {loading ? (
           <div className="space-y-4">
             <div className={`aspect-square animate-pulse rounded-2xl ${t.soft}`} />
@@ -288,10 +286,10 @@ export default function ProductDetails() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:gap-10">
             {/* ------------------------- Médias ------------------------- */}
             <div className="space-y-4">
-              <div data-tour="product-gallery" className={`relative overflow-hidden rounded-2xl ${t.border} ${t.soft}`}>
+              <div data-tour="product-gallery" className={`relative overflow-hidden rounded-2xl border ${t.border} ${t.soft} lg:rounded-3xl`}>
                 <div
                   ref={galleryRef}
                   onScroll={handleGalleryScroll}
@@ -327,8 +325,8 @@ export default function ProductDetails() {
             </div>
 
             {/* --------------------- Informations ---------------------- */}
-            <div className="space-y-5">
-              <div data-tour="product-price">
+            <div className="space-y-5 lg:sticky lg:top-24">
+              <div data-tour="product-price" className="rounded-2xl border border-[#EAECF0] bg-white p-4 shadow-[0_8px_24px_rgba(16,24,40,0.04)] sm:p-6">
                 <h2 className="text-xl font-bold tracking-tight sm:text-2xl">{product.title}</h2>
                 <p className="mt-2 text-2xl font-bold text-orange-600">{product.priceUSD} $</p>
                 {product.priceCDF > 0 && (

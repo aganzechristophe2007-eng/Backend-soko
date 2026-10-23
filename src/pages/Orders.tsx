@@ -630,7 +630,7 @@ export default function Orders() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl space-y-5 px-4 py-6" aria-busy={loading}>
+      <main className="mx-auto w-full max-w-5xl space-y-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-8" aria-busy={loading}>
         {loading && !hasOrders && (
           <div className="space-y-4" role="status">
             <span className="sr-only">Chargement de vos commandes</span>

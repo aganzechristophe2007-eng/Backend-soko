@@ -437,7 +437,7 @@ export default function CreateProduct() {
     <div className="min-h-screen bg-white text-[#111111] pb-28">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#EAECF0] px-4 py-3">
-        <div className="max-w-xl mx-auto flex items-center gap-3">
+        <div className="max-w-3xl mx-auto flex items-center gap-3 px-4 sm:px-6">
           <button
             type="button"
             onClick={() => (createdProduct ? navigate('/') : handleBack())}
@@ -455,7 +455,7 @@ export default function CreateProduct() {
 
         {/* Stepper */}
         {!createdProduct && (
-        <div className="max-w-xl mx-auto flex items-center mt-3">
+        <div className="max-w-3xl mx-auto flex items-center mt-3 px-4 sm:px-6">
           {STEPS.map((s, i) => (
             <React.Fragment key={s}>
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -483,7 +483,7 @@ export default function CreateProduct() {
         )}
       </header>
 
-      <main className="max-w-xl mx-auto px-4 py-6">
+      <main className="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:py-8">
         {error && (
           <div className="mb-5 p-3.5 rounded-lg bg-white border border-[#FF6B00] text-[#111111] text-sm flex items-start gap-2.5">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#FF6B00]" />

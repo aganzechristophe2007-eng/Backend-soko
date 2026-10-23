@@ -487,7 +487,7 @@ export default function MessagingPage() {
           <h1 className="font-bold text-base">Messages</h1>
         </header>
 
-        <main className="max-w-2xl mx-auto px-4 py-6">
+        <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
           {conversations.length === 0 ? (
             <div className="text-center py-16 rounded-xl bg-white text-[#667085]">
               <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />

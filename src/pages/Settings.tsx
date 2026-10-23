@@ -51,6 +51,7 @@ const formatNumber = (n: number) => new Intl.NumberFormat('fr-FR').format(n);
 /*  la clé localStorage "cbfsoko-custom-bg")                          */
 /* ------------------------------------------------------------------ */
 const PRESET_BACKGROUNDS = [
+  { id: '0', name: 'Blanc classique', value: '#FFFFFF' },
   { id: '1', name: 'Marché Vivant', value: 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.85)), url("https://images.unsplash.com/photo-1533900298318-6b8da08a523e?auto=format&fit=crop&w=1200&q=80")' },
   { id: '2', name: 'Boutique Textile', value: 'linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.85)), url("https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80")' },
   { id: '3', name: 'Colis & Livraison', value: 'linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.88)), url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80")' },
@@ -87,7 +88,9 @@ export default function Settings() {
   const { user, refreshUser } = useAuth() as any; // refreshUser : optionnel selon votre AuthContext
 
   const [customBg, setCustomBg] = useState<string>(() => {
-    return localStorage.getItem('cbfsoko-custom-bg') || PRESET_BACKGROUNDS[0].value;
+    const saved = localStorage.getItem('cbfsoko-custom-bg');
+    if (!saved || saved.toLowerCase() === '#080808' || saved.toLowerCase() === '#000000') return '#FFFFFF';
+    return saved;
   });
 
   const [textSize, setTextSize] = useState<number>(() => readSavedTextSize());
@@ -219,7 +222,7 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-white text-[#111111]">
       <header className="sticky top-0 z-50 border-b border-[#EAECF0] bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -232,7 +235,7 @@ export default function Settings() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* COMPTE */}
         <SettingsSection title="Compte">
           {user ? (

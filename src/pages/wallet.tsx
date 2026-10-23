@@ -715,7 +715,7 @@ export default function WalletPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-md space-y-5 px-4 pt-3" aria-live="polite">
+      <main className="mx-auto w-full max-w-4xl space-y-5 px-4 pt-4 sm:px-6 lg:px-8 lg:pt-8" aria-live="polite">
         {loading && (
           <div className="py-20 text-center">
             <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#FF6B00]" />

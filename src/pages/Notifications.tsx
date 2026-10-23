@@ -224,7 +224,7 @@ export default function Notifications() {
   return (
     <div className="min-h-screen bg-white pb-24 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
       <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -251,7 +251,7 @@ export default function Notifications() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl space-y-4 px-4 py-5 sm:px-6">
+      <main className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
         {!user && !authLoading ? (
           <div className="rounded-2xl border border-dashed border-[#D0D5DD] px-6 py-14 text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]"><LogIn className="h-7 w-7" aria-hidden="true" /></span>

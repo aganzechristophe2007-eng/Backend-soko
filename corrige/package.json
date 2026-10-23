@@ -1,0 +1,32 @@
+{
+  "name": "cbfsoko-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "framer-motion": "^13.4.0",
+    "lucide-react": "^1.47.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "recharts": "^3.10.1",
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.28",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
