@@ -9,6 +9,7 @@ import { disablePush, enablePush, getPushState, PushUiState } from '../lib/push'
 import { useAuth } from '../context/Authcontext';
 import AuthSheet from './Authsheet';
 import { TourHelpButton, useGuidedTour } from '../components/guidedtour';
+import { getUnreadCount, setUnreadCount } from '../lib/notificationsStore';
 import { NOTIFICATIONS_TOUR } from '../components/guidedtour/tours';
 
 interface NotificationItem {
@@ -91,6 +92,7 @@ export default function Notifications() {
       setItems(res.data);
       setNextCursor(res.nextCursor);
       setUnread(res.unreadCount);
+      setUnreadCount(res.unreadCount); // met à jour la pastille de l'en-tête et des onglets
     } catch (e) {
       if (id !== requestId.current) return;
       if (e instanceof ApiError && e.status === 401) setShowAuth(true);
@@ -132,6 +134,7 @@ export default function Notifications() {
       setItems((prev) => [...prev, ...res.data.filter((n) => !prev.some((p) => p.id === n.id))]);
       setNextCursor(res.nextCursor);
       setUnread(res.unreadCount);
+      setUnreadCount(res.unreadCount);
     } catch (e) {
       flash(e instanceof Error ? e.message : 'Impossible de charger la suite.');
     } finally {
@@ -143,10 +146,12 @@ export default function Notifications() {
     if (!item.isRead) {
       setItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
       setUnread((u) => Math.max(0, u - 1));
+      setUnreadCount(getUnreadCount() - 1);
       api(`/notifications/${item.id}/read`, { method: 'PATCH' }).catch(() => {
         // Échec : on rétablit l'état réel plutôt que de mentir à l'utilisateur
         setItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, isRead: false } : n)));
         setUnread((u) => u + 1);
+        setUnreadCount(getUnreadCount() + 1);
         flash('Impossible de marquer comme lue. Vérifiez votre connexion.');
       });
     }
@@ -159,6 +164,7 @@ export default function Notifications() {
     try {
       await api('/notifications/read-all', { method: 'PATCH' });
       setUnread(0);
+      setUnreadCount(0);
       setItems((prev) => (filter === 'unread' ? [] : prev.map((n) => ({ ...n, isRead: true }))));
       flash('Toutes les notifications sont marquées comme lues.');
     } catch (e) {

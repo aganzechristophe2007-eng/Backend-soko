@@ -4,6 +4,7 @@ import { ArrowLeft, BadgeCheck, ChevronRight, Loader2, Package, RefreshCw, Searc
 import { api, ApiError } from '../lib/http';
 import { BASE_URL } from '../api/client';
 import { TourHelpButton, useGuidedTour } from '../components/guidedtour';
+import { markShopsSeen, shopsSince } from '../lib/newShops';
 import { BOUTIQUE_TOUR } from '../components/guidedtour/tours';
 
 interface Shop {
@@ -12,6 +13,7 @@ interface Shop {
   description?: string | null;
   logo?: string | null;
   verified: boolean;
+  createdAt?: string;
   ownerId: string;
   productsCount: number;
   category: string | null;
@@ -45,6 +47,8 @@ export default function Boutique() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestId = useRef(0);
+  // Repère de « nouveauté » figé à l'arrivée sur la page : les boutiques créées depuis la dernière visite sont marquées.
+  const seenBefore = useRef<number>(shopsSince());
 
   useEffect(() => {
     api<{ categories: Category[] }>('/categories').then((res) => setCategories(res.categories || [])).catch(() => setCategories([]));
@@ -75,6 +79,7 @@ export default function Boutique() {
       setShops(res.data);
       setTotal(res.total);
       setPage(1);
+      markShopsSeen(); // la liste a été vue : le badge « nouvelles boutiques » repart à zéro
     } catch (e) {
       if (id !== requestId.current) return;
       setError(e instanceof ApiError ? e.message : 'Impossible de charger les boutiques.');
@@ -220,6 +225,7 @@ export default function Boutique() {
             <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {shops.map((shop, index) => {
                 const logo = logoUrl(shop.logo);
+                const isNew = !!shop.createdAt && new Date(shop.createdAt).getTime() > seenBefore.current;
                 return (
                   <li
                     key={shop.id}
@@ -233,6 +239,7 @@ export default function Boutique() {
                       <div className="min-w-0">
                         <h2 className="flex items-center gap-1 truncate text-sm font-bold">
                           <span className="truncate">{shop.name}</span>
+                          {isNew && <span className="flex-shrink-0 rounded-full bg-[#12B76A] px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none text-white">Nouveau</span>}
                           {shop.verified && <BadgeCheck className="h-4 w-4 flex-shrink-0 text-[#10b981]" aria-label="Boutique vérifiée" />}
                         </h2>
                         <p className="mt-0.5 truncate text-xs text-[#667085]">{shop.category || 'Catégories variées'}</p>

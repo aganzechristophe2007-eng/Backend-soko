@@ -15,6 +15,10 @@ import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
 import { useAuth } from '../context/Authcontext';
 import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT } from '../lib/textPrefs';
+import { useUnreadNotifications } from '../lib/notificationsStore';
+import { useNewShopsCount } from '../lib/newShops';
+import NotificationBadge from '../components/NotificationBadge';
+import HeroCarousel from '../components/HeroCarousel';
 
 
 
@@ -100,6 +104,9 @@ interface NavItem {
   to?: string;
   onClick?: () => void;
   mobile: boolean;
+  badgeCount?: number;
+  badgeTone?: 'alert' | 'new';
+  badgeLabel?: string;
 }
 
 // Thème clair CBF SOKO : fond blanc, orange #FF6B00 en couleur d'accent.
@@ -440,9 +447,12 @@ interface NavTabProps {
   variant: 'top' | 'bottom';
   to?: string;
   onClick?: () => void;
+  badgeCount?: number;
+  badgeTone?: 'alert' | 'new';
+  badgeLabel?: string;
 }
 
-const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
+const NavTab = ({ label, icon, active, variant, to, onClick, badgeCount, badgeTone, badgeLabel }: NavTabProps) => {
   const state =
     variant === 'bottom'
       ? active
@@ -461,7 +471,10 @@ const NavTab = ({ label, icon, active, variant, to, onClick }: NavTabProps) => {
 
   const content = (
     <>
-      <span className="relative flex items-center justify-center">{icon}</span>
+      <span className="relative flex items-center justify-center">
+        {icon}
+        <NotificationBadge count={badgeCount ?? 0} tone={badgeTone} srLabel={badgeLabel} />
+      </span>
       <span>{label}</span>
     </>
   );
@@ -487,6 +500,8 @@ export default function Home() {
 
   const { user, login: authLogin } = useAuth();
   const token = !!user;
+  const unreadNotifications = useUnreadNotifications(token); // compteur réel (serveur), partagé avec la page Notifications
+  const newShops = useNewShopsCount(); // boutiques créées depuis la dernière visite de la page Boutique
 
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [loadingProducts, setLoadingProducts] = useState<boolean>(true);
@@ -1083,8 +1098,20 @@ export default function Home() {
   const navItems: NavItem[] = [
     { key: 'home', label: 'Accueil', icon: <HomeIcon className="h-6 w-6" />, active: path === '/', to: '/', mobile: true },
     { key: 'orders', label: 'Commandes', icon: <Package className="h-6 w-6" />, active: path.startsWith('/orders'), onClick: () => handleProtectedAction('/orders'), mobile: false },
-    { key: 'shop', label: 'Boutiques', icon: <Store className="h-6 w-6" />, active: path.startsWith('/boutique'), to: '/boutique', mobile: true },
+    { key: 'shop', label: 'Boutiques', icon: <Store className="h-6 w-6" />, active: path.startsWith('/boutique'), to: '/boutique', mobile: true, badgeCount: newShops, badgeTone: 'new', badgeLabel: newShops > 1 ? 'nouvelles boutiques' : 'nouvelle boutique' },
     { key: 'messages', label: 'Messages', icon: <MessageSquare className="h-6 w-6" />, active: path.startsWith('/messages'), onClick: () => handleProtectedAction('/messages'), mobile: true },
+    {
+      key: 'notifications',
+      label: 'Notifications',
+      icon: <Bell className="h-6 w-6" />,
+      active: path.startsWith('/notifications'),
+      to: token ? '/notifications' : undefined,
+      onClick: token ? undefined : () => openAuth('/notifications'),
+      mobile: false, // sur mobile, la cloche de l'en-tête joue ce rôle
+      badgeCount: unreadNotifications,
+      badgeTone: 'alert',
+      badgeLabel: 'non lues',
+    },
     {
       key: 'profile',
       label: 'Profil',
@@ -1102,7 +1129,7 @@ export default function Home() {
   ];
 
   const renderTab = (item: NavItem, variant: 'top' | 'bottom') => (
-    <NavTab key={item.key} label={item.label} icon={item.icon} active={item.active} to={item.to} onClick={item.onClick} variant={variant} />
+    <NavTab key={item.key} label={item.label} icon={item.icon} active={item.active} to={item.to} onClick={item.onClick} variant={variant} badgeCount={item.badgeCount} badgeTone={item.badgeTone} badgeLabel={item.badgeLabel} />
   );
 
   const mobileItems = navItems.filter((item) => item.mobile);
@@ -1170,15 +1197,27 @@ export default function Home() {
               <Package className="h-[18px] w-[18px]" />
             </button>
 
-            <button
-              type="button"
-              onClick={() => handleProtectedAction('/notifications')}
-              className={`${iconBtn} ${token ? 'inline-flex' : 'hidden sm:inline-flex'}`}
-              aria-label="Notifications"
-              title="Notifications"
-            >
-              <Bell className="h-[18px] w-[18px]" />
-            </button>
+            {token ? (
+              <Link
+                to="/notifications"
+                className={`${iconBtn} inline-flex`}
+                aria-label={unreadNotifications > 0 ? `Notifications, ${unreadNotifications} non lue${unreadNotifications > 1 ? 's' : ''}` : 'Notifications'}
+                title="Notifications"
+              >
+                <Bell className="h-[18px] w-[18px]" />
+                <NotificationBadge count={unreadNotifications} />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuth('/notifications')}
+                className={`${iconBtn} hidden sm:inline-flex`}
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell className="h-[18px] w-[18px]" />
+              </button>
+            )}
 
             <Link
               to="/settings"
@@ -1229,18 +1268,14 @@ export default function Home() {
         <section aria-label="Bienvenue" className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4 lg:px-8 lg:pt-6">
           <h1 className="sr-only">CBF SOKO : des produits fiables, près de chez vous</h1>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
-            <Link
-              to="/products"
-              aria-label="Explorer maintenant"
-              className="block overflow-hidden rounded-2xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:rounded-3xl"
-            >
-              <img
-                src="/hero-banner.png"
-                alt="Des produits fiables, près de chez vous. Neuf ou d'occasion, trouvez ce qu'il vous faut au meilleur prix à Bukavu et partout en RDC. Explorer maintenant."
-                decoding="async"
-                className="block h-auto w-full"
-              />
-            </Link>
+            <HeroCarousel
+              signedIn={token}
+              sellerRoute={SELLER_SHOP_ROUTE}
+              newShops={newShops}
+              onSignup={() => openAuth()}
+              onPost={() => handleProtectedAction('/create-product')}
+              onOrders={() => handleProtectedAction('/orders')}
+            />
 
             <Link
               to={SELLER_SHOP_ROUTE}
