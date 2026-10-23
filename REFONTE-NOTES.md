@@ -1,21 +1,16 @@
-# CBF SOKO — notes de livraison frontend
+# CBF SOKO — notes de refonte frontend
 
-## Changements inclus
-- Mise en place d'une base de styles globaux accessible et responsive, en conservant l'orange et le vert de la marque.
-- Fond blanc par défaut et prise en compte des préférences d'arrière-plan déjà choisies, avec migration des anciennes valeurs sombres par défaut.
-- Fiche produit élargie et réorganisée pour les grands écrans : galerie et informations d'achat en colonnes sur desktop, colonne unique sur mobile.
-- Ajout d'une page 404 dédiée ; les URL inconnues ne redirigent plus silencieusement vers l'accueil.
-- Ajout d'un preset de fond « Blanc classique » dans les paramètres.
+## Changements appliqués
+- Ajout d'une couche de design partagée (`src/design-system.css`) : contours, surfaces, cartes, formulaires, focus clavier, animations et adaptations mobiles harmonisés.
+- Import du système de design dans `src/main.tsx`, sans modifier les routes ou les appels API.
+- Refonte visuelle du panneau de connexion/inscription dans `src/pages/Authsheet.tsx` : champs plus lisibles, boutons cohérents avec la marque, bordures et ombres allégées.
+- Ajustement de la mise en page de connexion dans `src/pages/Login.tsx` pour éviter une hauteur fixe qui peut couper le contenu sur les petits écrans.
+- Remplacement de la page « À propos » provisoire par une présentation de CBF SOKO dans `src/pages/About.tsx`.
 
-## Préserver le fonctionnement
-- Les routes existantes et les appels API métier ont été conservés.
-- Aucun jeu de données fictif ni nouvelle API financière n'a été ajouté.
-- Les préférences de thème personnalisées autres que les anciennes valeurs sombres par défaut sont conservées.
+## Vérifications
+- `node node_modules/typescript/bin/tsc -b` : réussi.
+- Le build Vite n'a pas pu être terminé dans cet environnement : l'archive fournie contient des dépendances `node_modules` destinées à Windows, mais le paquet natif Rollup Linux requis est absent. Le téléchargement de cette dépendance a dépassé le délai disponible.
+- Aucun test navigateur ou test E2E n'a été exécuté ici.
 
-## Lancement
-1. Copier `.env.example` vers `.env` et régler `VITE_API_URL` vers l'API réelle.
-2. Installer les dépendances : `npm ci`.
-3. Démarrer : `npm run dev`.
-4. Construire : `npm run build`.
-
-Le build n'a pas pu être validé dans l'environnement de préparation : l'installation des dépendances a expiré et TypeScript signalait des définitions de types incomplètes dans `node_modules`. Refaire `npm ci` dans un environnement disposant d'un accès npm avant déploiement.
+## Installation et vérification sur une machine de développement
+Dans le dossier du frontend, exécuter `npm ci`, puis `npm run build`. Si le projet compile, vérifier les parcours de connexion/inscription, publication, détails produit, commandes, messagerie, notifications et portefeuille sur mobile et ordinateur.

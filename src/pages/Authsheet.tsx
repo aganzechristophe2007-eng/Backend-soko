@@ -30,7 +30,7 @@ const STRENGTH_LABELS = ['Trop faible', 'Trop faible', 'Trop faible', 'Correct',
 const STRENGTH_COLORS = ['bg-neutral-300', 'bg-red-600', 'bg-red-600', 'bg-orange-600', 'bg-green-700'];
 
 const inputClass =
-  'h-14 w-full rounded-2xl border-[3px] border-neutral-950 bg-white pl-12 pr-4 text-base font-medium text-neutral-950 placeholder:text-neutral-400 shadow-[3px_3px_0px_0px_#0a0a0a] focus:outline-none focus:border-orange-700 focus:shadow-[3px_3px_0px_0px_#c2410c] disabled:opacity-60';
+  'h-12 w-full rounded-xl border border-[#D0D5DD] bg-white pl-12 pr-4 text-base font-medium text-[#111827] placeholder:text-[#98A2B3] shadow-sm transition focus:border-[#FF6B00] focus:outline-none focus:ring-4 focus:ring-[#FF6B00]/10 disabled:opacity-60';
 
 function Field({
   id,
@@ -192,14 +192,14 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
       role="dialog"
       aria-modal={showBackdrop}
       aria-labelledby="auth-title"
-      className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border-[3px] border-neutral-950 bg-white p-6 text-neutral-950 shadow-[8px_8px_0px_0px_#0a0a0a] md:rounded-3xl"
+      className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-[#EAECF0] bg-white p-5 text-[#111827] shadow-[0_18px_60px_rgba(16,24,40,0.16)] sm:p-7 md:rounded-3xl"
     >
       <button
         type="button"
         onClick={onClose}
         disabled={loading}
         aria-label="Fermer"
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl border-[3px] border-neutral-950 bg-white hover:bg-orange-100 disabled:opacity-60"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#667085] transition hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-60"
       >
         <X className="h-4 w-4" />
       </button>
@@ -216,8 +216,8 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
             role="tab"
             aria-selected={mode === m}
             onClick={() => switchMode(m)}
-            className={`h-11 rounded-2xl border-[3px] border-neutral-950 text-sm font-black ${
-              mode === m ? 'bg-neutral-950 text-white' : 'bg-white text-neutral-950 hover:bg-orange-100'
+            className={`h-11 rounded-xl border text-sm font-semibold transition ${
+              mode === m ? 'border-[#FF6B00] bg-[#FFF1E7] text-[#C94F00]' : 'border-[#EAECF0] bg-white text-[#475467] hover:border-[#D0D5DD] hover:bg-[#F9FAFB]'
             }`}
           >
             {m === 'login' ? 'Connexion' : 'Inscription'}
@@ -229,7 +229,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         {error && (
           <div
             role="alert"
-            className="rounded-2xl border-[3px] border-neutral-950 bg-orange-100 p-3 text-sm font-bold shadow-[3px_3px_0px_0px_#0a0a0a]"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
           >
             {error}
           </div>
@@ -322,7 +322,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className={`h-2 flex-1 rounded-full border-2 border-neutral-950 ${
+                    className={`h-2 flex-1 rounded-full border border-[#EAECF0] ${
                       password && pw.score >= i ? STRENGTH_COLORS[pw.score] : 'bg-white'
                     }`}
                   />
@@ -366,7 +366,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         <button
           type="submit"
           disabled={loading || locked}
-          className="mt-2 flex h-14 w-full items-center justify-center rounded-2xl border-[3px] border-neutral-950 bg-neutral-950 text-base font-black text-white shadow-[4px_4px_0px_0px_#c2410c] hover:bg-neutral-800 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-[#FF6B00] text-sm font-bold text-white shadow-sm transition hover:bg-[#E85F00] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" aria-label="Chargement" />
@@ -378,12 +378,12 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         </button>
       </form>
 
-      <p className="mt-5 text-center text-sm font-bold text-neutral-700">
+      <p className="mt-5 text-center text-sm font-medium text-[#667085]">
         {isRegister ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
         <button
           type="button"
           onClick={() => switchMode(isRegister ? 'login' : 'register')}
-          className="font-black text-orange-700 underline hover:text-orange-800"
+          className="font-semibold text-[#E85F00] underline-offset-4 hover:underline"
         >
           {isRegister ? 'Se connecter' : "S'inscrire"}
         </button>

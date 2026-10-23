@@ -1,0 +1,89 @@
+/* CBF SOKO — couche de finition visuelle partagée.
+   Les règles ci-dessous ne modifient ni les données, ni les routes, ni les interactions. */
+:root {
+  --cbfsoko-orange: #ff6b00;
+  --cbfsoko-orange-hover: #e85f00;
+  --cbfsoko-orange-soft: #fff3eb;
+  --cbfsoko-ink: #171717;
+  --cbfsoko-muted: #667085;
+  --cbfsoko-border: #e7e9ee;
+  --cbfsoko-canvas: #f8f9fb;
+  --cbfsoko-card-shadow: 0 1px 2px rgb(16 24 40 / 3%), 0 5px 18px rgb(16 24 40 / 4%);
+  --cbfsoko-card-shadow-hover: 0 10px 28px rgb(16 24 40 / 8%);
+}
+
+html { background: var(--cbfsoko-canvas); }
+body { color: var(--cbfsoko-ink); }
+
+/* Navigation et en-têtes : séparation légère, sans modifier les couleurs de marque. */
+header.sticky {
+  border-bottom-color: var(--cbfsoko-border);
+  box-shadow: 0 1px 0 rgb(16 24 40 / 2%);
+}
+header.sticky img[alt="CBF SOKO"] { object-fit: contain; }
+
+/* Champs : focus visible, contours cohérents et lisibilité sur petits écrans. */
+:where(input, textarea, select) {
+  accent-color: var(--cbfsoko-orange);
+  border-radius: 0.7rem;
+}
+:where(input, textarea, select):focus-visible {
+  outline: 2px solid rgb(255 107 0 / 38%);
+  outline-offset: 2px;
+}
+:where(input, textarea, select)::placeholder { color: #98a2b3; opacity: 1; }
+:where(button, a) { -webkit-tap-highlight-color: transparent; }
+:where(button):disabled { opacity: 0.62; }
+
+/* Cartes des pages métier : détails produit, commandes, paramètres, boutique, portefeuille. */
+main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed) {
+  border-color: var(--cbfsoko-border);
+  box-shadow: var(--cbfsoko-card-shadow);
+}
+main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed):hover {
+  border-color: #dfe2e8;
+}
+main .border-dashed { box-shadow: none; }
+
+/* Cartes produits de l'accueil : mouvement minimal et priorité à la photo. */
+main :is(a, article, div).group.relative.flex.h-full.flex-col.overflow-hidden {
+  border-color: var(--cbfsoko-border);
+  box-shadow: var(--cbfsoko-card-shadow);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+main :is(a, article, div).group.relative.flex.h-full.flex-col.overflow-hidden:hover {
+  border-color: #d9dce3;
+  box-shadow: var(--cbfsoko-card-shadow-hover);
+}
+
+/* Les titres de sections gardent une hiérarchie régulière. */
+main h1:not(.sr-only) { letter-spacing: -0.025em; }
+main h2 { letter-spacing: -0.018em; }
+main :is(p, label) { line-height: 1.55; }
+
+/* Pages d'authentification : surfaces sobres et lisibles. */
+form :is(input, textarea, select) { min-width: 0; }
+form button[type="submit"] { min-height: 2.65rem; }
+
+/* États de chargement : animation douce, respectueuse des préférences système. */
+@keyframes cbfsoko-soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.58; }
+}
+.animate-pulse { animation-duration: 1.8s; }
+
+/* Barre de défilement discrète sur les navigateurs qui l'exposent. */
+* { scrollbar-color: #d0d5dd transparent; scrollbar-width: thin; }
+
+@media (hover: hover) and (pointer: fine) {
+  main a:not([aria-disabled="true"]), main button:not(:disabled) { transition-duration: 160ms; }
+}
+
+@media (max-width: 639px) {
+  main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed) { border-radius: 1rem; }
+  header.sticky { box-shadow: 0 1px 0 rgb(16 24 40 / 3%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
