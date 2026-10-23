@@ -20,6 +20,7 @@ import PayPage from './pages/Paypage';
 import AdminSeller from './pages/admin-seller';
 import Walletpage from './pages/wallet';
 import A30IA from './pages/A30IA';
+import Notifications from './pages/Notifications';
 import A30Fab from './components/A30Fab';
 
 import { io, Socket } from 'socket.io-client';
@@ -56,6 +57,9 @@ export default function App() {
               <Route path="/accueil" element={<Home />} />
               <Route path="/create-product" element={<CreateProduct />} />
               <Route path="/orders" element={<Orders />} />
+
+              {/* Notifications (cette route manquait : /notifications retombait sur Home via path="*") */}
+              <Route path="/notifications" element={<Notifications />} />
               
               {/* === ROUTE AJOUTÉE POUR LE PAIEMENT === */}
               <Route path="/pay/:id" element={<PayPage />} />

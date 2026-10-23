@@ -9,7 +9,7 @@ import {
   Eye, MessageCircle, Share2, Send,
   Home as HomeIcon, Plus, ArrowRight, Flame, Tag, BadgeCheck,
   LayoutGrid, Smartphone, Laptop, Shirt, Plug, Car, MoreHorizontal,
-  Heart, Megaphone, ChevronRight
+  Heart, ChevronRight, Gift, Truck
 } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import AuthSheet from './Authsheet';
@@ -18,7 +18,7 @@ import { applyTextPrefs, readSavedTextSize, readSavedTextFamily, TEXT_PREF_EVENT
 import { useUnreadNotifications } from '../lib/notificationsStore';
 import { useNewShopsCount } from '../lib/newShops';
 import NotificationBadge from '../components/NotificationBadge';
-import HeroCarousel from '../components/HeroCarousel';
+import HeroCarousel, { AdvantagesCarousel, BannerSlide } from '../components/HeroCarousel';
 
 
 
@@ -1135,6 +1135,57 @@ export default function Home() {
   const mobileItems = navItems.filter((item) => item.mobile);
   const mobileMid = 2;
 
+  // Bannière du bas : les avantages de CBF SOKO. Chaque avantage a sa bannière et son lien.
+  const advantageSlides: BannerSlide[] = [
+    ...(!token
+      ? [{
+          id: 'bonus',
+          icon: <Gift className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />,
+          title: '5 000 FC offerts',
+          text: 'Cadeau de bienvenue pour chaque nouvel utilisateur.',
+          cta: 'Créer mon compte',
+          onClick: () => openAuth(),
+          bg: '#FF6B00', fg: '#FFFFFF', accent: '#FFFFFF', accentFg: '#FF6B00', ctaBg: '#FFFFFF', ctaFg: '#111111',
+        }]
+      : []),
+    {
+      id: 'boutique',
+      icon: <Store className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />,
+      title: 'Vendez en toute simplicité',
+      text: 'Créez votre boutique et touchez plus de clients.',
+      cta: 'Créer ma boutique',
+      to: SELLER_SHOP_ROUTE,
+      bg: '#FFF1E7', fg: '#111111', accent: '#FF6B00', accentFg: '#FFFFFF', ctaBg: '#FF6B00', ctaFg: '#FFFFFF',
+    },
+    {
+      id: 'livraison',
+      icon: <Truck className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />,
+      title: 'Faites-vous livrer',
+      text: "Demandez la livraison directement depuis la vidéo d'un produit.",
+      cta: 'Voir les annonces',
+      onClick: () => annoncesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+      bg: '#111111', fg: '#FFFFFF', accent: '#FF6B00', accentFg: '#FFFFFF', ctaBg: '#FF6B00', ctaFg: '#FFFFFF',
+    },
+    {
+      id: 'messages',
+      icon: <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />,
+      title: 'Discutez avec les vendeurs',
+      text: 'Messages et appels intégrés pour négocier en direct.',
+      cta: 'Mes messages',
+      onClick: () => handleProtectedAction('/messages'),
+      bg: '#FF6B00', fg: '#FFFFFF', accent: '#111111', accentFg: '#FFFFFF', ctaBg: '#111111', ctaFg: '#FFFFFF',
+    },
+    {
+      id: 'recherche',
+      icon: <Search className="h-6 w-6 sm:h-8 sm:w-8" aria-hidden="true" />,
+      title: 'Recherche intelligente',
+      text: 'Cherchez en français ou en swahili, même avec des fautes.',
+      cta: 'Essayer',
+      onClick: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      bg: '#FFF1E7', fg: '#111111', accent: '#111111', accentFg: '#FFFFFF', ctaBg: '#111111', ctaFg: '#FFFFFF',
+    },
+  ];
+
   // « Autres » (3 points) mène à la liste complète ; si l'API a déjà une catégorie « Autres », on l'appelle « Tout voir ».
   const hasOthersCategory = categories.some((c) => /^autres?$/.test(normalizeText(c.name).trim()));
 
@@ -1264,7 +1315,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1 pb-4">
-        {/* HERO (+ bannière vendeur à droite sur ordinateur). Le texte et les boutons font partie des images. */}
+        {/* HERO : une bannière par lien (+ bannière vendeur à droite sur ordinateur). */}
         <section aria-label="Bienvenue" className="mx-auto max-w-7xl px-3 pt-3 sm:px-6 sm:pt-4 lg:px-8 lg:pt-6">
           <h1 className="sr-only">CBF SOKO : des produits fiables, près de chez vous</h1>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
@@ -1275,6 +1326,7 @@ export default function Home() {
               onSignup={() => openAuth()}
               onPost={() => handleProtectedAction('/create-product')}
               onOrders={() => handleProtectedAction('/orders')}
+              className="h-52 rounded-3xl sm:h-72 lg:h-full lg:min-h-[340px]"
             />
 
             <Link
@@ -1398,39 +1450,9 @@ export default function Home() {
           )}
         </section>
 
-        {/* BANNIÈRE VENDEUR (mobile / tablette ; sur ordinateur la bannière vendeur est à côté du hero) */}
-        <section aria-label="Devenir vendeur" className="mx-auto max-w-7xl px-3 pb-6 pt-4 sm:px-6 lg:hidden">
-          <div className="flex items-stretch overflow-hidden rounded-2xl border border-[#FFE0CC] bg-[#FFF1E7]">
-            <div className="flex min-w-0 flex-1 items-center gap-2.5 p-3 sm:gap-4 sm:p-5">
-              <Megaphone className="h-8 w-8 flex-shrink-0 text-[#FF6B00] sm:h-12 sm:w-12" aria-hidden="true" />
-              <div className="min-w-0">
-                <h2 className="text-[15px] font-bold leading-tight text-[#111111] sm:text-2xl">
-                  <span className="text-[#FF6B00]">Vendez vos produits</span>
-                  <br />
-                  en toute simplicité !
-                </h2>
-                <p className="mt-1 text-[11px] leading-snug text-[#667085] sm:text-sm">
-                  Créez votre boutique et touchez plus de clients.
-                </p>
-                <Link
-                  to={SELLER_SHOP_ROUTE}
-                  className="mt-2.5 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#FF6B00] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:px-5 sm:py-2.5 sm:text-sm"
-                >
-                  Créer ma boutique
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-            <div className="relative w-[30%] flex-shrink-0 sm:w-[36%]">
-              <img
-                src="/seller-banner.png"
-                alt="Vendeur CBF SOKO souriant, prêt à vendre ses produits en ligne"
-                loading="lazy"
-                decoding="async"
-                className="absolute inset-0 h-full w-full object-cover object-right"
-              />
-            </div>
-          </div>
+        {/* BANNIÈRE DES AVANTAGES (mobile / tablette ; sur ordinateur la bannière vendeur est à côté du hero) */}
+        <section aria-label="Avantages CBF SOKO" className="mx-auto max-w-7xl px-3 pb-6 pt-4 sm:px-6 lg:hidden">
+          <AdvantagesCarousel slides={advantageSlides} className="h-44 rounded-2xl sm:h-52" />
         </section>
 
         {/* DERNIÈRES ANNONCES / RÉSULTATS DE RECHERCHE */}
