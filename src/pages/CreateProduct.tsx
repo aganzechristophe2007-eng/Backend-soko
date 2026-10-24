@@ -436,7 +436,7 @@ export default function CreateProduct() {
   return (
     <div className="min-h-screen bg-white text-[#111111] pb-28">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#EAECF0] px-4 py-3">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#EAECF0] py-3">
         <div className="max-w-3xl mx-auto flex items-center gap-3 px-4 sm:px-6">
           <button
             type="button"
@@ -464,8 +464,8 @@ export default function CreateProduct() {
                     i < stepIndex
                       ? 'bg-[#FF6B00] text-white'
                       : i === stepIndex
-                      ? 'bg-white text-black'
-                      : 'bg-white border border-[#EAECF0] text-[#667085]'
+                      ? 'bg-[#111111] text-white'
+                      : 'bg-[#F2F4F7] text-[#667085]'
                   }`}
                 >
                   {i < stepIndex ? <Check className="w-3.5 h-3.5" /> : i + 1}
@@ -485,7 +485,7 @@ export default function CreateProduct() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:py-8">
         {error && (
-          <div className="mb-5 p-3.5 rounded-lg bg-white border border-[#FF6B00] text-[#111111] text-sm flex items-start gap-2.5">
+          <div className="mb-5 p-3.5 rounded-xl bg-[#FFF1E7] border border-[#FFD7B5] text-[#111111] text-sm flex items-start gap-2.5">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#FF6B00]" />
             <span>{error}</span>
           </div>
@@ -493,7 +493,7 @@ export default function CreateProduct() {
 
         {createdProduct ? (
           <div className="space-y-5">
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-5 text-center space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-6 text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-[#FF6B00] flex items-center justify-center mx-auto">
                 <Check className="w-6 h-6 text-white" />
               </div>
@@ -517,31 +517,33 @@ export default function CreateProduct() {
               )}
             </div>
 
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
               <h2 className="font-bold text-[#111111] mb-3">Photos publiées ({photoPreviews.length})</h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {photoPreviews.map((url, idx) => (
-                  <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-white border border-[#EAECF0]">
+                  <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-[#F2F4F7] border border-[#EAECF0]">
                     <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             </div>
 
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-bold text-sm transition"
             >
               Retour à l'accueil
             </button>
+            </div>
           </div>
         ) : (
         <>
         {/* ÉTAPE 1 : MÉDIAS */}
         {step === 'media' && (
           <div className="space-y-5">
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Camera className="w-5 h-5" />
@@ -554,12 +556,12 @@ export default function CreateProduct() {
 
               <div className="grid grid-cols-3 gap-2.5">
                 {photoPreviews.map((url, idx) => (
-                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-white border border-[#EAECF0]">
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-[#F2F4F7] border border-[#EAECF0]">
                     <img src={url} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white text-white hover:bg-[#E85F00] transition"
+                      aria-label="Retirer la photo" className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#111111] text-white hover:bg-[#E85F00] transition"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -567,7 +569,7 @@ export default function CreateProduct() {
                 ))}
 
                 {photoFiles.length < 7 && (
-                  <label className="aspect-square rounded-lg bg-white border border-[#EAECF0] hover:border-[#FF6B00] transition flex flex-col items-center justify-center text-[#344054] hover:text-[#111111] cursor-pointer">
+                  <label className={`${photoFiles.length === 0 ? 'col-span-3 aspect-[3/1] sm:aspect-[4/1]' : 'aspect-square'} rounded-xl bg-[#F9FAFB] border-2 border-dashed border-[#D0D5DD] hover:border-[#FF6B00] transition flex flex-col items-center justify-center text-[#344054] hover:text-[#111111] cursor-pointer`}>
                     <Plus className="w-6 h-6 mb-1 text-[#FF6B00]" />
                     <span className="text-xs font-semibold">Ajouter</span>
                     <input
@@ -582,7 +584,7 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Video className="w-5 h-5" />
@@ -594,7 +596,7 @@ export default function CreateProduct() {
               </div>
 
               {videoPreview ? (
-                <div className="relative rounded-lg overflow-hidden bg-white aspect-video">
+                <div className="relative rounded-xl overflow-hidden bg-[#111111] aspect-video">
                   <video src={videoPreview} controls className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -603,13 +605,13 @@ export default function CreateProduct() {
                       setVideoFile(null);
                       setVideoPreview(null);
                     }}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-white text-white hover:bg-[#E85F00] transition"
+                    aria-label="Retirer la vidéo" className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#111111] text-white hover:bg-[#E85F00] transition"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <label className="w-full py-3.5 rounded-lg bg-white border border-[#EAECF0] hover:border-[#FF6B00] transition text-sm font-semibold flex items-center justify-center gap-2 text-[#111111] cursor-pointer">
+                <label className="w-full py-6 rounded-xl bg-[#F9FAFB] border-2 border-dashed border-[#D0D5DD] hover:border-[#FF6B00] transition text-sm font-semibold flex items-center justify-center gap-2 text-[#111111] cursor-pointer">
                   <Video className="w-4 h-4 text-[#FF6B00]" />
                   <span>Sélectionner une vidéo</span>
                   <input type="file" accept="video/mp4, video/webm, video/quicktime" onChange={handleVideoSelection} className="hidden" />
@@ -617,14 +619,16 @@ export default function CreateProduct() {
               )}
             </div>
 
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               disabled={photoFiles.length < 3}
               onClick={handleValidateMedia}
-              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full font-bold text-sm transition"
             >
               Continuer ({photoFiles.length}/7 photos)
             </button>
+            </div>
           </div>
         )}
 
@@ -644,14 +648,14 @@ export default function CreateProduct() {
               </button>
             </div>
 
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <h2 className="font-bold text-[#111111]">Détails du produit</h2>
 
               <button
                 type="button"
                 onClick={handleAiFill}
                 disabled={aiLoading || photoFiles.length === 0}
-                className="w-full py-3 rounded-lg bg-white hover:bg-[#EAECF0] disabled:opacity-50 disabled:cursor-not-allowed text-black text-sm font-bold transition flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-lg bg-[#F2F4F7] hover:bg-[#EAECF0] disabled:opacity-50 disabled:cursor-not-allowed text-[#111111] text-sm font-bold transition flex items-center justify-center gap-2"
               >
                 {aiLoading ? (
                   <>
@@ -666,12 +670,12 @@ export default function CreateProduct() {
                 )}
               </button>
               {aiNotice && (
-                <p className="text-xs text-[#111111] bg-white border border-[#FF6B00] rounded-lg p-3">{aiNotice}</p>
+                <p className="text-xs text-[#111111] bg-[#FFF1E7] border border-[#FFD7B5] rounded-xl p-3">{aiNotice}</p>
               )}
 
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">Nom du produit</label>
-                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Nom du produit</label>
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                   <Tag className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
@@ -687,8 +691,8 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">Catégorie</label>
-                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Catégorie</label>
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                   <Layers className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <select
                     name="categoryId"
@@ -708,7 +712,7 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">Description</label>
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Description</label>
                 <textarea
                   name="description"
                   rows={4}
@@ -716,15 +720,15 @@ export default function CreateProduct() {
                   placeholder="Description détaillée..."
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full rounded-lg bg-white border border-[#EAECF0] focus:border-[#FF6B00] p-3.5 text-sm text-[#111111] placeholder:text-[#98A2B3] resize-none outline-none transition-colors"
+                  className="w-full rounded-xl bg-white border border-[#D0D5DD] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 p-3.5 text-sm text-[#111111] placeholder:text-[#98A2B3] resize-none outline-none transition-colors"
                 />
               </div>
             </div>
 
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-3">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-3">
               <h2 className="font-bold text-[#111111]">Options de vente</h2>
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">Type de vente</label>
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Type de vente</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: 'DETAIL', label: 'Vente au détail' },
@@ -752,7 +756,7 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-3">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-3">
               <h2 className="font-bold text-[#111111]">Prix et devises</h2>
               {exchangeRate && (
                 <p className="text-[11px] text-[#667085]">
@@ -761,8 +765,8 @@ export default function CreateProduct() {
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-[#344054] mb-1.5">Prix (USD)</label>
-                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <label className="block text-xs font-semibold text-[#344054] mb-1.5">Prix (USD)</label>
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <DollarSign className="w-4 h-4 mr-2 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
@@ -777,8 +781,8 @@ export default function CreateProduct() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-[#344054] mb-1.5">Prix (CDF)</label>
-                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <label className="block text-xs font-semibold text-[#344054] mb-1.5">Prix (CDF)</label>
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <span className="mr-2 text-xs font-bold text-[#FF6B00] flex-shrink-0">Fc</span>
                     <input
                       type="number"
@@ -795,20 +799,22 @@ export default function CreateProduct() {
               </div>
             </div>
 
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={handleValidateDetails}
-              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-bold text-sm transition"
             >
               Continuer vers le stock
             </button>
+            </div>
           </div>
         )}
 
         {/* ÉTAPE 3 : STOCK & LIEU */}
         {step === 'stock' && (
           <div className="space-y-5">
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Package className="w-5 h-5" />
@@ -818,7 +824,7 @@ export default function CreateProduct() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-[#344054] mb-1.5">
+                  <label className="block text-xs font-semibold text-[#344054] mb-1.5">
                     Quantité <span className="text-[#667085]">(max {formData.type === 'GROS' ? 96 : 4})</span>
                   </label>
                   <input
@@ -829,12 +835,12 @@ export default function CreateProduct() {
                     required
                     value={formData.quantity}
                     onChange={handleChange}
-                    className="w-full rounded-lg bg-white border border-[#EAECF0] focus:border-[#FF6B00] px-3.5 py-3 text-sm text-[#111111] outline-none transition-colors"
+                    className="w-full rounded-xl bg-white border border-[#D0D5DD] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 px-3.5 py-3 text-sm text-[#111111] outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[#344054] mb-1.5">Poids (kg) *</label>
-                  <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                  <label className="block text-xs font-semibold text-[#344054] mb-1.5">Poids (kg) *</label>
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <Scale className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
@@ -853,7 +859,7 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">État du produit</label>
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">État du produit</label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { value: 'NEUF', label: 'Neuf' },
@@ -866,7 +872,7 @@ export default function CreateProduct() {
                       onClick={() => setFormData({ ...formData, state: opt.value })}
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
                         formData.state === opt.value
-                          ? 'bg-white text-black'
+                          ? 'bg-[#FF6B00] text-white'
                           : 'bg-white border border-[#EAECF0] text-[#344054] hover:border-[#FF6B00]'
                       }`}
                     >
@@ -877,8 +883,8 @@ export default function CreateProduct() {
               </div>
 
               <div>
-                <label className="block text-xs text-[#344054] mb-1.5">Localisation</label>
-                <div className="flex items-center rounded-lg bg-white border border-[#EAECF0] focus-within:border-[#FF6B00] px-3.5 py-3 transition-colors">
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Localisation</label>
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                   <MapPin className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
@@ -893,20 +899,22 @@ export default function CreateProduct() {
               </div>
             </div>
 
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={handleValidateStock}
-              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-xl font-bold text-sm transition"
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-bold text-sm transition"
             >
               Continuer vers la publication
             </button>
+            </div>
           </div>
         )}
 
         {/* ÉTAPE 4 : PUBLIER */}
         {step === 'publish' && (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="bg-white border border-[#EAECF0] rounded-lg p-4 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <h2 className="font-bold text-[#111111]">Résumé de l'article</h2>
 
               <div>
@@ -949,10 +957,11 @@ export default function CreateProduct() {
               )}
             </div>
 
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-50 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-50 text-white rounded-full font-bold text-sm transition flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -963,6 +972,7 @@ export default function CreateProduct() {
                 <span>Publier l'article</span>
               )}
             </button>
+            </div>
           </form>
         )}
         </>

@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Camera, Check, FolderOpen, User as UserIcon, Eye, Package,
-  Trash2, CheckCircle2, Wallet, BarChart3, Loader2, X, AlertTriangle,
+  Trash2, CheckCircle2, Wallet, BarChart3, Loader2, X, AlertTriangle, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../context/Authcontext';
 import { apiFetch, BASE_URL } from '../api/client';
+import { setThemeMode, readThemeMode, THEME_MODE_OPTIONS, THEME_MODE_EVENT, type ThemeMode } from '../lib/themeMode';
 import { RoleCard, ProfileEditor, PasswordChanger, EvolutionDashboard, LogoutButton } from '../components/settingsExtras';
 const TEXT_SIZE_OPTIONS = [
   { id: 'small', label: 'Petit', px: 14 },
@@ -77,9 +78,9 @@ type MyProduct = {
 
 const SettingsSection = ({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) => (
   <section className="mb-8">
-    <h2 className="text-base font-extrabold text-[#111111] sm:text-lg">{title}</h2>
-    {description && <p className="mt-1 text-sm text-[#667085]">{description}</p>}
-    <div className="mt-4">{children}</div>
+    <h2 className="text-base font-bold text-[#111111]">{title}</h2>
+    {description && <p className="mt-0.5 text-sm text-[#667085]">{description}</p>}
+    <div className="mt-3">{children}</div>
   </section>
 );
 
@@ -219,178 +220,155 @@ export default function Settings() {
     }
   };
 
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => readThemeMode());
+  useEffect(() => {
+    const sync = () => setThemeModeState(readThemeMode());
+    window.addEventListener(THEME_MODE_EVENT, sync);
+    return () => window.removeEventListener(THEME_MODE_EVENT, sync);
+  }, []);
+  const handleThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    setThemeMode(mode);
+  };
+
+  const segment = (active: boolean) =>
+    `flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
+      active ? 'bg-[#FF6B00] text-white' : 'text-[#344054] hover:bg-[#EAECF0]'
+    }`;
+  const cardCls = 'rounded-2xl border border-[#EAECF0] bg-white';
+
   return (
     <div className="min-h-screen bg-white text-[#111111]">
-      <header className="sticky top-0 z-50 border-b border-[#EAECF0] bg-white/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 border-b border-[#EAECF0] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[#344054] transition-colors hover:bg-[#F2F4F7] hover:text-[#111111]"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#344054] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             aria-label="Retour"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-lg font-extrabold sm:text-xl">Paramètres</h1>
+          <h1 className="text-lg font-bold">Profil et paramètres</h1>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {/* COMPTE */}
-        <SettingsSection title="Compte">
-          {user ? (
-            <div className="rounded-lg bg-white p-4">
-              <div className="flex items-center gap-4">
-                <div className="relative flex-shrink-0">
-                  <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#E85F00]">
-                    {user.avatar ? (
-                      <img src={getMediaUrl(user.avatar) ?? undefined} alt={user.name} className="h-full w-full object-cover" />
-                    ) : (
-                      <UserIcon className="h-7 w-7 text-white" />
-                    )}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => avatarInputRef.current?.click()}
-                    disabled={avatarUploading}
-                    aria-label="Changer la photo de profil"
-                    className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#FF6B00] text-white ring-2 ring-white hover:bg-[#E85F00] disabled:opacity-60"
-                  >
-                    {avatarUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-                  </button>
-                  <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                </div>
+      <main className="mx-auto w-full max-w-3xl px-4 pb-10 pt-6">
+        {/* EN-TÊTE DE PROFIL */}
+        {user ? (
+          <section className="mb-8" aria-label="Mon compte">
+            <div className="flex items-center gap-5">
+              <div className="relative flex-shrink-0">
+                <span className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#F2F4F7] sm:h-24 sm:w-24">
+                  {user.avatar ? (
+                    <img src={getMediaUrl(user.avatar) ?? undefined} alt={user.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <UserIcon className="h-9 w-9 text-[#667085]" />
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={avatarUploading}
+                  aria-label="Changer la photo de profil"
+                  className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#FF6B00] text-white ring-2 ring-white hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-[#111111] disabled:opacity-60"
+                >
+                  {avatarUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                </button>
+                <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+              </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-bold text-[#111111]">{user.name}</p>
-                  <p className="truncate text-xs text-[#667085]">{user.email}</p>
-                  <Link to="/profile" className="mt-1 inline-block text-xs font-bold text-[#FF6B00] hover:underline">
-                    Voir mon profil public
-                  </Link>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xl font-bold">{user.name}</p>
+                <p className="truncate text-sm text-[#667085]">{user.email}</p>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center sm:max-w-sm">
+                  <div>
+                    <p className="text-lg font-bold">{formatNumber(totalViews)}</p>
+                    <p className="text-xs text-[#667085]">Vues</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{activeCount}</p>
+                    <p className="text-xs text-[#667085]">En vente</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{Math.max(0, soldCount)}</p>
+                    <p className="text-xs text-[#667085]">Vendues</p>
+                  </div>
                 </div>
               </div>
-              {avatarError && (
-                <p className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-red-600">
-                  <AlertTriangle className="h-3.5 w-3.5" /> {avatarError}
-                </p>
-              )}
             </div>
-          ) : (
-            <div className="rounded-lg bg-white p-4 text-sm text-[#667085]">
-              Connectez-vous depuis l'accueil pour accéder à votre compte.
-            </div>
-          )}
-        </SettingsSection>
+            {avatarError && (
+              <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-red-600">
+                <AlertTriangle className="h-4 w-4" /> {avatarError}
+              </p>
+            )}
+            {user.id && (
+              <Link
+                to={`/users/${user.id}`}
+                className="mt-4 flex h-10 w-full items-center justify-center rounded-xl bg-[#F2F4F7] text-sm font-semibold text-[#111111] transition-colors hover:bg-[#EAECF0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              >
+                Voir mon profil public
+              </Link>
+            )}
+          </section>
+        ) : (
+          <section className={`mb-8 p-5 ${cardCls}`}>
+            <p className="text-base font-bold">Connectez-vous pour accéder à votre compte</p>
+            <p className="mt-1 text-sm text-[#667085]">Votre profil, vos annonces et votre portefeuille apparaîtront ici.</p>
+            <Link
+              to="/login?redirect=/settings"
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-[#FF6B00] px-6 text-sm font-bold text-white hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
+            >
+              Connexion
+            </Link>
+          </section>
+        )}
 
         {user && (
           <>
-            {/* RÔLE */}
-            <SettingsSection title="Mon rôle">
-              <RoleCard />
-            </SettingsSection>
-
-            {/* PROFIL */}
-            <SettingsSection title="Profil" description="Modifiez votre nom et votre numéro de téléphone.">
-              <ProfileEditor />
-            </SettingsSection>
-
-            {/* SÉCURITÉ */}
-            <SettingsSection title="Sécurité" description="Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.">
-              <PasswordChanger />
-            </SettingsSection>
-
-            {/* ÉVOLUTION */}
-            <SettingsSection title="Mon évolution" description="Vos vues, ventes, revenus et achats au fil du temps.">
-              <EvolutionDashboard />
-            </SettingsSection>
-
             {/* PORTEFEUILLE */}
             <SettingsSection title="Paiements">
               <Link
                 to="/wallet"
-                className="flex items-center gap-3 rounded-lg bg-white p-4 transition-colors hover:bg-[#F2F4F7]"
+                className={`flex items-center gap-3 p-4 transition-colors hover:bg-[#F9FAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${cardCls}`}
               >
-                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#ea580c]/15 text-[#FF6B00]">
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
                   <Wallet className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#111111]">Mon portefeuille</p>
+                  <p className="text-sm font-bold">Mon portefeuille</p>
                   <p className="text-xs text-[#667085]">Solde, paiements reçus et retraits</p>
                 </div>
-                <span className="text-[#667085]">›</span>
+                <ChevronRight className="h-5 w-5 flex-shrink-0 text-[#98A2B3]" aria-hidden="true" />
               </Link>
             </SettingsSection>
 
-            {/* STATISTIQUES */}
-            <SettingsSection title="Statistiques" description="Les vues et ventes de vos annonces.">
-              <div className="grid grid-cols-3 gap-2.5">
-                <div className="rounded-lg bg-white p-3 text-center">
-                  <Eye className="mx-auto h-4 w-4 text-[#FF6B00]" />
-                  <p className="mt-1.5 text-lg font-extrabold text-[#111111]">{formatNumber(totalViews)}</p>
-                  <p className="text-[11px] font-semibold text-[#667085]">Vues cumulées</p>
-                </div>
-                <div className="rounded-lg bg-white p-3 text-center">
-                  <Package className="mx-auto h-4 w-4 text-[#FF6B00]" />
-                  <p className="mt-1.5 text-lg font-extrabold text-[#111111]">{activeCount}</p>
-                  <p className="text-[11px] font-semibold text-[#667085]">En vente</p>
-                </div>
-                <div className="rounded-lg bg-white p-3 text-center">
-                  <CheckCircle2 className="mx-auto h-4 w-4 text-[#FF6B00]" />
-                  <p className="mt-1.5 text-lg font-extrabold text-[#111111]">{Math.max(0, soldCount)}</p>
-                  <p className="text-[11px] font-semibold text-[#667085]">Vendues</p>
-                </div>
-              </div>
-
-              {/* Graphique des interactions (vues par annonce) */}
-              {viewsChart.items.length > 0 && (
-                <div className="mt-3 rounded-lg bg-white p-4">
-                  <p className="mb-3 flex items-center gap-1.5 text-xs font-bold text-[#344054]">
-                    <BarChart3 className="h-3.5 w-3.5 text-[#FF6B00]" /> Vues par annonce
-                  </p>
-                  <div className="space-y-2.5">
-                    {viewsChart.items.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2.5">
-                        <span className="w-24 flex-shrink-0 truncate text-[11px] font-semibold text-[#667085] sm:w-32">
-                          {p.title}
-                        </span>
-                        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#F9FAFB]">
-                          <div
-                            className="h-full rounded-full bg-[#FF6B00]"
-                            style={{ width: `${Math.max(4, ((p.views ?? 0) / viewsChart.max) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="w-8 flex-shrink-0 text-right text-[11px] font-bold text-[#111111]">{p.views ?? 0}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </SettingsSection>
-
             {/* MES ANNONCES */}
-            <SettingsSection title="Mes annonces" description="Gérez vos publications : marquez-les vendues ou supprimez-les.">
+            <SettingsSection title="Mes annonces" description="Marquez-les vendues ou supprimez-les.">
               {productsError && (
-                <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-red-600">
-                  <AlertTriangle className="h-3.5 w-3.5" /> {productsError}
+                <p className="mb-3 flex items-center gap-1.5 text-sm font-medium text-red-600">
+                  <AlertTriangle className="h-4 w-4" /> {productsError}
                 </p>
               )}
 
               {myProducts === null ? (
-                <div className="flex items-center gap-2 rounded-lg bg-white p-4 text-sm text-[#667085]">
+                <div className={`flex items-center gap-2 p-4 text-sm text-[#667085] ${cardCls}`}>
                   <Loader2 className="h-4 w-4 animate-spin" /> Chargement de vos annonces...
                 </div>
               ) : myProducts.length === 0 ? (
-                <div className="rounded-lg bg-white p-4 text-sm text-[#667085]">
-                  Vous n'avez publié aucune annonce pour le moment.
+                <div className={`flex flex-col items-center gap-2 p-6 text-center ${cardCls}`}>
+                  <Package className="h-8 w-8 text-[#98A2B3]" aria-hidden="true" />
+                  <p className="text-sm text-[#667085]">Vous n'avez publié aucune annonce pour le moment.</p>
+                  <Link to="/create-product" className="mt-1 text-sm font-bold text-[#FF6B00] hover:underline">Publier une annonce</Link>
                 </div>
               ) : (
-                <ul className="space-y-2.5">
+                <ul className={`divide-y divide-[#EAECF0] overflow-hidden ${cardCls}`}>
                   {myProducts.map((p) => {
                     const isSold = p.status === 'SOLD';
                     const isBusy = busyProductId === p.id;
                     return (
-                      <li key={p.id} className="flex items-center gap-3 rounded-lg bg-white p-3">
-                        <span className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-md bg-white">
+                      <li key={p.id} className="flex items-center gap-3 p-3">
+                        <span className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-[#F2F4F7]">
                           {p.images?.[0] ? (
                             <img src={getMediaUrl(p.images[0]) ?? undefined} alt={p.title} className="h-full w-full object-cover" />
                           ) : (
@@ -401,11 +379,11 @@ export default function Settings() {
                         </span>
 
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-[#111111]">{p.title}</p>
-                          <p className="text-xs font-semibold text-[#FF6B00]">{p.priceUSD} $</p>
-                          <p className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-[#667085]">
+                          <p className="truncate text-sm font-semibold">{p.title}</p>
+                          <p className="text-sm font-bold text-[#FF6B00]">{p.priceUSD} $</p>
+                          <p className="mt-0.5 flex items-center gap-2 text-xs text-[#667085]">
                             <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {p.views ?? 0}</span>
-                            {isSold && <span className="rounded bg-green-50 px-1.5 py-0.5 text-green-600">Vendue</span>}
+                            {isSold && <span className="rounded-full bg-green-50 px-2 py-0.5 font-semibold text-green-600">Vendue</span>}
                           </p>
                         </div>
 
@@ -417,7 +395,7 @@ export default function Settings() {
                               disabled={isBusy}
                               aria-label="Déclarer vendue"
                               title="Déclarer vendue"
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9FAFB] text-green-600 hover:bg-[#F2F4F7] disabled:opacity-50"
+                              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2F4F7] text-green-600 hover:bg-[#EAECF0] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                             >
                               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                             </button>
@@ -428,7 +406,7 @@ export default function Settings() {
                             disabled={isBusy}
                             aria-label="Supprimer l'annonce"
                             title="Supprimer"
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F9FAFB] text-red-600 hover:bg-[#F2F4F7] disabled:opacity-50"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F2F4F7] text-red-600 hover:bg-[#EAECF0] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -439,21 +417,80 @@ export default function Settings() {
                 </ul>
               )}
             </SettingsSection>
+
+            {/* GRAPHIQUE DES INTERACTIONS */}
+            {viewsChart.items.length > 0 && (
+              <SettingsSection title="Interactions" description="Vues par annonce.">
+                <div className={`p-4 ${cardCls}`}>
+                  <p className="mb-3 flex items-center gap-1.5 text-xs font-bold text-[#344054]">
+                    <BarChart3 className="h-4 w-4 text-[#FF6B00]" /> Les 6 annonces les plus vues
+                  </p>
+                  <div className="space-y-3">
+                    {viewsChart.items.map((p) => (
+                      <div key={p.id} className="flex items-center gap-3">
+                        <span className="w-24 flex-shrink-0 truncate text-xs text-[#667085] sm:w-36">{p.title}</span>
+                        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#F2F4F7]">
+                          <div
+                            className="h-full rounded-full bg-[#FF6B00]"
+                            style={{ width: `${Math.max(4, ((p.views ?? 0) / viewsChart.max) * 100)}%` }}
+                          />
+                        </div>
+                        <span className="w-9 flex-shrink-0 text-right text-xs font-bold">{p.views ?? 0}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </SettingsSection>
+            )}
+
+            <SettingsSection title="Mon évolution" description="Vos vues, ventes, revenus et achats au fil du temps.">
+              <EvolutionDashboard />
+            </SettingsSection>
+
+            <SettingsSection title="Mon rôle">
+              <RoleCard />
+            </SettingsSection>
+
+            <SettingsSection title="Profil" description="Modifiez votre nom et votre numéro de téléphone.">
+              <ProfileEditor />
+            </SettingsSection>
+
+            <SettingsSection title="Sécurité" description="Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.">
+              <PasswordChanger />
+            </SettingsSection>
           </>
         )}
 
+        {/* APPARENCE : mode clair / sombre */}
+        <SettingsSection title="Apparence" description="Choisissez le mode d'affichage de l'application.">
+          <div role="radiogroup" aria-label="Mode d'affichage" className="flex gap-1 rounded-xl bg-[#F2F4F7] p-1">
+            {THEME_MODE_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                role="radio"
+                aria-checked={themeMode === opt.id}
+                onClick={() => handleThemeMode(opt.id)}
+                className={segment(themeMode === opt.id)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </SettingsSection>
+
         {/* TEXTE : taille et police d'écriture, appliquées à toute l'application */}
         <SettingsSection title="Texte" description="Ajustez la taille et la police d'écriture si l'affichage vous semble trop grand ou trop petit.">
-          <p className="mb-2 text-xs font-bold text-[#667085]">Taille du texte</p>
-          <div className="mb-4 grid grid-cols-3 gap-2">
+          <p className="mb-2 text-xs font-semibold text-[#667085]">Taille du texte</p>
+          <div role="radiogroup" aria-label="Taille du texte" className="mb-4 flex gap-1 rounded-xl bg-[#F2F4F7] p-1">
             {TEXT_SIZE_OPTIONS.map((opt) => (
               <button
                 key={opt.id}
                 type="button"
+                role="radio"
+                aria-checked={textSize === opt.px}
                 onClick={() => handleSelectTextSize(opt.px)}
-                className={`rounded-lg py-2.5 text-xs font-bold transition-colors ${
-                  textSize === opt.px ? 'bg-[#FF6B00] text-white' : 'bg-[#F2F4F7] text-white hover:bg-[#EAECF0]'
-                }`}
+                className={segment(textSize === opt.px)}
                 style={{ fontSize: `${Math.min(opt.px, 16)}px` }}
               >
                 {opt.label}
@@ -461,16 +498,16 @@ export default function Settings() {
             ))}
           </div>
 
-          <p className="mb-2 text-xs font-bold text-[#667085]">Police d'écriture</p>
-          <div className="grid grid-cols-3 gap-2">
+          <p className="mb-2 text-xs font-semibold text-[#667085]">Police d'écriture</p>
+          <div role="radiogroup" aria-label="Police d'écriture" className="flex gap-1 rounded-xl bg-[#F2F4F7] p-1">
             {FONT_FAMILY_OPTIONS.map((opt) => (
               <button
                 key={opt.id}
                 type="button"
+                role="radio"
+                aria-checked={textFamily === opt.value}
                 onClick={() => handleSelectTextFamily(opt.value)}
-                className={`rounded-lg py-2.5 text-xs font-bold transition-colors ${
-                  textFamily === opt.value ? 'bg-[#FF6B00] text-white' : 'bg-[#F2F4F7] text-white hover:bg-[#EAECF0]'
-                }`}
+                className={segment(textFamily === opt.value)}
                 style={{ fontFamily: opt.value }}
               >
                 {opt.label}
@@ -479,8 +516,8 @@ export default function Settings() {
           </div>
         </SettingsSection>
 
-        {/* APPARENCE */}
-        <SettingsSection title="Apparence" description="Choisissez l'arrière-plan de votre marché CBFSOKO.">
+        {/* ARRIÈRE-PLAN DE L'ACCUEIL */}
+        <SettingsSection title="Arrière-plan de l'accueil" description="Choisissez l'arrière-plan de votre marché CBFSOKO (mode clair).">
           <div className="mb-4 grid grid-cols-2 gap-2.5">
             <input type="file" accept="image/*" capture="environment" ref={bgCameraInputRef} onChange={handleBgFileChange} className="hidden" />
             <input type="file" accept="image/*" ref={bgFileInputRef} onChange={handleBgFileChange} className="hidden" />
@@ -488,16 +525,16 @@ export default function Settings() {
             <button
               type="button"
               onClick={() => bgCameraInputRef.current?.click()}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#FFF1E7] py-2.5 text-xs font-bold text-[#FF6B00] transition-colors hover:bg-[#FFF1E7]"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#FFF1E7] text-sm font-semibold text-[#FF6B00] transition-colors hover:bg-[#FFE4D1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             >
-              <Camera className="h-3.5 w-3.5" /> Caméra
+              <Camera className="h-4 w-4" /> Caméra
             </button>
             <button
               type="button"
               onClick={() => bgFileInputRef.current?.click()}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#F2F4F7] py-2.5 text-xs font-bold text-[#111111] transition-colors hover:bg-[#EAECF0]"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#F2F4F7] text-sm font-semibold text-[#111111] transition-colors hover:bg-[#EAECF0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             >
-              <FolderOpen className="h-3.5 w-3.5" /> Explorateur
+              <FolderOpen className="h-4 w-4" /> Explorateur
             </button>
           </div>
 
@@ -509,15 +546,17 @@ export default function Settings() {
                   key={preset.id}
                   type="button"
                   onClick={() => handleSelectBg(preset.value)}
-                  className={`relative flex h-20 flex-col items-center justify-end overflow-hidden rounded-lg p-1.5 text-center text-[9px] font-semibold text-[#111111] transition-all ${
-                    isSelected ? 'ring-2 ring-[#FF6B00]' : 'ring-1 ring-[#EAECF0] hover:ring-[#FF6B00]/40'
+                  aria-pressed={isSelected}
+                  aria-label={preset.name}
+                  className={`relative flex h-20 flex-col items-center justify-end overflow-hidden rounded-xl border border-[#EAECF0] p-1.5 text-center text-[10px] font-semibold text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
+                    isSelected ? 'ring-2 ring-[#FF6B00]' : 'hover:ring-2 hover:ring-[#FF6B00]/40'
                   }`}
                   style={{ background: preset.value, backgroundSize: 'cover' }}
                 >
-                  <span className="relative z-10 w-full truncate rounded bg-black/60 px-1 py-0.5">{preset.name}</span>
+                  <span className="relative z-10 w-full truncate rounded bg-black/70 px-1 py-0.5">{preset.name}</span>
                   {isSelected && (
                     <span className="absolute right-1.5 top-1.5 rounded-full bg-[#FF6B00] p-0.5 text-white">
-                      <Check className="h-2.5 w-2.5" />
+                      <Check className="h-3 w-3" />
                     </span>
                   )}
                 </button>
@@ -539,11 +578,14 @@ export default function Settings() {
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
           onMouseDown={(e) => e.target === e.currentTarget && setConfirmDeleteId(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Supprimer cette annonce"
         >
           <div className="w-full max-w-sm rounded-2xl border border-[#EAECF0] bg-white p-5">
             <div className="flex items-start justify-between">
-              <p className="text-base font-extrabold text-[#111111]">Supprimer cette annonce ?</p>
-              <button type="button" onClick={() => setConfirmDeleteId(null)} aria-label="Fermer" className="text-[#667085] hover:text-[#111111]">
+              <p className="text-base font-bold text-[#111111]">Supprimer cette annonce ?</p>
+              <button type="button" onClick={() => setConfirmDeleteId(null)} aria-label="Fermer" className="flex h-8 w-8 items-center justify-center rounded-full text-[#667085] hover:bg-[#F2F4F7] hover:text-[#111111]">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -552,7 +594,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => setConfirmDeleteId(null)}
-                className="h-11 flex-1 rounded-xl bg-[#F2F4F7] text-sm font-bold text-[#111111] hover:bg-[#F2F4F7]"
+                className="h-11 flex-1 rounded-xl bg-[#F2F4F7] text-sm font-bold text-[#111111] hover:bg-[#EAECF0]"
               >
                 Annuler
               </button>

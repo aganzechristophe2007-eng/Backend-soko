@@ -1,89 +1,180 @@
-/* CBF SOKO — couche de finition visuelle partagée.
-   Les règles ci-dessous ne modifient ni les données, ni les routes, ni les interactions. */
+/* CBF SOKO — système de design partagé (refonte).
+   Références : Instagram (navigation, profil, messages), Vinted (annonces, confiance, commandes),
+   Spotify (surfaces plates, contraste, mode sombre). Marque conservée : orange #FF6B00, vert #10B981.
+   Ce fichier ne change ni routes, ni données, ni interactions. */
+
 :root {
-  --cbfsoko-orange: #ff6b00;
-  --cbfsoko-orange-hover: #e85f00;
-  --cbfsoko-orange-soft: #fff3eb;
-  --cbfsoko-ink: #171717;
-  --cbfsoko-muted: #667085;
-  --cbfsoko-border: #e7e9ee;
-  --cbfsoko-canvas: #f8f9fb;
-  --cbfsoko-card-shadow: 0 1px 2px rgb(16 24 40 / 3%), 0 5px 18px rgb(16 24 40 / 4%);
-  --cbfsoko-card-shadow-hover: 0 10px 28px rgb(16 24 40 / 8%);
+  /* Marque */
+  --brand: #ff6b00;
+  --brand-hover: #e85f00;
+  --brand-soft: #fff1e7;
+  --brand-green: #10b981;
+
+  /* Surfaces et texte (clair) */
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #f2f4f7;
+  --border: #eaecf0;
+  --border-strong: #d0d5dd;
+  --ink: #111111;
+  --ink-2: #344054;
+  --muted: #667085;
+  --faint: #98a2b3;
+
+  /* Dimensions */
+  --sidebar-w: 244px;
+  --sidebar-w-compact: 76px;
+  --bottom-nav-h: 60px;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 4%);
+  --shadow-pop: 0 12px 32px rgb(16 24 40 / 12%);
+
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html { background: var(--cbfsoko-canvas); }
-body { color: var(--cbfsoko-ink); }
-
-/* Navigation et en-têtes : séparation légère, sans modifier les couleurs de marque. */
-header.sticky {
-  border-bottom-color: var(--cbfsoko-border);
-  box-shadow: 0 1px 0 rgb(16 24 40 / 2%);
-}
-header.sticky img[alt="CBF SOKO"] { object-fit: contain; }
-
-/* Champs : focus visible, contours cohérents et lisibilité sur petits écrans. */
-:where(input, textarea, select) {
-  accent-color: var(--cbfsoko-orange);
-  border-radius: 0.7rem;
-}
-:where(input, textarea, select):focus-visible {
-  outline: 2px solid rgb(255 107 0 / 38%);
-  outline-offset: 2px;
-}
-:where(input, textarea, select)::placeholder { color: #98a2b3; opacity: 1; }
-:where(button, a) { -webkit-tap-highlight-color: transparent; }
-:where(button):disabled { opacity: 0.62; }
-
-/* Cartes des pages métier : détails produit, commandes, paramètres, boutique, portefeuille. */
-main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed) {
-  border-color: var(--cbfsoko-border);
-  box-shadow: var(--cbfsoko-card-shadow);
-}
-main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed):hover {
-  border-color: #dfe2e8;
-}
-main .border-dashed { box-shadow: none; }
-
-/* Cartes produits de l'accueil : mouvement minimal et priorité à la photo. */
-main :is(a, article, div).group.relative.flex.h-full.flex-col.overflow-hidden {
-  border-color: var(--cbfsoko-border);
-  box-shadow: var(--cbfsoko-card-shadow);
-  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
-}
-main :is(a, article, div).group.relative.flex.h-full.flex-col.overflow-hidden:hover {
-  border-color: #d9dce3;
-  box-shadow: var(--cbfsoko-card-shadow-hover);
+html.dark {
+  --canvas: #0b0b0c;
+  --surface: #141416;
+  --surface-2: #101012;
+  --surface-3: #1e1e22;
+  --border: #2a2a2e;
+  --border-strong: #3a3a40;
+  --ink: #f5f5f6;
+  --ink-2: #d0d2d6;
+  --muted: #a0a4ab;
+  --faint: #7b7f87;
+  --brand-soft: rgb(255 107 0 / 14%);
+  --shadow-card: none;
+  --shadow-pop: 0 12px 32px rgb(0 0 0 / 55%);
 }
 
-/* Les titres de sections gardent une hiérarchie régulière. */
-main h1:not(.sr-only) { letter-spacing: -0.025em; }
-main h2 { letter-spacing: -0.018em; }
-main :is(p, label) { line-height: 1.55; }
+html { background: var(--canvas); }
+body, #root { background-color: var(--canvas); color: var(--ink); }
 
-/* Pages d'authentification : surfaces sobres et lisibles. */
-form :is(input, textarea, select) { min-width: 0; }
-form button[type="submit"] { min-height: 2.65rem; }
-
-/* États de chargement : animation douce, respectueuse des préférences système. */
-@keyframes cbfsoko-soft-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.58; }
+/* ------------------------------------------------------------------ */
+/* Mise en page globale : barre latérale (ordinateur) + barre du bas (mobile) */
+/* ------------------------------------------------------------------ */
+.app-content { min-width: 0; }
+@media (min-width: 1024px) {
+  .app-content.has-sidebar { padding-left: var(--sidebar-w-compact); }
 }
-.animate-pulse { animation-duration: 1.8s; }
-
-/* Barre de défilement discrète sur les navigateurs qui l'exposent. */
-* { scrollbar-color: #d0d5dd transparent; scrollbar-width: thin; }
-
-@media (hover: hover) and (pointer: fine) {
-  main a:not([aria-disabled="true"]), main button:not(:disabled) { transition-duration: 160ms; }
+@media (min-width: 1280px) {
+  .app-content.has-sidebar { padding-left: var(--sidebar-w); }
+}
+@media (max-width: 1023px) {
+  .app-content.has-bottom-nav { padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom)); }
 }
 
+/* Focus clavier visible partout, sans bruit pour la souris. */
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+:where(input, textarea, select):focus-visible { outline-offset: 1px; outline-color: rgb(255 107 0 / 55%); }
+:where(input, textarea, select) { accent-color: var(--brand); }
+:where(input, textarea)::placeholder { color: var(--faint); opacity: 1; }
+:where(button):disabled { cursor: not-allowed; }
+::selection { color: #fff; background: var(--brand); }
+
+/* Défilement discret. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Squelettes de chargement, partagés (classe .skeleton). */
+@keyframes soko-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-3) 25%, var(--border) 37%, var(--surface-3) 63%);
+  background-size: 300% 100%;
+  animation: soko-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Texte long : pas de débordement horizontal. */
+#root, main, section, article, aside { min-width: 0; }
+:where(h1, h2, h3, h4) { text-wrap: balance; letter-spacing: -0.015em; }
+:where(p, h1, h2, h3, h4, a, span, label) { overflow-wrap: anywhere; }
+img, video { max-width: 100%; }
+
+/* Cibles tactiles confortables sur mobile, champs sans zoom iOS. */
 @media (max-width: 639px) {
-  main :is(.rounded-2xl.border, .rounded-3xl.border):not(.border-dashed) { border-radius: 1rem; }
-  header.sticky { box-shadow: 0 1px 0 rgb(16 24 40 / 3%); }
+  input, select, textarea { font-size: 16px; }
 }
+
+/* ------------------------------------------------------------------ */
+/* Mode sombre : les pages utilisent des classes Tailwind à valeurs fixes (bg-white,   */
+/* text-[#111111]…). On les remappe ici une seule fois plutôt que page par page.        */
+/* ------------------------------------------------------------------ */
+html.dark .bg-white,
+html.dark [class~="bg-neutral-50"],
+html.dark [class~="bg-gray-50"],
+html.dark [class~="bg-[#FCFCFD]"],
+html.dark [class~="bg-[#FAF8F5]"] { background-color: var(--surface); }
+html.dark [class*="bg-white/9"],
+html.dark [class*="bg-white/8"],
+html.dark [class*="bg-white/7"] { background-color: rgb(20 20 22 / 90%); }
+html.dark [class~="bg-[#F9FAFB]"],
+html.dark [class~="bg-[#F8F9FB]"] { background-color: var(--surface-2); }
+html.dark [class~="bg-[#F2F4F7]"],
+html.dark [class~="bg-neutral-100"],
+html.dark [class~="bg-gray-100"] { background-color: var(--surface-3); }
+html.dark [class~="bg-[#EAECF0]"],
+html.dark [class~="bg-neutral-200"] { background-color: var(--border); }
+html.dark [class~="bg-[#D0D5DD]"] { background-color: var(--border-strong); }
+html.dark [class~="bg-[#FFF1E7]"],
+html.dark [class~="bg-[#FFF8F3]"],
+html.dark [class~="bg-[#FFE4D1]"],
+html.dark [class~="bg-orange-50"] { background-color: var(--brand-soft); }
+html.dark [class~="bg-red-50"],
+html.dark [class~="bg-[#FEF3F2]"] { background-color: rgb(240 68 56 / 14%); }
+html.dark [class~="bg-emerald-50"] { background-color: rgb(18 183 106 / 14%); }
+html.dark [class~="bg-blue-50"] { background-color: rgb(46 144 250 / 14%); }
+
+html.dark [class~="text-[#111111]"],
+html.dark [class~="text-[#111827]"],
+html.dark [class~="text-gray-900"],
+html.dark [class~="text-gray-800"],
+html.dark [class~="text-neutral-950"],
+html.dark [class~="text-black"] { color: var(--ink); }
+html.dark [class~="text-[#344054]"],
+html.dark [class~="text-[#475467]"],
+html.dark [class~="text-gray-600"],
+html.dark [class~="text-neutral-700"],
+html.dark [class~="text-neutral-600"] { color: var(--ink-2); }
+html.dark [class~="text-[#667085]"],
+html.dark [class~="text-gray-500"],
+html.dark [class~="text-neutral-500"] { color: var(--muted); }
+html.dark [class~="text-[#98A2B3]"] { color: var(--faint); }
+
+html.dark [class~="border-[#EAECF0]"],
+html.dark [class~="border-neutral-200"],
+html.dark [class~="border-gray-200"],
+html.dark [class~="border"]:not([class*="border-"]) { border-color: var(--border); }
+html.dark [class~="border-[#D0D5DD]"] { border-color: var(--border-strong); }
+html.dark [class~="border-[#FFE0CC]"],
+html.dark [class~="border-[#FFD7B5]"] { border-color: rgb(255 107 0 / 35%); }
+html.dark [class~="divide-[#EAECF0]"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class~="divide-neutral-200"] > :not([hidden]) ~ :not([hidden]) { border-color: var(--border); }
+
+/* Anneaux blancs (pastilles, badges) : ils doivent suivre la couleur de fond. */
+html.dark [class~="ring-white"] { --tw-ring-color: var(--canvas); }
+html.dark [class~="placeholder-[#98A2B3]"]::placeholder { color: var(--faint); }
+
+/* Page d'accueil : le fond personnalisé blanc devient le fond sombre. */
+html.dark [style*="background: rgb(255, 255, 255)"],
+html.dark [style*="background-color: rgb(255, 255, 255)"] { background: var(--canvas) !important; }
+
+html.dark img { filter: none; }
+html.dark :where(input, textarea, select) { color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

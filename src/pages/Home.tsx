@@ -240,14 +240,14 @@ const FavoriteButton = ({ active, onToggle, title }: { active: boolean; onToggle
     onClick={(e) => { e.stopPropagation(); onToggle(); }}
     aria-pressed={active}
     aria-label={active ? `Retirer des favoris : ${title}` : `Ajouter aux favoris : ${title}`}
-    className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#344054] shadow-sm transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] sm:right-2 sm:top-2 sm:h-8 sm:w-8"
+    className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#344054] transition hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] sm:right-2 sm:top-2 sm:h-8 sm:w-8"
   >
     <Heart className={`h-4 w-4 ${active ? 'fill-[#FF6B00] text-[#FF6B00]' : ''}`} aria-hidden="true" />
   </button>
 );
 
 const CARD_BASE =
-  'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
+  'group relative flex h-full flex-col overflow-hidden rounded-xl border border-[#EAECF0] bg-white transition-colors duration-200 hover:border-[#D0D5DD] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
 
 interface CardInfoProps {
   seller?: SellerLite;
@@ -259,23 +259,25 @@ interface CardInfoProps {
 }
 
 const CardInfo = ({ seller, title, priceUSD, priceCDF, location, getMediaUrl }: CardInfoProps) => (
-  <div className="flex min-w-0 flex-1 flex-col gap-1 p-2 sm:p-3">
-    <SellerRow seller={seller} getMediaUrl={getMediaUrl} />
-    <h3 className="line-clamp-1 text-[11px] font-semibold leading-snug text-[#111111] sm:text-sm">{title}</h3>
+  <div className="flex min-w-0 flex-1 flex-col gap-1 p-2.5 sm:p-3">
     {priceUSD !== undefined && (
-      <div className="mt-auto">
-        <p className="text-xs font-bold leading-tight text-[#FF6B00] sm:text-base">{priceUSD} $</p>
+      <div>
+        <p className="text-sm font-bold leading-tight text-[#FF6B00] sm:text-base">{priceUSD} $</p>
         {priceCDF !== undefined && priceCDF > 0 && (
           <p className="hidden text-xs text-[#667085] sm:block">≈ {formatCDF(priceCDF)} CDF</p>
         )}
       </div>
     )}
+    <h3 className="line-clamp-2 text-xs font-medium leading-snug text-[#111111] sm:text-sm">{title}</h3>
     {location && (
-      <p className="flex items-center gap-1 text-[10px] text-[#667085] sm:text-xs">
+      <p className="flex items-center gap-1 text-[11px] text-[#667085] sm:text-xs">
         <MapPin className="h-3 w-3 flex-shrink-0 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
         <span className="truncate">{location}</span>
       </p>
     )}
+    <div className="mt-auto pt-1">
+      <SellerRow seller={seller} getMediaUrl={getMediaUrl} />
+    </div>
   </div>
 );
 
@@ -325,7 +327,7 @@ const ReelCard = ({
           className="h-full w-full object-cover"
         />
 
-        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white backdrop-blur-sm sm:left-2 sm:top-2 sm:text-[11px]">
+        <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-md bg-black px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white sm:left-2 sm:top-2 sm:text-[11px]">
           <Play className="h-2.5 w-2.5 fill-current" aria-hidden="true" />
           {duration ? <span aria-label={`Durée ${formatDuration(duration)}`}>{formatDuration(duration)}</span> : null}
         </span>
@@ -336,7 +338,7 @@ const ReelCard = ({
           type="button"
           onClick={(e) => { e.stopPropagation(); onToggleMute(); }}
           aria-label={muted ? 'Activer le son' : 'Couper le son'}
-          className="absolute bottom-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="absolute bottom-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
         </button>
@@ -378,12 +380,12 @@ const ProductCard = ({ product, onOpen, getMediaUrl, isFavorite, onToggleFavorit
       aria-label={`${product.title}, ${product.priceUSD} $`}
       className={`${CARD_BASE} cursor-pointer`}
     >
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F2F4F7]">
+      <div className="relative aspect-square w-full overflow-hidden bg-[#F2F4F7]">
         <img
           src={getMediaUrl(product.images?.[0])}
           alt={product.title}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover"
         />
         {isDemand && (
           <span className="absolute left-1.5 top-1.5 rounded-md bg-[#FF6B00] px-2 py-1 text-[10px] font-bold leading-none text-white sm:left-2 sm:top-2 sm:text-[11px]">DEMANDE</span>
@@ -424,15 +426,15 @@ const CategoryPill = ({ label, icon, active, count, onClick }: CategoryPillProps
     <span
       className={`flex h-12 w-12 items-center justify-center rounded-full transition sm:h-16 sm:w-16 group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 ${
         active
-          ? 'bg-[#FF6B00] text-white shadow-md shadow-[#FF6B00]/25'
-          : 'bg-[#FFF1E7] text-[#FF6B00] group-hover:bg-[#FFE4D1]'
+          ? 'bg-[#FF6B00] text-white'
+          : 'bg-[#F2F4F7] text-[#344054] group-hover:bg-[#EAECF0]'
       }`}
     >
       {icon}
     </span>
     <span
       className={`line-clamp-2 break-words text-center text-[10px] leading-tight tracking-tight sm:text-xs ${
-        active ? 'font-bold text-[#FF6B00]' : 'font-medium text-[#111111]'
+        active ? 'font-bold text-[#111111]' : 'font-medium text-[#667085]'
       }`}
     >
       {label}
@@ -553,7 +555,7 @@ export default function Home() {
 
   const t = {
     page: 'antialiased [text-rendering:optimizeLegibility] text-[#111111] selection:bg-[#FF6B00] selection:text-white',
-    header: 'border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85',
+    header: 'border-b border-[#EAECF0] bg-white',
     border: 'border-[#EAECF0] border',
     muted: 'text-[#667085]',
     mobileNav: 'border-t border-[#EAECF0] bg-white shadow-[0_-4px_16px_rgba(16,24,40,0.06)]',
@@ -1205,14 +1207,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-2.5 lg:px-8">
           <Link
             to="/"
-            className="flex-shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+            className="flex-shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] lg:hidden"
             aria-label="CBF SOKO, accueil"
           >
             <img src="/logo-cbf-soko.png" alt="CBF SOKO" className="h-10 w-auto sm:h-12" />
           </Link>
 
           <form onSubmit={handleSearch} role="search" className="min-w-0 flex-1 lg:mx-auto lg:max-w-2xl">
-            <div className="flex h-10 w-full min-w-0 items-center gap-1 rounded-full border border-[#EAECF0] bg-white pl-1 pr-3 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 sm:h-11 sm:pr-4">
+            <div className="flex h-10 w-full min-w-0 items-center gap-1 rounded-full border border-transparent bg-[#F2F4F7] pl-1 pr-3 transition focus-within:border-[#FF6B00] focus-within:bg-white sm:h-11 sm:pr-4">
               <button
                 type="submit"
                 disabled={searchLoading}
@@ -1238,16 +1240,6 @@ export default function Home() {
           </form>
 
           <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => handleProtectedAction('/orders')}
-              className={`${iconBtn} hidden sm:inline-flex md:hidden`}
-              aria-label="Commandes"
-              title="Commandes"
-            >
-              <Package className="h-[18px] w-[18px]" />
-            </button>
-
             {token ? (
               <Link
                 to="/notifications"
@@ -1283,7 +1275,6 @@ export default function Home() {
                   <UserIcon className="h-[18px] w-[18px]" />
                 )}
               </span>
-              <ChevronRight className="h-4 w-4 text-[#667085]" aria-hidden="true" />
             </Link>
 
             {!token && (
@@ -1298,20 +1289,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* NAVIGATION ORDINATEUR : mêmes options que la barre du bas sur mobile, plus Commandes */}
-        <div className="hidden border-t border-[#EAECF0] md:block">
-          <nav aria-label="Navigation principale" className="mx-auto flex max-w-7xl items-center gap-1 px-4 py-1.5 sm:px-6 lg:px-8 [&_svg]:h-5 [&_svg]:w-5">
-            {navItems.map((item) => renderTab(item, 'top'))}
-            <button
-              type="button"
-              onClick={() => handleProtectedAction('/create-product')}
-              className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#FF6B00] px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
-            >
-              <Camera className="h-5 w-5" />
-              Poster
-            </button>
-          </nav>
-        </div>
       </header>
 
       <main className="flex-1 pb-4">
@@ -1326,13 +1303,13 @@ export default function Home() {
               onSignup={() => openAuth()}
               onPost={() => handleProtectedAction('/create-product')}
               onOrders={() => handleProtectedAction('/orders')}
-              className="h-52 rounded-3xl sm:h-72 lg:h-full lg:min-h-[340px]"
+              className="h-52 rounded-2xl sm:h-72 lg:h-full lg:min-h-[340px]"
             />
 
             <Link
               to={SELLER_SHOP_ROUTE}
               aria-label="Créer ma boutique"
-              className="relative hidden overflow-hidden rounded-3xl border border-[#EAECF0] shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition-shadow hover:shadow-[0_8px_24px_rgba(16,24,40,0.10)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 lg:block"
+              className="relative hidden overflow-hidden rounded-2xl border border-[#EAECF0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 lg:block"
             >
               <img
                 src="/seller-banner.png"
@@ -1356,11 +1333,11 @@ export default function Home() {
           {loadingProducts ? (
             <div className="-mx-3 flex gap-2.5 overflow-hidden px-3 sm:mx-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-6 xl:grid-cols-8">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="h-[190px] w-[112px] flex-shrink-0 animate-pulse rounded-2xl bg-[#F2F4F7] sm:h-[260px] sm:w-[150px] lg:h-[250px] lg:w-auto" />
+                <div key={i} className="skeleton h-[190px] w-[112px] flex-shrink-0 rounded-xl sm:h-[260px] sm:w-[150px] lg:h-[250px] lg:w-auto" />
               ))}
             </div>
           ) : featuredItems.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-[#EAECF0] py-8 text-center text-sm text-[#667085]">Aucune vidéo.</div>
+            <div className="rounded-xl border border-dashed border-[#EAECF0] py-8 text-center text-sm text-[#667085]">Aucune vidéo.</div>
           ) : (
             <div className="scrollbar-hide -mx-3 flex snap-x snap-mandatory scroll-px-3 gap-2.5 overflow-x-auto px-3 pb-3 pt-1 sm:mx-0 sm:scroll-px-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-6 lg:overflow-visible xl:grid-cols-8">
               {featuredItems.map(({ reel, product }, index) => (
@@ -1397,7 +1374,7 @@ export default function Home() {
           }`}
         >
           {categories.length > 0 && (
-            <div className="min-w-0 lg:rounded-2xl lg:border lg:border-[#EAECF0] lg:bg-white lg:p-4 lg:shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
+            <div className="min-w-0 lg:rounded-2xl lg:border lg:border-[#EAECF0] lg:bg-white lg:p-4">
               <div className="scrollbar-hide -mx-3 flex gap-0.5 overflow-x-auto px-3 pb-1 pt-1 sm:mx-0 sm:gap-3 sm:px-0 lg:gap-1 lg:overflow-visible lg:pb-0 lg:pt-0">
                 <CategoryPill
                   label="Tous"
@@ -1421,7 +1398,7 @@ export default function Home() {
                   title="Voir toutes les annonces"
                   className={CATEGORY_SLOT}
                 >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00] transition group-hover:bg-[#FFE4D1] group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 sm:h-16 sm:w-16">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F2F4F7] text-[#344054] transition group-hover:bg-[#EAECF0] group-focus-visible:ring-2 group-focus-visible:ring-[#FF6B00] group-focus-visible:ring-offset-2 sm:h-16 sm:w-16">
                     <MoreHorizontal className="h-[22px] w-[22px] sm:h-7 sm:w-7" aria-hidden="true" />
                   </span>
                   <span className="text-center text-[10px] font-medium leading-tight tracking-tight text-[#111111] sm:text-xs">
@@ -1433,7 +1410,7 @@ export default function Home() {
           )}
 
           {SECONDARY_BANNERS.length > 0 && (
-            <div className="hidden min-w-0 rounded-2xl border border-[#EAECF0] bg-white p-3 shadow-[0_1px_3px_rgba(16,24,40,0.06)] lg:block">
+            <div className="hidden min-w-0 rounded-2xl border border-[#EAECF0] bg-white p-3 lg:block">
               <div className="grid grid-cols-3 gap-3">
                 {SECONDARY_BANNERS.map((banner) => (
                   <img
@@ -1502,24 +1479,25 @@ export default function Home() {
           )}
 
           {loadingProducts || searchLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
               {[...Array(12)].map((_, i) => (
-                <div key={i} className="animate-pulse overflow-hidden rounded-2xl border border-[#EAECF0] bg-white">
-                  <div className="aspect-[4/5] w-full bg-[#F2F4F7]" />
+                <div key={i} className="overflow-hidden rounded-xl border border-[#EAECF0] bg-white">
+                  <div className="skeleton aspect-square w-full !rounded-none" />
                   <div className="space-y-2 p-3">
-                    <div className="h-3 w-1/2 rounded bg-[#F2F4F7]" />
-                    <div className="h-3 w-3/4 rounded bg-[#F2F4F7]" />
-                    <div className="h-4 w-1/3 rounded bg-[#F2F4F7]" />
+                    <div className="skeleton h-4 w-1/3" />
+                    <div className="skeleton h-3 w-3/4" />
+                    <div className="skeleton h-3 w-1/2" />
                   </div>
                 </div>
               ))}
             </div>
           ) : displayedProducts.length === 0 ? (
-            <div className={`rounded-2xl border border-dashed py-10 text-center text-sm font-medium ${t.border} ${t.muted}`}>
+            <div className={`flex flex-col items-center gap-2 rounded-xl border border-dashed py-14 text-center text-sm font-medium ${t.border} ${t.muted}`}>
+              <Tag className="h-6 w-6 text-[#98A2B3]" aria-hidden="true" />
               {searchResults !== null ? 'Aucun résultat pour cette recherche.' : 'Aucune annonce.'}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
               {displayedProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -1536,7 +1514,7 @@ export default function Home() {
       </main>
 
       {/* PIED DE PAGE LÉGAL */}
-      <footer className="border-t border-[#EAECF0] bg-[#F9FAFB] pb-28 pt-10 md:pb-8">
+      <footer className="border-t border-[#EAECF0] bg-[#F9FAFB] pb-10 pt-10">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
           <div>
             <img src="/logo-cbf-soko.png" alt="CBF SOKO" loading="lazy" className="h-12 w-auto" />
@@ -1596,28 +1574,6 @@ export default function Home() {
           </p>
         </div>
       </footer>
-
-      {/* BARRE DU BAS (mobile) */}
-      <nav
-        aria-label="Navigation mobile"
-        className={`fixed inset-x-0 bottom-0 z-50 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:hidden ${t.mobileNav}`}
-      >
-        <div className="grid grid-cols-5 items-end gap-0">
-          {mobileItems.slice(0, mobileMid).map((item) => renderTab(item, 'bottom'))}
-          <div className="flex flex-col items-center">
-            <button
-              type="button"
-              onClick={() => handleProtectedAction('/create-product')}
-              aria-label="Publier une annonce"
-              className="-mt-8 flex h-14 w-14 items-center justify-center rounded-full bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/30 ring-4 ring-white transition hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-[#FFD2B0] active:scale-95"
-            >
-              <Plus className="h-7 w-7" strokeWidth={2.5} aria-hidden="true" />
-            </button>
-            <span className="mt-1 text-[11px] font-semibold text-[#FF6B00]">Publier</span>
-          </div>
-          {mobileItems.slice(mobileMid).map((item) => renderTab(item, 'bottom'))}
-        </div>
-      </nav>
 
       {/* REEL PLEIN ÉCRAN */}
       <AnimatePresence>
@@ -1739,7 +1695,7 @@ export default function Home() {
               </div>
             )}
 
-            <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-3 pt-10 text-white" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+            <div className="absolute inset-x-0 bottom-0 z-10 bg-black/70 px-3 pt-4 text-white" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
               <div className="mx-auto flex max-w-3xl flex-col gap-2.5">
                 {currentReelDescription && (
                   <div

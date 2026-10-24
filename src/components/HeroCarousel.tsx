@@ -312,7 +312,7 @@ function Carousel({ slides, label, className = '', variant }: CarouselProps) {
             type="button"
             onClick={() => go(-1)}
             aria-label="Bannière précédente"
-            className={`absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#111111] shadow-sm transition-transform hover:scale-105 sm:flex ${FOCUS}`}
+            className={`absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#111111] transition-colors hover:text-[#FF6B00] sm:flex ${FOCUS}`}
           >
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -320,7 +320,7 @@ function Carousel({ slides, label, className = '', variant }: CarouselProps) {
             type="button"
             onClick={() => go(1)}
             aria-label="Bannière suivante"
-            className={`absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#111111] shadow-sm transition-transform hover:scale-105 sm:flex ${FOCUS}`}
+            className={`absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-[#111111] transition-colors hover:text-[#FF6B00] sm:flex ${FOCUS}`}
           >
             <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -474,7 +474,7 @@ export default function HeroCarousel({ signedIn, sellerRoute, newShops, onSignup
       slides={slides}
       label="Bannières CBF SOKO"
       variant="hero"
-      className={className ?? 'h-52 rounded-3xl sm:h-72'}
+      className={className ?? 'h-52 rounded-2xl sm:h-72'}
     />
   );
 }

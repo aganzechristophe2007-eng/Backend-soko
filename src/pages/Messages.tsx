@@ -479,38 +479,41 @@ export default function MessagingPage() {
 
   if (!selectedPartner) {
     return (
-      <div className="min-h-screen bg-white text-[#111111] pb-20">
-        <header className="sticky top-0 z-40 bg-white px-4 py-3 flex items-center space-x-3">
-          <button onClick={() => navigate('/')} className="p-1.5 rounded-lg hover:bg-[#F2F4F7] transition text-[#667085] hover:text-[#111111]">
+      <div className="min-h-screen bg-white text-[#111111]">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-[#EAECF0] bg-white px-4">
+          <button onClick={() => navigate('/')} aria-label="Retour" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] lg:hidden">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="font-bold text-base">Messages</h1>
+          <h1 className="text-lg font-bold">Messages</h1>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main className="mx-auto w-full max-w-2xl px-0 py-2 sm:px-4">
           {conversations.length === 0 ? (
-            <div className="text-center py-16 rounded-xl bg-white text-[#667085]">
-              <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">Aucune discussion en cours.</p>
+            <div className="px-6 py-20 text-center text-[#667085]">
+              <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#111111] text-[#111111]">
+                <MessageSquare className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <p className="text-base font-semibold text-[#111111]">Vos messages</p>
+              <p className="mt-1 text-sm">Aucune discussion en cours.</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="divide-y divide-[#EAECF0] sm:divide-y-0">
               {conversations.map((conv) => (
                 <div
                   key={conv.partner.id}
                   onClick={() => openConversation(conv.partner)}
-                  className="p-4 rounded-xl bg-white hover:bg-[#F2F4F7] transition cursor-pointer flex items-center justify-between"
+                  className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 transition hover:bg-[#F2F4F7] sm:rounded-xl"
                 >
-                  <div className="flex items-center space-x-3 min-w-0">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-[#FFF1E7] text-[#FF6B00] flex items-center justify-center font-bold text-sm">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-lg font-bold text-[#FF6B00]">
                         {conv.partner.name.charAt(0)}
                       </div>
-                      {conv.online && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-[#EAECF0]" />}
+                      {conv.online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#10B981]" />}
                     </div>
                     <div className="min-w-0">
-                      <h2 className="font-semibold text-sm truncate">{conv.partner.name}</h2>
-                      <p className="text-xs text-[#667085] truncate max-w-[220px]">
+                      <h2 className={`truncate text-sm ${conv.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`}>{conv.partner.name}</h2>
+                      <p className={`truncate text-sm ${conv.unreadCount > 0 ? 'font-semibold text-[#111111]' : 'text-[#667085]'}`}>
                         {conv.lastMessage?.type === 'TEXT' ? conv.lastMessage.content
                           : conv.lastMessage?.type === 'IMAGE' ? 'Photo'
                           : conv.lastMessage?.type === 'AUDIO' ? 'Message vocal'
@@ -520,10 +523,10 @@ export default function MessagingPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-1 shrink-0">
+                  <div className="flex shrink-0 flex-col items-end gap-1">
                     {conv.lastMessage && <span className="text-xs text-[#667085]">{formatTime(conv.lastMessage.createdAt)}</span>}
                     {conv.unreadCount > 0 && (
-                      <span className="text-[10px] font-bold bg-[#FF6B00] text-white rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#FF6B00] px-1 text-[10px] font-bold text-white">
                         {conv.unreadCount}
                       </span>
                     )}
@@ -540,36 +543,39 @@ export default function MessagingPage() {
   const isPartnerOnline = onlineIds.has(selectedPartner.id);
 
   return (
-    <div className="min-h-screen bg-white text-[#111111] flex flex-col">
-      <header className="sticky top-0 z-40 bg-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3 min-w-0">
-          <button onClick={closeConversation} className="p-1.5 rounded-lg hover:bg-[#F2F4F7] transition text-[#667085] hover:text-[#111111]">
+    <div className="mx-auto flex h-[100dvh] w-full max-w-3xl flex-col bg-white text-[#111111] lg:border-x lg:border-[#EAECF0]">
+      <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b border-[#EAECF0] bg-white px-2 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <button onClick={closeConversation} aria-label="Retour aux discussions" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="relative shrink-0">
-            <div className="w-9 h-9 rounded-full bg-[#FFF1E7] text-[#FF6B00] flex items-center justify-center font-bold text-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF1E7] text-sm font-bold text-[#FF6B00]">
               {selectedPartner.name.charAt(0)}
             </div>
-            {isPartnerOnline && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-[#EAECF0]" />}
+            {isPartnerOnline && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[#10B981]" />}
           </div>
-          <h1 className="font-bold text-base truncate">{selectedPartner.name}</h1>
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-bold leading-tight">{selectedPartner.name}</h1>
+            <p className="text-xs leading-tight text-[#667085]">{isPartnerOnline ? 'En ligne' : 'Hors ligne'}</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-1 shrink-0">
-          <button onClick={() => startCall(selectedPartner.id, 'AUDIO')} aria-label="Appel audio" className="p-2 rounded-lg hover:bg-[#F2F4F7] transition text-[#344054] hover:text-[#E85F00]">
+        <div className="flex shrink-0 items-center">
+          <button onClick={() => startCall(selectedPartner.id, 'AUDIO')} aria-label="Appel audio" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7] hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]">
             <Phone className="w-5 h-5" />
           </button>
-          <button onClick={() => startCall(selectedPartner.id, 'VIDEO')} aria-label="Appel vidéo" className="p-2 rounded-lg hover:bg-[#F2F4F7] transition text-[#344054] hover:text-[#E85F00]">
+          <button onClick={() => startCall(selectedPartner.id, 'VIDEO')} aria-label="Appel vidéo" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7] hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]">
             <Video className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-4">
         {messages.map((m) => {
           const mine = m.senderId !== selectedPartner.id;
           return (
             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[75%] rounded-xl px-3 py-2 ${mine ? 'bg-[#FF6B00] text-white' : 'bg-[#F2F4F7] text-[#111111]'}`}>
+              <div className={`max-w-[80%] rounded-2xl px-3 py-2 sm:max-w-[70%] ${mine ? 'rounded-br-md bg-[#FF6B00] text-white' : 'rounded-bl-md bg-[#F2F4F7] text-[#111111]'}`}>
                 {m.type === 'TEXT' && <p className="text-sm whitespace-pre-wrap break-words">{m.content}</p>}
                 {m.type === 'IMAGE' && m.mediaUrl && <img src={m.mediaUrl} alt="Image envoyée" className="rounded-lg max-w-full max-h-64 object-cover" />}
                 {m.type === 'AUDIO' && m.mediaUrl && <AudioBubble url={m.mediaUrl} duration={m.mediaDuration} mine={mine} />}
@@ -577,20 +583,20 @@ export default function MessagingPage() {
                 {m.type === 'ORDER_REQUEST' && (
                   <OrderRequestBubble message={m} mine={mine} onRespond={respondToOrder} />
                 )}
-                <span className={`flex items-center gap-1 text-[10px] mt-1 ${mine ? 'text-[#667085]' : 'text-[#667085]'}`}>
+                <span className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${mine ? 'text-white/80' : 'text-[#667085]'}`}>
                   <span>{formatTime(m.createdAt)}</span>
                   {m.status === 'sending' && <span>Envoi…</span>}
                   {mine && m.status !== 'sending' && m.status !== 'failed' && (() => {
                     const tick = getTickState(m, isPartnerOnline);
                     if (tick === 'sent') return <Check className="w-3.5 h-3.5 shrink-0" />;
-                    if (tick === 'delivered') return <CheckCheck className="w-3.5 h-3.5 shrink-0 text-[#667085]" />;
-                    return <CheckCheck className="w-3.5 h-3.5 shrink-0 text-sky-600" />;
+                    if (tick === 'delivered') return <CheckCheck className="w-3.5 h-3.5 shrink-0" />;
+                    return <CheckCheck className="w-3.5 h-3.5 shrink-0 text-white" strokeWidth={3} />;
                   })()}
                 </span>
                 {m.status === 'failed' && (
                   <button
                     onClick={() => (m.type === 'TEXT' ? retryMessage(m) : retryMedia(m))}
-                    className="block text-[10px] mt-1 text-red-600 underline"
+                    className="mt-1 block text-[11px] font-semibold text-white underline"
                   >
                     Échec — toucher pour réessayer
                   </button>
@@ -601,7 +607,7 @@ export default function MessagingPage() {
         })}
       </div>
 
-      <div className="bg-white px-3 py-3 flex items-center space-x-2">
+      <div className="flex shrink-0 items-center gap-2 border-t border-[#EAECF0] bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
         {recording ? (
           <>
             <button
@@ -629,7 +635,7 @@ export default function MessagingPage() {
             <button
               onClick={() => stopRecording(false)}
               aria-label="Envoyer le message vocal"
-              className="p-2.5 rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition shrink-0"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition shrink-0"
             >
               <Send className="w-5 h-5 text-white" />
             </button>
@@ -646,15 +652,15 @@ export default function MessagingPage() {
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendText()}
               placeholder="Écrire un message..."
-              className="flex-1 bg-[#F2F4F7] rounded-full px-4 py-2.5 text-sm outline-none focus:bg-white transition"
+              className="h-11 min-w-0 flex-1 rounded-full border border-transparent bg-[#F2F4F7] px-4 text-base outline-none transition focus:border-[#FF6B00] sm:text-sm"
             />
 
             {text.trim() ? (
-              <button onClick={handleSendText} disabled={sending} aria-label="Envoyer" className="p-2.5 rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition disabled:opacity-50">
+              <button onClick={handleSendText} disabled={sending} aria-label="Envoyer" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition disabled:opacity-50">
                 <Send className="w-5 h-5 text-white" />
               </button>
             ) : (
-              <button onClick={startRecording} aria-label="Message vocal" className="p-2.5 rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition">
+              <button onClick={startRecording} aria-label="Message vocal" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#FF6B00] hover:bg-[#E85F00] transition">
                 <Mic className="w-5 h-5 text-white" />
               </button>
             )}
@@ -698,26 +704,29 @@ function OrderRequestBubble({
 
   return (
     <div className="min-w-[220px] space-y-2">
+      <p className="text-[11px] font-bold uppercase tracking-wide opacity-80">Demande de livraison</p>
       <p className="text-sm">{message.content}</p>
-      {productTitle && <p className="text-xs font-semibold opacity-80">« {productTitle} »</p>}
+      {productTitle && (
+        <p className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold ${mine ? 'bg-white text-[#111111]' : 'bg-white text-[#111111]'}`}>{productTitle}</p>
+      )}
 
       {order?.status === 'AWAITING_SELLER_CONFIRMATION' && countdown && (
-        <p className="text-[11px] font-mono opacity-80">⏱ {countdown} restant</p>
+        <p className="font-mono text-xs font-semibold">{countdown} restant</p>
       )}
-      {order?.status === 'CONFIRMED' && <p className="text-xs font-bold text-emerald-700">Disponibilité confirmée ✅</p>}
-      {order?.status === 'EXPIRED' && <p className="text-xs font-bold text-red-600">Signalé indisponible</p>}
+      {order?.status === 'CONFIRMED' && <p className={`text-xs font-bold ${mine ? 'text-white' : 'text-[#10B981]'}`}>Disponibilité confirmée</p>}
+      {order?.status === 'EXPIRED' && <p className={`text-xs font-bold ${mine ? 'text-white' : 'text-red-600'}`}>Signalé indisponible</p>}
 
       {!mine && order?.status === 'AWAITING_SELLER_CONFIRMATION' && (
         <div className="flex gap-2 pt-1">
           <button
             onClick={() => onRespond(order.id, 'confirm')}
-            className="flex-1 rounded-lg bg-[#EAECF0] px-2 py-1.5 text-xs font-bold hover:bg-[#EAECF0] transition"
+            className="h-9 flex-1 rounded-lg bg-[#10B981] px-2 text-xs font-bold text-white transition hover:bg-[#0E9F6E]"
           >
             Confirmer
           </button>
           <button
             onClick={() => onRespond(order.id, 'deny')}
-            className="flex-1 rounded-lg bg-black/30 px-2 py-1.5 text-xs font-bold hover:bg-[#F2F4F7] transition"
+            className="h-9 flex-1 rounded-lg border border-[#D0D5DD] bg-white px-2 text-xs font-bold text-[#111111] transition hover:bg-[#F2F4F7]"
           >
             Indisponible
           </button>
@@ -740,7 +749,7 @@ function AudioBubble({ url, duration, mine }: { url: string; duration: number | 
 
   return (
     <div className="flex items-center space-x-2 min-w-[160px]">
-      <button onClick={toggle} aria-label={playing ? 'Mettre en pause' : 'Écouter'} className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${mine ? 'bg-[#EAECF0]' : 'bg-[#EAECF0]'}`}>
+      <button onClick={toggle} aria-label={playing ? 'Mettre en pause' : 'Écouter'} className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${mine ? 'bg-white text-[#FF6B00]' : 'bg-[#FF6B00] text-white'}`}>
         {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
       </button>
       <span className="text-xs">{formatDuration(duration)}</span>

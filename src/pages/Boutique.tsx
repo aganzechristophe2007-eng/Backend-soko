@@ -111,14 +111,14 @@ export default function Boutique() {
   const resetFilters = () => { setSearch(''); setDebounced(''); setCategory(''); };
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
-      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white pb-10 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
+      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate('/')}
             aria-label="Retour à l'accueil"
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -132,7 +132,7 @@ export default function Boutique() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#EAECF0] bg-[#FFF8F3] p-4 sm:p-5">
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-[#EAECF0] bg-[#F9FAFB] p-4 sm:p-5">
           <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
             <Store className="h-5 w-5" aria-hidden="true" />
           </span>
@@ -153,7 +153,7 @@ export default function Boutique() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une boutique"
               maxLength={80}
-              className="w-full rounded-full border border-[#D0D5DD] bg-white py-2.5 pl-10 pr-10 text-sm outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20"
+              className="h-11 w-full rounded-full border border-[#D0D5DD] bg-white pl-10 pr-10 text-sm outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20"
             />
             {search && (
               <button type="button" onClick={() => setSearch('')} aria-label="Effacer la recherche" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#667085] hover:bg-[#F2F4F7]">
@@ -167,7 +167,7 @@ export default function Boutique() {
               id="shop-sort"
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="w-full rounded-full border border-[#D0D5DD] bg-white px-4 py-2.5 text-sm font-medium outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 sm:w-auto"
+              className="h-11 w-full rounded-full border border-[#D0D5DD] bg-white px-4 text-sm font-medium outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 sm:w-auto"
             >
               <option value="recent">Plus récentes</option>
               <option value="products">Plus d’articles</option>
@@ -195,16 +195,16 @@ export default function Boutique() {
         {loading && shops.length === 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3" aria-busy="true">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="flex animate-pulse items-center gap-3 rounded-2xl border border-[#EAECF0] p-4">
-                <span className="h-12 w-12 rounded-xl bg-[#F2F4F7]" />
-                <span className="flex-1 space-y-2"><span className="block h-3 w-2/3 rounded bg-[#F2F4F7]" /><span className="block h-3 w-1/3 rounded bg-[#F2F4F7]" /></span>
+              <div key={i} className="flex items-center gap-3 rounded-2xl border border-[#EAECF0] p-4">
+                <span className="skeleton h-12 w-12" />
+                <span className="flex-1 space-y-2"><span className="skeleton block h-3 w-2/3" /><span className="skeleton block h-3 w-1/3" /></span>
               </div>
             ))}
           </div>
         ) : error ? (
           <div role="alert" className="rounded-2xl border border-[#FDA29B] bg-[#FEF3F2] px-5 py-10 text-center">
             <p className="text-sm font-bold text-[#B42318]">{error}</p>
-            <button type="button" onClick={load} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white hover:bg-[#333]">
+            <button type="button" onClick={load} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#344054]">
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Réessayer
             </button>
           </div>
@@ -230,7 +230,7 @@ export default function Boutique() {
                   <li
                     key={shop.id}
                     data-tour={index === 0 ? 'boutique-shop' : undefined}
-                    className="group flex items-center justify-between gap-3 rounded-2xl border border-[#EAECF0] bg-white p-4 shadow-[0_1px_3px_rgba(16,24,40,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(16,24,40,0.08)]"
+                    className="group flex items-center justify-between gap-3 rounded-2xl border border-[#EAECF0] bg-white p-4 transition-colors hover:bg-[#F9FAFB]"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#FFF1E7] text-[#FF6B00]">

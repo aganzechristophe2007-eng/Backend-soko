@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, Phone, Loader2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { BASE_URL } from '../api/client';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function Register() {
 
     try {
       // Connexion sécurisée vers le backend en production (Port 5000)
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' 
@@ -73,7 +74,7 @@ export default function Register() {
     <div className="min-h-screen bg-[#F9FAFB] text-[#111111] flex flex-col justify-center px-4 py-8 sm:px-6 lg:px-8 selection:bg-[#FF6B00] selection:text-white">
       
       {/* Conteneur principal SaaS Centré */}
-      <div className="max-w-md w-full mx-auto bg-white border border-[#EAECF0] rounded-3xl p-6 sm:p-8 shadow-[0_8px_24px_rgba(16,24,40,0.08)]">
+      <div className="max-w-md w-full mx-auto bg-white border border-[#EAECF0] rounded-3xl p-6 sm:p-8">
         
         {/* En-tête */}
         <div className="mb-6">
@@ -197,7 +198,7 @@ export default function Register() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full mt-2 py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-semibold text-sm transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
+            className="w-full mt-2 py-3.5 bg-[#FF6B00] hover:bg-[#E85F00] text-white rounded-full font-semibold text-sm transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
           >
             {loading ? (
               <>

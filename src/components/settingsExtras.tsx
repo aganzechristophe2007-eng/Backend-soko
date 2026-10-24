@@ -13,11 +13,11 @@ const ROLE_LABELS: Record<string, { label: string; hint: string }> = {
 };
 
 const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
-const card = 'rounded-lg bg-[#181818] p-4';
+const card = 'rounded-2xl border border-[#EAECF0] bg-white p-4';
 const input =
-  'w-full rounded-lg border border-white/10 bg-black px-3 py-2.5 text-sm text-white outline-none focus:border-[#ea580c]';
+  'h-12 w-full rounded-xl border border-[#D0D5DD] bg-white px-3 text-sm text-[#111111] outline-none placeholder:text-[#98A2B3] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 disabled:bg-[#F9FAFB]';
 const primaryBtn =
-  'flex h-11 items-center justify-center gap-2 rounded-xl bg-[#ea580c] px-5 text-sm font-bold text-white hover:bg-[#c2410c] disabled:opacity-60';
+  'flex h-12 items-center justify-center gap-2 rounded-xl bg-[#FF6B00] px-5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] disabled:opacity-60';
 
 const errMsg = (e: unknown, fallback: string) => (e instanceof Error && e.message ? e.message : fallback);
 
@@ -39,19 +39,19 @@ export function RoleCard() {
   return (
     <div className={card}>
       <div className="flex items-start gap-3">
-        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#ea580c]/15 text-[#f97316]">
+        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
           <Shield className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-neutral-400">Votre rôle actuel</p>
-          <p className="text-base font-extrabold text-white">{info.label}</p>
-          {info.hint && <p className="mt-0.5 text-xs text-neutral-400">{info.hint}</p>}
+          <p className="text-xs font-semibold text-[#667085]">Votre rôle actuel</p>
+          <p className="text-base font-extrabold text-[#111111]">{info.label}</p>
+          {info.hint && <p className="mt-0.5 text-xs text-[#667085]">{info.hint}</p>}
         </div>
         <button
           type="button"
           onClick={refresh}
           disabled={refreshing}
-          className="flex-shrink-0 rounded-lg bg-white/10 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-white/20 disabled:opacity-60"
+          className="flex-shrink-0 rounded-full bg-[#F2F4F7] px-3 py-1.5 text-[11px] font-bold text-[#111111] hover:bg-[#EAECF0] disabled:opacity-60"
         >
           {refreshing ? '...' : 'Actualiser'}
         </button>
@@ -60,7 +60,7 @@ export function RoleCard() {
       {isAdmin && (
         <Link
           to="/admin-seller"
-          className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#ea580c] py-2.5 text-sm font-bold text-white hover:bg-[#c2410c]"
+          className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#FF6B00] py-2.5 text-sm font-bold text-white hover:bg-[#E85F00]"
         >
           <LayoutDashboard className="h-4 w-4" /> Ouvrir l'administration
         </Link>
@@ -105,28 +105,28 @@ export function ProfileEditor() {
 
   return (
     <form onSubmit={submit} className={`${card} space-y-3`}>
-      <p className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-        <Pencil className="h-3.5 w-3.5 text-[#f97316]" /> Informations personnelles
+      <p className="flex items-center gap-1.5 text-xs font-bold text-[#344054]">
+        <Pencil className="h-3.5 w-3.5 text-[#FF6B00]" /> Informations personnelles
       </p>
       <div>
-        <label className="mb-1 block text-[11px] font-semibold text-neutral-400">Nom</label>
+        <label className="mb-1 block text-[11px] font-semibold text-[#667085]">Nom</label>
         <input className={input} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="name" />
       </div>
       <div>
-        <label className="mb-1 block text-[11px] font-semibold text-neutral-400">Téléphone</label>
+        <label className="mb-1 block text-[11px] font-semibold text-[#667085]">Téléphone</label>
         <input className={input} value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20} inputMode="tel" autoComplete="tel" placeholder="+243 ..." />
       </div>
       <div>
-        <label className="mb-1 block text-[11px] font-semibold text-neutral-400">E-mail (non modifiable)</label>
+        <label className="mb-1 block text-[11px] font-semibold text-[#667085]">E-mail (non modifiable)</label>
         <input className={`${input} opacity-60`} value={user.email ?? ''} disabled readOnly />
       </div>
       {error && (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-400">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
           <AlertTriangle className="h-3.5 w-3.5" /> {error}
         </p>
       )}
       {saved && !dirty && (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-green-400">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
           <Check className="h-3.5 w-3.5" /> Profil mis à jour.
         </p>
       )}
@@ -170,19 +170,19 @@ export function PasswordChanger() {
 
   return (
     <form onSubmit={submit} className={`${card} space-y-3`}>
-      <p className="flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-        <KeyRound className="h-3.5 w-3.5 text-[#f97316]" /> Changer le mot de passe
+      <p className="flex items-center gap-1.5 text-xs font-bold text-[#344054]">
+        <KeyRound className="h-3.5 w-3.5 text-[#FF6B00]" /> Changer le mot de passe
       </p>
       <input type="password" className={input} placeholder="Mot de passe actuel" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" maxLength={200} />
       <input type="password" className={input} placeholder="Nouveau mot de passe (8 caractères minimum)" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" maxLength={72} />
       <input type="password" className={input} placeholder="Confirmer le nouveau mot de passe" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" maxLength={72} />
       {error && (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-400">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
           <AlertTriangle className="h-3.5 w-3.5" /> {error}
         </p>
       )}
       {done && (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-green-400">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
           <Check className="h-3.5 w-3.5" /> Mot de passe modifié.
         </p>
       )}
@@ -230,19 +230,19 @@ function AreaChart({ points, metric }: { points: DayPoint[]; metric: MetricKey }
 
   return (
     <div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="h-32 w-full" role="img" aria-label="Évolution sur la période">
+      <svg viewBox={`0 0 ${W} ${H}`} className="h-32 w-full text-[#667085]" role="img" aria-label="Évolution sur la période">
         {[0.25, 0.5, 0.75].map((r) => (
-          <line key={r} x1={PAD} x2={W - PAD} y1={H - PAD - r * (H - PAD * 2)} y2={H - PAD - r * (H - PAD * 2)} stroke="rgba(255,255,255,0.06)" />
+          <line key={r} x1={PAD} x2={W - PAD} y1={H - PAD - r * (H - PAD * 2)} y2={H - PAD - r * (H - PAD * 2)} stroke="currentColor" strokeOpacity={0.14} />
         ))}
-        {area && <polygon points={area} fill="rgba(234,88,12,0.18)" />}
-        {line && <polyline points={line} fill="none" stroke="#ea580c" strokeWidth={2} strokeLinejoin="round" />}
+        {area && <polygon points={area} fill="rgba(255,107,0,0.14)" />}
+        {line && <polyline points={line} fill="none" stroke="#FF6B00" strokeWidth={2} strokeLinejoin="round" />}
         {xy.map(([x, y], i) => (
-          <circle key={points[i].day} cx={x} cy={y} r={points.length > 40 ? 1.2 : 2.2} fill="#f97316">
+          <circle key={points[i].day} cx={x} cy={y} r={points.length > 40 ? 1.2 : 2.2} fill="#FF6B00">
             <title>{`${shortDate(points[i].day)} : ${nf.format(values[i])}`}</title>
           </circle>
         ))}
       </svg>
-      <div className="flex justify-between text-[10px] font-semibold text-neutral-500">
+      <div className="flex justify-between text-[10px] font-semibold text-[#98A2B3]">
         <span>{points.length ? shortDate(points[0].day) : ''}</span>
         <span>max {nf.format(max)}</span>
         <span>{points.length ? shortDate(points[points.length - 1].day) : ''}</span>
@@ -289,7 +289,7 @@ export function EvolutionDashboard() {
             key={d}
             type="button"
             onClick={() => setDays(d)}
-            className={`flex-1 rounded-lg py-2 text-xs font-bold transition-colors ${days === d ? 'bg-[#c2410c] text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            className={`flex-1 rounded-full py-2 text-xs font-bold transition-colors ${days === d ? 'bg-[#FF6B00] text-white' : 'bg-[#F2F4F7] text-[#111111] hover:bg-[#EAECF0]'}`}
           >
             {d} jours
           </button>
@@ -297,13 +297,13 @@ export function EvolutionDashboard() {
       </div>
 
       {error && (
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-400">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
           <AlertTriangle className="h-3.5 w-3.5" /> {error}
         </p>
       )}
 
       {!data && !error ? (
-        <div className={`${card} flex items-center gap-2 text-sm text-neutral-400`}>
+        <div className={`${card} flex items-center gap-2 text-sm text-[#667085]`}>
           <Loader2 className="h-4 w-4 animate-spin" /> Chargement...
         </div>
       ) : data ? (
@@ -314,10 +314,10 @@ export function EvolutionDashboard() {
                 key={m.key}
                 type="button"
                 onClick={() => setMetric(m.key)}
-                className={`rounded-lg p-3 text-left transition-colors ${metric === m.key ? 'bg-[#ea580c]/20 ring-1 ring-[#ea580c]' : 'bg-[#181818] hover:bg-[#232323]'}`}
+                className={`rounded-xl p-3 text-left transition-colors ${metric === m.key ? 'bg-[#FFF1E7] ring-1 ring-[#FF6B00]' : 'border border-[#EAECF0] bg-white hover:bg-[#F9FAFB]'}`}
               >
-                <p className="text-[11px] font-semibold text-neutral-400">{m.label}</p>
-                <p className="mt-1 text-lg font-extrabold text-white">
+                <p className="text-[11px] font-semibold text-[#667085]">{m.label}</p>
+                <p className="mt-1 text-lg font-extrabold text-[#111111]">
                   {m.key === 'revenueUSD' ? `${nf.format(data.totals.revenueUSD)} $` : nf.format(data.totals[m.key])}
                 </p>
               </button>
@@ -325,29 +325,29 @@ export function EvolutionDashboard() {
           </div>
 
           <div className={card}>
-            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-neutral-300">
-              <TrendingUp className="h-3.5 w-3.5 text-[#f97316]" /> {METRICS.find((m) => m.key === metric)?.label} sur {data.days} jours
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-bold text-[#344054]">
+              <TrendingUp className="h-3.5 w-3.5 text-[#FF6B00]" /> {METRICS.find((m) => m.key === metric)?.label} sur {data.days} jours
             </p>
             <AreaChart points={data.series} metric={metric} />
-            <p className="mt-2 text-[10px] text-neutral-500">Revenus = total brut des commandes payées, avant commission de la plateforme.</p>
+            <p className="mt-2 text-[10px] text-[#98A2B3]">Revenus = total brut des commandes payées, avant commission de la plateforme.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             <div className={`${card} text-center`}>
-              <p className="text-lg font-extrabold text-white">{data.profile.productsCount}</p>
-              <p className="text-[11px] font-semibold text-neutral-400">Annonces</p>
+              <p className="text-lg font-extrabold text-[#111111]">{data.profile.productsCount}</p>
+              <p className="text-[11px] font-semibold text-[#667085]">Annonces</p>
             </div>
             <div className={`${card} text-center`}>
-              <p className="text-lg font-extrabold text-white">{data.profile.followers}</p>
-              <p className="text-[11px] font-semibold text-neutral-400">Abonnés</p>
+              <p className="text-lg font-extrabold text-[#111111]">{data.profile.followers}</p>
+              <p className="text-[11px] font-semibold text-[#667085]">Abonnés</p>
             </div>
             <div className={`${card} text-center`}>
-              <p className="text-lg font-extrabold text-white">{data.profile.ratingAvg ?? '—'}</p>
-              <p className="text-[11px] font-semibold text-neutral-400">Note ({data.profile.ratingCount})</p>
+              <p className="text-lg font-extrabold text-[#111111]">{data.profile.ratingAvg ?? '—'}</p>
+              <p className="text-[11px] font-semibold text-[#667085]">Note ({data.profile.ratingCount})</p>
             </div>
             <div className={`${card} text-center`}>
-              <p className="text-sm font-extrabold text-white">{memberSince ?? '—'}</p>
-              <p className="text-[11px] font-semibold text-neutral-400">Membre depuis</p>
+              <p className="text-sm font-extrabold text-[#111111]">{memberSince ?? '—'}</p>
+              <p className="text-[11px] font-semibold text-[#667085]">Membre depuis</p>
             </div>
           </div>
         </>
@@ -379,7 +379,7 @@ export function LogoutButton() {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-600/15 text-sm font-bold text-red-400 hover:bg-red-600/25"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-50 text-sm font-bold text-red-600 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
       >
         <LogOut className="h-4 w-4" /> Se déconnecter
       </button>
@@ -387,9 +387,9 @@ export function LogoutButton() {
   }
   return (
     <div className={card}>
-      <p className="text-sm font-bold text-white">Se déconnecter de CBF SOKO ?</p>
+      <p className="text-sm font-bold text-[#111111]">Se déconnecter de CBF SOKO ?</p>
       <div className="mt-3 flex gap-2.5">
-        <button type="button" onClick={() => setConfirming(false)} className="h-11 flex-1 rounded-xl bg-white/10 text-sm font-bold text-white hover:bg-white/15">
+        <button type="button" onClick={() => setConfirming(false)} className="h-11 flex-1 rounded-xl bg-[#F2F4F7] text-sm font-bold text-[#111111] hover:bg-[#EAECF0]">
           Annuler
         </button>
         <button type="button" onClick={doLogout} disabled={busy} className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">

@@ -256,7 +256,7 @@ export default function PayPage() {
   const needsSupport = payment?.failureCode === 'AMOUNT_MISMATCH' || payment?.failureCode === 'ORDER_NOT_PAYABLE';
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-[#111111]">
+    <div className="min-h-screen bg-white pb-10 text-[#111111]">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[#EAECF0] bg-[#F9FAFB] px-4 py-3.5">
         <div className="flex items-center gap-3">
           <button

@@ -210,20 +210,20 @@ export default function A30IA() {
 
       {/* Historique */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-80 max-w-[85%] flex-col bg-orange-50 shadow-xl transition-transform duration-200 md:static md:z-auto md:w-72 md:max-w-none md:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-80 max-w-[85%] flex-col border-r border-[#EAECF0] bg-[#F9FAFB] transition-transform duration-200 md:static md:z-auto md:w-72 md:max-w-none ${
           open ? "translate-x-0 md:flex" : "-translate-x-full md:hidden"
         }`}
         aria-label="Historique des conversations"
       >
-        <div className="flex items-center justify-between bg-orange-500 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-white">
+        <div className="flex items-center justify-between border-b border-[#EAECF0] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-[#111111]">
           <span className="flex items-center gap-2 font-bold">
-            <A30Icon className="h-5 w-5" />
+            <A30Icon className="h-5 w-5 text-[#FF6B00]" />
             Historique
           </span>
           <button
             onClick={() => setOpen(false)}
             aria-label="Fermer l'historique"
-            className="rounded-full p-1.5 hover:bg-orange-600"
+            className="rounded-full p-2 hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
             <X className="h-5 w-5" />
           </button>
@@ -232,7 +232,7 @@ export default function A30IA() {
         <div className="p-3">
           <button
             onClick={newConv}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+            className="flex w-full items-center justify-center gap-2 h-11 rounded-xl bg-[#FF6B00] px-4 text-sm font-semibold text-white hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
           >
             <Plus className="h-4 w-4" />
             Nouvelle conversation
@@ -241,16 +241,16 @@ export default function A30IA() {
 
         <nav className="flex-1 overflow-y-auto px-2 pb-4">
           {groups.length === 0 && (
-            <p className="px-3 py-4 text-sm text-gray-600">Aucune conversation pour le moment.</p>
+            <p className="px-3 py-4 text-sm text-[#667085]">Aucune conversation pour le moment.</p>
           )}
           {groups.map((g) => (
             <div key={g.label} className="mb-3">
-              <p className="px-3 pb-1 pt-2 text-xs font-semibold text-orange-700">{g.label}</p>
+              <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[#667085]">{g.label}</p>
               {g.items.map((c) => (
                 <div
                   key={c.id}
                   className={`group flex items-center rounded-lg text-sm ${
-                    c.id === convId ? "bg-green-100 text-green-900" : "text-gray-800 hover:bg-orange-100"
+                    c.id === convId ? "bg-[#FFF1E7] font-semibold text-[#111111]" : "text-[#344054] hover:bg-[#F2F4F7]"
                   }`}
                 >
                   <button
@@ -262,7 +262,7 @@ export default function A30IA() {
                   <button
                     onClick={() => removeConv(c.id)}
                     aria-label={`Supprimer ${c.title}`}
-                    className="mr-1 rounded-md p-2 text-gray-500 hover:bg-red-100 hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
+                    className="mr-1 rounded-md p-2 text-[#667085] hover:bg-red-50 hover:text-red-600 md:opacity-0 md:group-hover:opacity-100"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -275,11 +275,11 @@ export default function A30IA() {
 
       {/* Zone de discussion */}
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex shrink-0 items-center gap-1 bg-orange-500 px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-white">
+        <header className="flex shrink-0 items-center gap-1 border-b border-[#EAECF0] bg-white px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] text-[#111111]">
           <button
             onClick={() => navigate(-1)}
             aria-label="Retour"
-            className="rounded-full p-2 hover:bg-orange-600"
+            className="rounded-full p-2 hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -289,9 +289,9 @@ export default function A30IA() {
             onClick={() => setOpen((o) => !o)}
             aria-label="Afficher l'historique des conversations"
             aria-expanded={open}
-            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-orange-600 active:bg-orange-700"
+            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-orange-600">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#10B981] text-white">
               <A30Icon className="h-5 w-5" />
             </span>
             <span className="text-base font-bold">A30 IA</span>
@@ -303,7 +303,7 @@ export default function A30IA() {
             value={model}
             onChange={(e) => setModel(e.target.value)}
             aria-label="Choisir le modèle"
-            className="max-w-[40%] truncate rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-900 outline-none"
+            className="max-w-[40%] truncate rounded-full border border-[#EAECF0] bg-white px-3 py-1.5 text-xs font-semibold text-[#111111] outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
             {models.map((m) => (
               <option key={m} value={m}>
@@ -318,11 +318,11 @@ export default function A30IA() {
           <div className="mx-auto flex min-h-full max-w-3xl flex-col gap-3 px-4 py-4">
             {messages.length === 0 && !loading && (
               <div className="my-auto flex flex-col items-center gap-3 py-10 text-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600 text-white">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[#10B981] text-white">
                   <A30Icon className="h-9 w-9" />
                 </span>
-                <h2 className="text-lg font-bold text-gray-900">Comment puis-je t'aider ?</h2>
-                <p className="max-w-xs text-sm text-gray-600">
+                <h2 className="text-lg font-bold text-[#111111]">Comment puis-je t'aider ?</h2>
+                <p className="max-w-xs text-sm text-[#667085]">
                   Pose ta question sur les produits, la vente, la livraison ou le paiement.
                 </p>
               </div>
@@ -331,15 +331,15 @@ export default function A30IA() {
             {messages.map((m) => (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 {m.role === "assistant" && (
-                  <span className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+                  <span className="mr-2 mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#10B981] text-white">
                     <A30Icon className="h-4 w-4" />
                   </span>
                 )}
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     m.role === "user"
-                      ? "rounded-br-md bg-green-600 text-white"
-                      : "rounded-bl-md bg-orange-50 text-gray-900"
+                      ? "rounded-br-md bg-[#FF6B00] text-white"
+                      : "rounded-bl-md bg-[#F2F4F7] text-[#111111]"
                   }`}
                 >
                   {m.content}
@@ -349,13 +349,13 @@ export default function A30IA() {
 
             {loading && (
               <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#10B981] text-white">
                   <A30Icon className="h-4 w-4" />
                 </span>
-                <div className="flex gap-1 rounded-2xl rounded-bl-md bg-orange-50 px-4 py-3">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-orange-400 [animation-delay:-0.3s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-orange-400 [animation-delay:-0.15s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-orange-400" />
+                <div className="flex gap-1 rounded-2xl rounded-bl-md bg-[#F2F4F7] px-4 py-3">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-[#FF6B00] [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-[#FF6B00] [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-[#FF6B00]" />
                 </div>
               </div>
             )}
@@ -364,12 +364,12 @@ export default function A30IA() {
         </div>
 
         {/* Barre de saisie : toujours en bas de l'écran */}
-        <footer className="shrink-0 border-t border-orange-100 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+        <footer className="shrink-0 border-t border-[#EAECF0] bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
           <div className="mx-auto max-w-3xl">
             {error && (
               <p className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
             )}
-            <div className="flex items-end gap-2 rounded-3xl bg-orange-50 py-1.5 pl-4 pr-1.5 focus-within:ring-2 focus-within:ring-orange-300">
+            <div className="flex items-end gap-2 rounded-3xl border border-[#EAECF0] bg-[#F9FAFB] py-1.5 pl-4 pr-1.5 focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20">
               <textarea
                 ref={taRef}
                 value={input}
@@ -385,19 +385,19 @@ export default function A30IA() {
                 maxLength={2000}
                 rows={1}
                 placeholder="Écris ton message"
-                className="max-h-40 flex-1 resize-none bg-transparent py-2 text-base text-gray-900 outline-none placeholder:text-gray-500"
+                className="max-h-40 flex-1 resize-none bg-transparent py-2 text-base text-[#111111] outline-none placeholder:text-[#98A2B3]"
               />
               <button
                 onClick={send}
                 disabled={loading || !input.trim() || !model}
                 aria-label="Envoyer"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white hover:bg-orange-600 disabled:bg-gray-300 disabled:text-gray-500"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FF6B00] text-white hover:bg-[#E85F00] disabled:bg-[#D0D5DD] disabled:text-white"
               >
                 <ArrowUp className="h-5 w-5" />
               </button>
             </div>
             {usage && (
-              <p className="mt-1.5 text-center text-[11px] text-gray-500">
+              <p className="mt-1.5 text-center text-[11px] text-[#667085]">
                 {usage.hourLeft} message(s) restant(s) cette heure · {usage.dayLeft} aujourd'hui
               </p>
             )}

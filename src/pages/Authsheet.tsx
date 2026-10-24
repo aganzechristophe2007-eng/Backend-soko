@@ -27,10 +27,10 @@ function checkPassword(pw: string) {
 }
 
 const STRENGTH_LABELS = ['Trop faible', 'Trop faible', 'Trop faible', 'Correct', 'Solide'];
-const STRENGTH_COLORS = ['bg-neutral-300', 'bg-red-600', 'bg-red-600', 'bg-orange-600', 'bg-green-700'];
+const STRENGTH_COLORS = ['bg-[#D0D5DD]', 'bg-red-600', 'bg-red-600', 'bg-orange-500', 'bg-green-600'];
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-[#D0D5DD] bg-white pl-12 pr-4 text-base font-medium text-[#111827] placeholder:text-[#98A2B3] shadow-sm transition focus:border-[#FF6B00] focus:outline-none focus:ring-4 focus:ring-[#FF6B00]/10 disabled:opacity-60';
+  'h-12 w-full rounded-xl border border-[#D0D5DD] bg-white pl-12 pr-4 text-base text-[#111111] placeholder:text-[#98A2B3] transition focus:border-[#FF6B00] focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/30 disabled:opacity-60';
 
 function Field({
   id,
@@ -48,15 +48,15 @@ function Field({
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-black text-neutral-900">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-semibold text-[#111111]">
         {label}
       </label>
       <div className="relative">
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-orange-700">{icon}</span>
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#667085]">{icon}</span>
         <input id={id} {...inputProps} className={`${inputClass} ${right ? 'pr-14' : ''}`} />
         {right && <span className="absolute right-3 top-1/2 -translate-y-1/2">{right}</span>}
       </div>
-      {hint && <p className="mt-1.5 text-xs font-semibold text-neutral-600">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs font-medium text-[#667085]">{hint}</p>}
     </div>
   );
 }
@@ -181,7 +181,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
       type="button"
       onClick={() => setShowPw((v) => !v)}
       aria-label={showPw ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-      className="flex h-9 w-9 items-center justify-center rounded-xl text-neutral-700 hover:text-orange-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-700"
+      className="flex h-9 w-9 items-center justify-center rounded-xl text-[#667085] hover:text-[#FF6B00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF6B00]"
     >
       {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
     </button>
@@ -192,23 +192,29 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
       role="dialog"
       aria-modal={showBackdrop}
       aria-labelledby="auth-title"
-      className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-[#EAECF0] bg-white p-5 text-[#111827] shadow-[0_18px_60px_rgba(16,24,40,0.16)] sm:p-7 md:rounded-3xl"
+      className="relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-[#EAECF0] bg-white p-5 text-[#111111] sm:p-7 md:rounded-3xl"
     >
       <button
         type="button"
         onClick={onClose}
         disabled={loading}
         aria-label="Fermer"
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#667085] transition hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-60"
+        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#667085] transition hover:bg-[#F2F4F7] hover:text-[#111111] disabled:opacity-60"
       >
         <X className="h-4 w-4" />
       </button>
 
-      <h2 id="auth-title" className="pr-12 text-2xl font-black tracking-tight">
+      {showBackdrop && (
+        <p className="mb-3 flex items-baseline gap-1 text-sm font-black tracking-tight" aria-hidden="true">
+          <span className="text-[#10B981]">CBF</span>
+          <span className="text-[#FF6B00]">SOKO</span>
+        </p>
+      )}
+      <h2 id="auth-title" className="pr-12 text-2xl font-bold tracking-tight">
         {isRegister ? 'Créer un compte' : 'Se connecter'}
       </h2>
 
-      <div role="tablist" className="mt-4 grid grid-cols-2 gap-2">
+      <div role="tablist" className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-[#F2F4F7] p-1">
         {(['login', 'register'] as Mode[]).map((m) => (
           <button
             key={m}
@@ -216,8 +222,8 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
             role="tab"
             aria-selected={mode === m}
             onClick={() => switchMode(m)}
-            className={`h-11 rounded-xl border text-sm font-semibold transition ${
-              mode === m ? 'border-[#FF6B00] bg-[#FFF1E7] text-[#C94F00]' : 'border-[#EAECF0] bg-white text-[#475467] hover:border-[#D0D5DD] hover:bg-[#F9FAFB]'
+            className={`h-10 rounded-lg text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
+              mode === m ? 'bg-white text-[#111111] ring-1 ring-[#EAECF0]' : 'text-[#667085] hover:text-[#111111]'
             }`}
           >
             {m === 'login' ? 'Connexion' : 'Inscription'}
@@ -229,7 +235,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         {error && (
           <div
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600"
           >
             {error}
           </div>
@@ -328,7 +334,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
                   />
                 ))}
               </div>
-              <p className="mt-1.5 text-xs font-bold text-neutral-700">
+              <p className="mt-1.5 text-xs font-semibold text-[#344054]">
                 {password ? STRENGTH_LABELS[pw.score] : 'Minimum 8 caractères, avec une lettre et un chiffre.'}
               </p>
               {password && (
@@ -338,7 +344,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
                     [pw.letter, 'Au moins une lettre'],
                     [pw.digit, 'Au moins un chiffre'],
                   ].map(([ok, text]) => (
-                    <li key={text as string} className={ok ? 'text-green-700' : 'text-neutral-600'}>
+                    <li key={text as string} className={ok ? 'text-green-600' : 'text-[#667085]'}>
                       <Check className={`mr-1 inline h-3.5 w-3.5 ${ok ? '' : 'opacity-30'}`} />
                       {text as string}
                     </li>
@@ -366,7 +372,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         <button
           type="submit"
           disabled={loading || locked}
-          className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-[#FF6B00] text-sm font-bold text-white shadow-sm transition hover:bg-[#E85F00] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-[#FF6B00] text-sm font-bold text-white transition hover:bg-[#E85F00] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
             <Loader2 className="h-5 w-5 animate-spin" aria-label="Chargement" />
@@ -378,7 +384,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
         </button>
       </form>
 
-      <p className="mt-5 text-center text-sm font-medium text-[#667085]">
+      <p className="mt-5 text-center text-sm text-[#667085]">
         {isRegister ? 'Déjà un compte ? ' : 'Pas encore de compte ? '}
         <button
           type="button"
@@ -397,7 +403,7 @@ export default function AuthSheet({ onClose, onSuccess, showBackdrop = true, ini
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-neutral-950/70 md:items-center md:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 md:items-center md:p-4"
       onMouseDown={(e) => e.target === e.currentTarget && !loading && onClose()}
     >
       {sheet}

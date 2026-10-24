@@ -91,14 +91,14 @@ const STATUS_LABEL: Record<OrderStatus, string> = {
 };
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
-  PENDING: 'bg-[#D0D5DD]',
-  AWAITING_SELLER_CONFIRMATION: 'bg-[#FF6B00]',
-  CONFIRMED: 'bg-blue-600',
-  COURIER_VERIFIED: 'bg-emerald-600',
-  SHIPPED: 'bg-violet-600',
-  DELIVERED: 'bg-emerald-700',
-  CANCELLED: 'bg-red-600',
-  EXPIRED: 'bg-[#D0D5DD]',
+  PENDING: 'bg-[#EAECF0] text-[#344054]',
+  AWAITING_SELLER_CONFIRMATION: 'bg-[#FF6B00] text-white',
+  CONFIRMED: 'bg-blue-600 text-white',
+  COURIER_VERIFIED: 'bg-emerald-600 text-white',
+  SHIPPED: 'bg-violet-600 text-white',
+  DELIVERED: 'bg-emerald-700 text-white',
+  CANCELLED: 'bg-red-600 text-white',
+  EXPIRED: 'bg-red-600 text-white',
 };
 
 // Étape en cours pour chaque statut (les étapes précédentes sont terminées).
@@ -352,7 +352,7 @@ function SellerRatingBlock({
         onChange={(e) => setComment(e.target.value.slice(0, 500))}
         placeholder="Un commentaire (optionnel)"
         rows={2}
-        className="mt-3 w-full resize-none rounded-lg bg-white px-3 py-2 text-xs text-[#111111] placeholder:text-[#98A2B3] focus:bg-white focus:outline-none"
+        className="mt-3 w-full resize-none rounded-lg border border-[#EAECF0] bg-white px-3 py-2 text-xs text-[#111111] placeholder:text-[#98A2B3] focus:bg-white focus:outline-none"
       />
       {error && <p className="mt-1.5 text-xs font-semibold text-red-600">{error}</p>}
       <button
@@ -434,12 +434,12 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
   const extraItems = order.items.length - 1;
 
   return (
-    <article className="rounded-2xl bg-white p-5" aria-label={`Commande ${ref} : ${product.title}`}>
+    <article className="rounded-2xl border border-[#EAECF0] bg-white p-4 sm:p-5" aria-label={`Commande ${ref} : ${product.title}`}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-[#667085]">
           Réf. <span className="font-mono font-semibold text-[#344054]">{ref}</span>
         </p>
-        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold text-[#111111] ${STATUS_BADGE[order.status]}`}>
+        <span className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold ${STATUS_BADGE[order.status]}`}>
           {STATUS_LABEL[order.status]}
         </span>
       </div>
@@ -474,14 +474,14 @@ function OrderCard({ order, onOrderUpdate }: { order: Order; onOrderUpdate: (id:
       {progress !== undefined && <ProgressSteps current={progress} />}
 
       <div className="mt-5 flex gap-3 rounded-xl bg-[#F2F4F7] p-4">
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#111111] ${TONE_BG[info.tone]}`}>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${info.tone === 'neutral' ? 'text-[#111111]' : 'text-white'} ${TONE_BG[info.tone]}`}>
           <InfoIcon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1 space-y-2">
           <h3 className="text-sm font-bold text-[#111111]">{info.title}</h3>
           <p className="text-xs leading-relaxed text-[#344054]">{info.text}</p>
           {order.status === 'AWAITING_SELLER_CONFIRMATION' && countdown && (
-            <div className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
+            <div className="flex items-center justify-between rounded-lg border border-[#EAECF0] bg-white px-3 py-2">
               <span className="text-[11px] font-semibold text-[#344054]">Temps restant pour le vendeur</span>
               <span className="font-mono text-sm font-bold text-[#FF6B00]">{countdown}</span>
             </div>
@@ -614,8 +614,8 @@ export default function Orders() {
   const hasOrders = orders.length > 0;
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-[#111111]">
-      <header className="sticky top-0 z-40 flex items-center gap-3 bg-white px-4 py-3">
+    <div className="min-h-screen bg-[#F9FAFB] pb-20 text-[#111111]">
+      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-[#EAECF0] bg-white px-4 py-3">
         <button
           type="button"
           onClick={() => navigate('/')}
@@ -635,13 +635,13 @@ export default function Orders() {
           <div className="space-y-4" role="status">
             <span className="sr-only">Chargement de vos commandes</span>
             {[0, 1].map((i) => (
-              <div key={i} className="h-64 animate-pulse rounded-2xl bg-white" />
+              <div key={i} className="skeleton h-64 rounded-2xl" />
             ))}
           </div>
         )}
 
         {!loading && error && !hasOrders && (
-          <div className="space-y-4 rounded-2xl bg-white p-6 text-center" role="alert">
+          <div className="space-y-4 rounded-2xl border border-[#EAECF0] bg-white p-6 text-center" role="alert">
             <AlertTriangle className="mx-auto h-10 w-10 text-red-600" aria-hidden="true" />
             <p className="text-sm font-semibold text-[#111111]">{error}</p>
             <p className="text-xs text-[#667085]">Vos commandes et vos paiements ne sont pas affectés.</p>
@@ -665,7 +665,7 @@ export default function Orders() {
         )}
 
         {!loading && !error && !hasOrders && (
-          <div className="rounded-2xl bg-white px-6 py-14 text-center">
+          <div className="rounded-2xl border border-[#EAECF0] bg-white px-6 py-14 text-center">
             <Package className="mx-auto mb-4 h-12 w-12 text-[#667085]" aria-hidden="true" />
             <p className="text-sm font-bold text-[#111111]">Aucune commande pour le moment</p>
             <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-[#667085]">
@@ -697,7 +697,7 @@ export default function Orders() {
               </div>
             )}
 
-            <section aria-labelledby="protection-title" className="rounded-2xl bg-white p-5">
+            <section aria-labelledby="protection-title" className="rounded-2xl border border-[#EAECF0] bg-white p-4 sm:p-5">
               <h2 id="protection-title" className="text-sm font-bold text-[#111111]">
                 Votre protection sur CBFSOKO
               </h2>
@@ -734,7 +734,7 @@ export default function Orders() {
               <OrderCard key={order.id} order={order} onOrderUpdate={handleOrderUpdate} />
             ))}
 
-            <section aria-labelledby="how-title" className="rounded-2xl bg-white p-5">
+            <section aria-labelledby="how-title" className="rounded-2xl border border-[#EAECF0] bg-white p-4 sm:p-5">
               <h2 id="how-title" className="text-sm font-bold text-[#111111]">
                 Comment fonctionne votre commande
               </h2>
@@ -754,7 +754,7 @@ export default function Orders() {
             </section>
 
             {(SUPPORT_PHONE || WHATSAPP_NUMBER) && (
-              <section aria-labelledby="help-title" className="rounded-2xl bg-white p-5">
+              <section aria-labelledby="help-title" className="rounded-2xl border border-[#EAECF0] bg-white p-4 sm:p-5">
                 <h2 id="help-title" className="text-sm font-bold text-[#111111]">
                   Besoin d'aide ?
                 </h2>

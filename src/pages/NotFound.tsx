@@ -5,7 +5,7 @@ export default function NotFound() {
   const navigate = useNavigate();
   return (
     <main className="flex min-h-[100svh] items-center justify-center bg-[#F8F9FB] px-4 py-12 text-[#111111]">
-      <section className="w-full max-w-lg rounded-[2rem] border border-[#EAECF0] bg-white p-7 text-center shadow-[0_18px_60px_rgba(16,24,40,0.08)] sm:p-10">
+      <section className="w-full max-w-lg rounded-[2rem] border border-[#EAECF0] bg-white p-7 text-center sm:p-10">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF1E7] text-[#FF6B00]">
           <SearchX className="h-8 w-8" aria-hidden="true" />
         </div>

@@ -23,6 +23,7 @@ import A30IA from './pages/A30IA';
 import Notifications from './pages/Notifications';
 import NotFound from './pages/NotFound';
 import A30Fab from './components/A30Fab';
+import AppShell from './components/AppShell';
 import { useNotificationSound } from './lib/Son';
 import { io, Socket } from 'socket.io-client';
 import { BASE_URL } from './api/client';
@@ -49,6 +50,7 @@ export default function App() {
       <AuthProvider>
         <CallProvider>
           <Router>
+            <AppShell>
             <Routes>
               {/* Authentification */}
               <Route path="/login" element={<Login />} />
@@ -87,6 +89,7 @@ export default function App() {
               {/* Redirection globale par défaut */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </AppShell>
             <A30Fab />
           </Router>
           <CallModal />

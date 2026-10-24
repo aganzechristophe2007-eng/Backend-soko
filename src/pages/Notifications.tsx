@@ -37,6 +37,16 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function groupLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const t = d.getTime();
+  if (t >= startToday) return 'Aujourd’hui';
+  if (t >= startToday - 6 * 86400000) return 'Cette semaine';
+  return 'Plus ancien';
+}
+
 function TypeIcon({ type }: { type: string }) {
   const cls = 'h-5 w-5';
   if (type === 'ORDER') return <Package className={cls} aria-hidden="true" />;
@@ -222,26 +232,26 @@ export default function Notifications() {
   ];
 
   return (
-    <div className="min-h-screen bg-white pb-24 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
-      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white pb-8 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
+      <header className="sticky top-0 z-30 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:px-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
             aria-label="Retour"
             data-tour="notif-back"
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] lg:hidden"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="flex-1 text-base font-bold tracking-tight sm:text-lg">Notifications</h1>
+          <h1 className="flex-1 text-xl font-bold tracking-tight">Notifications</h1>
           {user && unread > 0 && (
             <button
               type="button"
               onClick={markAll}
               disabled={marking}
               data-tour="notif-readall"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#EAECF0] px-3 py-2 text-xs font-semibold text-[#344054] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[#FF6B00] transition-colors hover:bg-[#FFF1E7] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             >
               {marking ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" aria-hidden="true" />}
               <span className="hidden sm:inline">Tout marquer comme lu</span>
@@ -251,9 +261,9 @@ export default function Notifications() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-2xl space-y-4 px-3 py-4 sm:px-4">
         {!user && !authLoading ? (
-          <div className="rounded-2xl border border-dashed border-[#D0D5DD] px-6 py-14 text-center">
+          <div className="rounded-xl border border-dashed border-[#D0D5DD] px-6 py-14 text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]"><LogIn className="h-7 w-7" aria-hidden="true" /></span>
             <p className="mt-5 text-sm font-bold">Connectez-vous pour voir vos notifications</p>
             <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-[#667085]">Commandes, messages et nouveautés de vos vendeurs suivis apparaîtront ici.</p>
@@ -264,7 +274,7 @@ export default function Notifications() {
         ) : (
           <>
             {/* Notifications push : toujours facultatif */}
-            <section data-tour="notif-push" className="rounded-2xl border border-[#EAECF0] bg-[#FFF8F3] p-4">
+            <section data-tour="notif-push" className="rounded-xl border border-[#EAECF0] bg-[#F9FAFB] p-4">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
                   {push === 'on' ? <BellRing className="h-5 w-5" aria-hidden="true" /> : push === 'off' || push === 'checking' ? <Bell className="h-5 w-5" aria-hidden="true" /> : <BellOff className="h-5 w-5" aria-hidden="true" />}
@@ -306,7 +316,7 @@ export default function Notifications() {
               </div>
             </section>
 
-            <div role="tablist" aria-label="Filtrer les notifications" data-tour="notif-filters" className="flex gap-2">
+            <div role="tablist" aria-label="Filtrer les notifications" data-tour="notif-filters" className="flex gap-2 border-b border-[#EAECF0] pb-3">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
@@ -324,7 +334,7 @@ export default function Notifications() {
             {loading ? (
               <ul className="space-y-2" aria-busy="true" aria-label="Chargement">
                 {[0, 1, 2, 3].map((i) => (
-                  <li key={i} className="flex animate-pulse gap-3 rounded-2xl border border-[#EAECF0] p-4">
+                  <li key={i} className="flex animate-pulse gap-3 p-4">
                     <span className="h-10 w-10 rounded-full bg-[#F2F4F7]" />
                     <span className="flex-1 space-y-2"><span className="block h-3 w-1/2 rounded bg-[#F2F4F7]" /><span className="block h-3 w-4/5 rounded bg-[#F2F4F7]" /></span>
                   </li>
@@ -347,31 +357,40 @@ export default function Notifications() {
               </div>
             ) : (
               <>
-                <ul className="space-y-2">
-                  {items.map((item, index) => (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        onClick={() => openItem(item)}
-                        data-tour={index === 0 ? 'notif-item' : undefined}
-                        aria-label={`${item.isRead ? '' : 'Non lue. '}${item.title}. ${item.message}`}
-                        className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${item.isRead ? 'border-[#EAECF0] bg-white hover:bg-[#FCFCFD]' : 'border-[#FFD7B5] bg-[#FFF8F3] hover:bg-[#FFF1E7]'}`}
-                      >
-                        <span className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${item.isRead ? 'bg-[#F2F4F7] text-[#667085]' : 'bg-[#FFF1E7] text-[#FF6B00]'}`}>
-                          <TypeIcon type={item.type} />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-start justify-between gap-2">
-                            <span className={`text-sm ${item.isRead ? 'font-semibold' : 'font-bold'}`}>{item.title}</span>
-                            <time dateTime={item.createdAt} className="flex-shrink-0 text-[11px] text-[#667085]">{timeAgo(item.createdAt)}</time>
-                          </span>
-                          <span className="mt-0.5 block text-xs leading-relaxed text-[#667085]">{item.message}</span>
-                        </span>
-                        {!item.isRead && <span aria-hidden="true" className="mt-1.5 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#FF6B00]" />}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {(['Aujourd’hui', 'Cette semaine', 'Plus ancien'] as const).map((label) => {
+                  const group = items.filter((it) => groupLabel(it.createdAt) === label);
+                  if (group.length === 0) return null;
+                  return (
+                    <section key={label} aria-label={label}>
+                      <h2 className="px-1 pb-1 pt-2 text-sm font-bold text-[#111111]">{label}</h2>
+                      <ul className="divide-y divide-[#EAECF0] overflow-hidden rounded-xl bg-white">
+                        {group.map((item) => (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => openItem(item)}
+                              data-tour={items[0]?.id === item.id ? 'notif-item' : undefined}
+                              aria-label={`${item.isRead ? '' : 'Non lue. '}${item.title}. ${item.message}`}
+                              className={`relative flex min-h-[64px] w-full items-start gap-3 py-3 pl-4 pr-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF6B00] ${item.isRead ? 'bg-white hover:bg-[#F9FAFB]' : 'bg-[#FFF8F3] hover:bg-[#FFF1E7]'}`}
+                            >
+                              {!item.isRead && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#FF6B00]" />}
+                              <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${item.isRead ? 'bg-[#F2F4F7] text-[#667085]' : 'bg-[#FFF1E7] text-[#FF6B00]'}`}>
+                                <TypeIcon type={item.type} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="flex items-start justify-between gap-2">
+                                  <span className={`text-sm ${item.isRead ? 'font-medium' : 'font-bold'}`}>{item.title}</span>
+                                  <time dateTime={item.createdAt} className="flex-shrink-0 text-[11px] text-[#667085]">{timeAgo(item.createdAt)}</time>
+                                </span>
+                                <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-[#667085]">{item.message}</span>
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  );
+                })}
                 {nextCursor && (
                   <button type="button" onClick={loadMore} disabled={loadingMore} className="mx-auto flex items-center gap-2 rounded-full border border-[#D0D5DD] px-5 py-2.5 text-xs font-semibold text-[#344054] hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-60">
                     {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />} Voir plus
@@ -384,7 +403,7 @@ export default function Notifications() {
       </main>
 
       {notice && (
-        <div role="status" aria-live="polite" className="fixed inset-x-0 bottom-20 z-50 mx-auto w-fit max-w-[90vw] rounded-full bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
+        <div role="status" aria-live="polite" className="fixed inset-x-0 bottom-6 z-50 mx-auto w-fit max-w-[90vw] rounded-full bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
           {notice}
         </div>
       )}

@@ -23,13 +23,13 @@ const ENDPOINT = `${ROOT}/api/admin-seller/dashboard`;
 const REFRESH_MS = 60_000;
 
 const C = {
-  page: '#FFFFFF',
-  panel: '#FFFFFF',
-  border: '#EAECF0',
+  page: 'var(--canvas)',
+  panel: 'var(--surface)',
+  border: 'var(--border)',
   green: '#16A34A',
   orange: '#FF6B00',
   red: '#DC2626',
-  muted: '#667085',
+  muted: 'var(--muted)',
 };
 
 const STATUS: Record<string, { label: string; color: string }> = {
@@ -201,7 +201,7 @@ const Contact = ({ phone, userId }: { phone: string | null; userId?: string }) =
           WhatsApp
         </a>
       ) : (
-        <span className="h-9 px-3 rounded-lg flex items-center text-sm font-semibold" style={{ background: '#F2F4F7', color: C.muted }}>Sans numéro</span>
+        <span className="h-9 px-3 rounded-lg flex items-center text-sm font-semibold" style={{ background: 'var(--surface-3)', color: C.muted }}>Sans numéro</span>
       )}
     </div>
   );
@@ -226,10 +226,10 @@ const Spark = ({ series, color }: { series: number[]; color: string }) => (
 );
 
 const chartTooltip = {
-  contentStyle: { background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, color: '#fff' },
-  itemStyle: { color: '#fff' },
+  contentStyle: { background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, color: 'var(--ink)' },
+  itemStyle: { color: 'var(--ink)' },
   labelStyle: { color: C.muted },
-  cursor: { fill: '#F9FAFB' },
+  cursor: { fill: 'var(--surface-3)' },
 };
 
 /* ---------- Changement de statut d'une commande ---------- */
@@ -391,7 +391,7 @@ function VerificationsView({ d, q, onChanged }: { d: DashboardData; q: string; o
       type="button"
       onClick={() => setTab(id)}
       className="flex-1 rounded-xl px-5 py-3 text-left text-base font-semibold text-[#111111]"
-      style={{ background: tab === id ? C.orange : '#F2F4F7', color: tab === id ? '#fff' : '#111111' }}
+      style={{ background: tab === id ? C.orange : 'var(--surface-3)', color: tab === id ? '#fff' : 'var(--ink)' }}
     >
       {label} <span style={{ color: tab === id ? '#fff' : C.muted }}>({num(count)})</span>
     </button>
@@ -601,7 +601,7 @@ function StatsView({ d }: { d: DashboardData }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statusData} margin={{ top: 24, right: 8, left: 8, bottom: 0 }}>
               <CartesianGrid vertical={false} stroke={C.border} />
-              <XAxis dataKey="label" tick={{ fill: '#344054', fontSize: 12 }} axisLine={{ stroke: C.border }} tickLine={false} />
+              <XAxis dataKey="label" tick={{ fill: 'var(--ink-2)', fontSize: 12 }} axisLine={{ stroke: C.border }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: C.muted, fontSize: 12 }} axisLine={false} tickLine={false} width={36} />
               <Tooltip {...chartTooltip} />
               <Bar dataKey="count" name="Commandes" radius={[4, 4, 0, 0]} isAnimationActive={false} label={{ position: 'top', fill: '#111111', fontSize: 12 }}>
@@ -801,7 +801,7 @@ export default function AdminSeller() {
           <button type="button" className="lg:hidden text-[#111111]" onClick={() => setMenuOpen((v) => !v)} aria-label="Menu">
             <Icon name="menu" size={24} />
           </button>
-          <div className="flex h-11 flex-1 max-w-xl items-center gap-2 rounded-lg px-3" style={{ background: '#222222', border: `1px solid ${C.border}` }}>
+          <div className="flex h-11 flex-1 max-w-xl items-center gap-2 rounded-lg px-3" style={{ background: 'var(--surface-3)', border: `1px solid ${C.border}` }}>
             <span style={{ color: C.muted }}><Icon name="search" size={18} /></span>
             <input
               value={query}

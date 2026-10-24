@@ -6,8 +6,8 @@ export default function FullUserWallet() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
-      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+    <div className="min-h-screen bg-white pb-10 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
+      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white">
         <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3 sm:px-6">
           <button
             onClick={() => navigate('/')}
@@ -22,7 +22,7 @@ export default function FullUserWallet() {
 
       <main className="mx-auto max-w-xl space-y-5 px-4 py-6 sm:px-6">
         {/* Solde Carte */}
-        <div className="rounded-2xl border border-[#EAECF0] bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
+        <div className="rounded-2xl border border-[#EAECF0] bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#667085]">Solde Total</span>
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
@@ -45,7 +45,7 @@ export default function FullUserWallet() {
         </div>
 
         {/* Paramètres et Déconnexion */}
-        <div className="divide-y divide-[#EAECF0] overflow-hidden rounded-2xl border border-[#EAECF0] bg-white shadow-[0_1px_3px_rgba(16,24,40,0.06)]">
+        <div className="divide-y divide-[#EAECF0] overflow-hidden rounded-2xl border border-[#EAECF0] bg-white">
           <button
             onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
             className="flex w-full items-center gap-2 px-4 py-3.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"

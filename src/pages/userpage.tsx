@@ -69,116 +69,143 @@ export default function UserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#111111] pb-20">
-      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white/95 backdrop-blur px-4 py-3 flex items-center space-x-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-[#F2F4F7] transition text-[#667085] hover:text-[#111111]">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="font-bold text-base truncate">{profile?.name || 'Profil'}</h1>
+    <div className="min-h-screen bg-white text-[#111111]">
+      <header className="sticky top-0 z-30 border-b border-[#EAECF0] bg-white">
+        <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-4">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            aria-label="Retour"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#344054] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="min-w-0 flex-1 truncate text-base font-bold">{profile?.name || 'Profil'}</h1>
+        </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-5">
-        {loading && <p className="py-8 text-center text-sm text-[#667085]">Chargement…</p>}
+      <main className="mx-auto w-full max-w-3xl px-4 py-5 sm:py-8">
+        {loading && (
+          <div aria-busy="true" className="space-y-6">
+            <div className="flex items-center gap-5 sm:gap-10">
+              <div className="skeleton h-20 w-20 flex-shrink-0 !rounded-full sm:h-32 sm:w-32" />
+              <div className="flex-1 space-y-3">
+                <div className="skeleton h-5 w-1/2" />
+                <div className="skeleton h-4 w-3/4" />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="skeleton aspect-square !rounded-none" />
+              ))}
+            </div>
+          </div>
+        )}
 
         {!loading && error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">{error}</div>
+          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">{error}</div>
         )}
 
         {!loading && !error && profile && (
           <>
-            {/* En-tête profil */}
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#EAECF0] bg-white p-6 text-center">
-              <span className="h-24 w-24 overflow-hidden rounded-full bg-[#FFF1E7] border-2 border-white shadow-[0_1px_3px_rgba(16,24,40,0.12)]">
+            {/* En-tête profil, façon Instagram */}
+            <section className="flex items-center gap-5 sm:gap-12">
+              <span className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#EAECF0] bg-[#FFF1E7] sm:h-32 sm:w-32">
                 {profile.avatar ? (
                   <img src={getMediaUrl(profile.avatar)} alt={profile.name} className="h-full w-full object-cover" />
                 ) : (
-                  <UserIcon className="h-full w-full p-5 text-[#FF6B00]" />
+                  <UserIcon className="h-1/2 w-1/2 text-[#FF6B00]" aria-hidden="true" />
                 )}
               </span>
 
-              <div className="flex items-center gap-1.5">
-                <h2 className="text-lg font-bold">{profile.name}</h2>
-                {profile.reviewCount >= 5 && <BadgeCheck className="h-4 w-4 text-[#FF6B00]" aria-label="Vendeur actif" />}
-              </div>
-
-              {profile.reviewCount > 0 && profile.averageRating !== null ? (
-                <div className="flex items-center gap-1 text-sm font-semibold text-[#FF6B00]">
-                  <Star className="h-4 w-4 fill-current" />
-                  {profile.averageRating.toFixed(1)} <span className="text-[#667085]">({profile.reviewCount} avis)</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h2 className="truncate text-lg font-bold sm:text-xl">{profile.name}</h2>
+                  {profile.reviewCount >= 5 && <BadgeCheck className="h-5 w-5 flex-shrink-0 text-[#FF6B00]" aria-label="Vendeur actif" />}
                 </div>
-              ) : (
-                <p className="text-xs text-[#667085]">Pas encore d'avis</p>
-              )}
 
-              <button
-                type="button"
-                onClick={handleMessage}
-                className="mt-2 flex items-center gap-2 rounded-full bg-[#FF6B00] px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Envoyer un message
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-[#EAECF0] bg-white p-4 text-center">
-                <Package className="mx-auto mb-1 h-5 w-5 text-[#667085]" />
-                <p className="text-lg font-bold">{profile.productsCount}</p>
-                <p className="text-xs text-[#667085]">Produits postés</p>
+                <dl className="mt-3 grid grid-cols-3 gap-2 text-center sm:max-w-sm sm:text-left">
+                  <div>
+                    <dd className="text-base font-bold sm:text-lg">{profile.productsCount}</dd>
+                    <dt className="text-xs text-[#667085]">Produits</dt>
+                  </div>
+                  <div>
+                    <dd className="flex items-center justify-center gap-1 text-base font-bold sm:justify-start sm:text-lg">
+                      {profile.reviewCount > 0 && profile.averageRating !== null ? (
+                        <>
+                          <Star className="h-4 w-4 fill-[#FF6B00] text-[#FF6B00]" aria-hidden="true" />
+                          {profile.averageRating.toFixed(1)}
+                        </>
+                      ) : (
+                        '—'
+                      )}
+                    </dd>
+                    <dt className="text-xs text-[#667085]">
+                      {profile.reviewCount > 0 ? `${profile.reviewCount} avis` : "Pas d'avis"}
+                    </dt>
+                  </div>
+                  <div className="min-w-0">
+                    <dd className="truncate text-base font-bold sm:text-lg">{profile.topCategory ? profile.topCategory.name : '—'}</dd>
+                    <dt className="text-xs text-[#667085]">Catégorie</dt>
+                  </div>
+                </dl>
               </div>
-              <div className="rounded-xl border border-[#EAECF0] bg-white p-4 text-center">
-                <Tag className="mx-auto mb-1 h-5 w-5 text-[#667085]" />
-                <p className="truncate text-sm font-bold">{profile.topCategory ? profile.topCategory.name : '—'}</p>
-                <p className="text-xs text-[#667085]">Catégorie principale</p>
-              </div>
-            </div>
+            </section>
 
-            {/* Grille des publications, façon TikTok */}
-            <div>
-              <h3 className="mb-2 px-1 text-sm font-bold text-[#344054]">
-                Publications <span className="text-[#667085]">({profile.products.length})</span>
+            <button
+              type="button"
+              onClick={handleMessage}
+              className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#FF6B00] px-5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 sm:w-auto sm:min-w-[220px]"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              Envoyer un message
+            </button>
+
+            {/* Grille des publications, 3 colonnes */}
+            <section className="mt-6 border-t border-[#EAECF0] pt-4" aria-label="Publications">
+              <h3 className="mb-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wide text-[#111111]">
+                <Package className="h-4 w-4" aria-hidden="true" />
+                Publications <span className="font-medium text-[#667085]">({profile.products.length})</span>
               </h3>
 
               {profile.products.length === 0 ? (
-                <div className="rounded-xl border border-[#EAECF0] bg-white py-10 text-center text-[#667085]">
-                  <Package className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                  <p className="text-sm">Aucune publication pour l'instant.</p>
+                <div className="rounded-2xl border border-dashed border-[#D0D5DD] py-14 text-center text-[#667085]">
+                  <Package className="mx-auto mb-2 h-8 w-8 opacity-50" aria-hidden="true" />
+                  <p className="text-sm font-medium">Aucune publication pour l'instant.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
                   {profile.products.map((product) => (
                     <Link
                       key={product.id}
                       to={`/products/${product.id}`}
-                      className="group relative aspect-[9/16] overflow-hidden rounded-lg border border-[#EAECF0] bg-white"
+                      className="group relative block aspect-square overflow-hidden bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF6B00]"
                     >
                       {product.images?.[0] ? (
                         <img
                           src={getMediaUrl(product.images[0])}
                           alt={product.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
+                          className={`h-full w-full object-cover ${product.isSold ? 'opacity-60' : ''}`}
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[#F2F4F7]">
-                          <Package className="h-6 w-6 text-[#667085]" />
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Package className="h-6 w-6 text-[#667085]" aria-hidden="true" />
                         </div>
                       )}
 
                       {product.isSold && (
-                        <span className="absolute left-1 top-1 rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          Vendu
-                        </span>
+                        <span className="absolute left-1.5 top-1.5 rounded bg-black px-1.5 py-0.5 text-[10px] font-bold text-white">Vendu</span>
                       )}
 
-                      <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent px-1.5 pb-1.5 pt-4 text-[11px] font-bold text-[#111111]">
+                      <span className="absolute bottom-1.5 left-1.5 rounded bg-black px-1.5 py-0.5 text-[11px] font-bold text-white">
                         {product.priceUSD} $
                       </span>
                     </Link>
                   ))}
                 </div>
               )}
-            </div>
+            </section>
           </>
         )}
       </main>

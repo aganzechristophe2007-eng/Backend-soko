@@ -144,7 +144,7 @@ function PendingCard({ order, onVerified }: { order: CourierOrder; onVerified: (
   if (!product) return null;
 
   return (
-    <div className="rounded-xl border border-[#EAECF0] bg-white p-4">
+    <div className="rounded-2xl border border-[#EAECF0] bg-white p-4">
       <div className="flex items-center gap-3">
         <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#F2F4F7]">
           {product.images?.[0] && (
@@ -172,7 +172,7 @@ function PendingCard({ order, onVerified }: { order: CourierOrder; onVerified: (
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="mt-3 w-full rounded-lg bg-[#FF6B00] px-4 py-2.5 text-center text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
+          className="mt-3 w-full rounded-full bg-[#FF6B00] px-4 py-3 text-center text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
         >
           Vérifier la collecte
         </button>
@@ -265,7 +265,7 @@ export default function CourierQueue() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-[#111111]">
+    <div className="min-h-screen bg-[#F9FAFB] pb-20 text-[#111111]">
       <header className="sticky top-0 z-40 flex items-center space-x-3 border-b border-[#EAECF0] bg-white/95 backdrop-blur px-4 py-3">
         <button
           onClick={() => navigate('/')}
@@ -277,7 +277,7 @@ export default function CourierQueue() {
       </header>
 
       <main className="mx-auto max-w-2xl space-y-6 px-4 py-6">
-        {loading && <p className="py-8 text-center text-sm text-[#667085]">Chargement…</p>}
+        {loading && <div role="status" className="space-y-3"><span className="sr-only">Chargement…</span><div className="skeleton h-28" /><div className="skeleton h-28" /></div>}
 
         {!loading && error && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">

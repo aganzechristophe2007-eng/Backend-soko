@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, Images, Loader2, MapPin, Minus, Plus, Store, Info, Star, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Heart, Images, Loader2, MapPin, Minus, Plus, Store, Info, Star, MessageCircle } from 'lucide-react';
 import { apiFetch, BASE_URL } from '../api/client';
 import { api, ApiError } from '../lib/http';
 import { TourHelpButton, useGuidedTour } from '../components/guidedtour';
@@ -69,7 +69,7 @@ function SellerStars({ avg, count }: { avg: number; count: number }) {
       {[1, 2, 3, 4, 5].map((n) => (
         <Star
           key={n}
-          className={`h-3.5 w-3.5 ${n <= rounded ? 'fill-orange-500 text-orange-500' : 'text-neutral-300'}`}
+          className={`h-3.5 w-3.5 ${n <= rounded ? 'fill-[#FF6B00] text-[#FF6B00]' : 'text-[#D0D5DD]'}`}
         />
       ))}
     </div>
@@ -87,8 +87,6 @@ export default function ProductDetails() {
   const { user, login: authLogin } = useAuth();
   const loggedIn = !!user;
 
-  // Thème clair par défaut pour une expérience cohérente avec le reste de CBF SOKO.
-  const [darkMode] = useState<boolean>(false);
   const [product, setProduct] = useState<ProductItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -114,27 +112,9 @@ export default function ProductDetails() {
     window.setTimeout(() => setNotice((current) => (current === text ? null : current)), 3500);
   };
 
-  const t = darkMode
-    ? {
-        page: 'bg-neutral-950 text-white',
-        header: 'bg-neutral-950',
-        surface: 'bg-neutral-900',
-        soft: 'bg-neutral-800',
-        border: 'border-neutral-800 border',
-        borderStrong: 'border-neutral-700 border-b',
-        muted: 'text-neutral-400',
-      }
-    : {
-        page: 'bg-[#FAF8F5] text-neutral-950',
-        header: 'bg-white',
-        surface: 'bg-white',
-        soft: 'bg-neutral-100',
-        border: 'border-neutral-200 border',
-        borderStrong: 'border-neutral-200 border-b',
-        muted: 'text-neutral-500',
-      };
-
-  const iconBtn = `flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border ${t.border} ${t.surface} ${t.muted} transition-colors hover:border-orange-500 hover:text-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500`;
+  const iconBtn = 'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-[#EAECF0] bg-white text-[#344054] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]';
+  const card = 'rounded-2xl border border-[#EAECF0] bg-white';
+  const muted = 'text-[#667085]';
 
   /* ----------------------------- Chargement ----------------------------- */
   useEffect(() => {
@@ -179,6 +159,13 @@ export default function ProductDetails() {
     const el = galleryRef.current;
     if (!el || el.clientWidth === 0) return;
     setActiveIndex(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
+  const goToPhoto = (index: number) => {
+    const el = galleryRef.current;
+    if (!el) return;
+    el.scrollTo({ left: el.clientWidth * index, behavior: 'smooth' });
+    setActiveIndex(index);
   };
 
   const scrollToDelivery = () => deliveryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -243,16 +230,15 @@ export default function ProductDetails() {
 
   /* -------------------------------- Rendu -------------------------------- */
   return (
-    <div className={`min-h-screen ${t.page}`}>
-      <header className={`sticky top-0 z-40 ${t.borderStrong} ${t.header}`}>
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F9FAFB] text-[#111111]">
+      <header className="sticky top-0 z-40 border-b border-[#EAECF0] bg-white">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <button type="button" onClick={goBack} className={iconBtn} aria-label="Retour">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <Link to="/" className="flex-1 truncate text-center text-xl font-black tracking-wider sm:text-2xl" aria-label="CBFSOKO, accueil">
-            <span className="text-[#10b981]">CBF</span>
-            <span className="text-[#f97316]">SOKO</span>
-          </Link>
+          <h1 className="min-w-0 flex-1 truncate text-base font-bold">
+            {product ? product.title : 'Produit'}
+          </h1>
           <button
             type="button"
             onClick={toggleFavorite}
@@ -262,38 +248,39 @@ export default function ProductDetails() {
             data-tour="product-favorite"
             className={iconBtn}
           >
-            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-orange-500 text-orange-500' : ''}`} />
+            <Heart className={`h-5 w-5 ${isFavorite ? 'fill-[#FF6B00] text-[#FF6B00]' : ''}`} />
           </button>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-16">
+      <main className="mx-auto w-full max-w-6xl px-4 py-4 pb-28 sm:px-6 sm:py-6 lg:px-8 lg:pb-16">
         {loading ? (
-          <div className="space-y-4">
-            <div className={`aspect-square animate-pulse rounded-2xl ${t.soft}`} />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)] lg:gap-10" aria-busy="true">
+            <div className="skeleton aspect-square w-full" />
             <div className="space-y-3">
-              <div className={`h-7 w-3/4 animate-pulse rounded ${t.soft}`} />
-              <div className={`h-6 w-1/3 animate-pulse rounded ${t.soft}`} />
-              <div className={`h-24 animate-pulse rounded ${t.soft}`} />
+              <div className="skeleton h-7 w-3/4" />
+              <div className="skeleton h-8 w-1/3" />
+              <div className="skeleton h-28 w-full" />
+              <div className="skeleton h-20 w-full" />
             </div>
           </div>
         ) : error || !product ? (
-          <div className={`rounded-2xl border border-dashed py-14 text-center ${t.border} ${t.surface}`}>
-            <p className="text-sm font-semibold">Ce produit est introuvable.</p>
-            <p className={`mt-1 text-xs ${t.muted}`}>Il a peut-être été retiré par le vendeur.</p>
-            <Link to="/" className="mt-5 inline-flex rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-600">
+          <div className={`${card} border-dashed px-4 py-16 text-center`}>
+            <p className="text-base font-bold">Ce produit est introuvable.</p>
+            <p className={`mt-1 text-sm ${muted}`}>Il a peut-être été retiré par le vendeur.</p>
+            <Link to="/" className="mt-6 inline-flex h-11 items-center rounded-full bg-[#FF6B00] px-6 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]">
               Retour à l'accueil
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:gap-10">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)] lg:gap-10">
             {/* ------------------------- Médias ------------------------- */}
-            <div className="space-y-4">
-              <div data-tour="product-gallery" className={`relative overflow-hidden rounded-2xl border ${t.border} ${t.soft} lg:rounded-3xl`}>
+            <div className="space-y-3">
+              <div data-tour="product-gallery" className="relative overflow-hidden rounded-2xl border border-[#EAECF0] bg-[#F2F4F7]">
                 <div
                   ref={galleryRef}
                   onScroll={handleGalleryScroll}
-                  className="scrollbar-hide flex snap-x snap-mandatory overflow-x-auto"
+                  className="scrollbar-hide no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
                 >
                   {(photoCount > 0 ? images : [undefined]).map((img, index) => (
                     <div key={index} className="aspect-square w-full flex-shrink-0 snap-center">
@@ -302,15 +289,33 @@ export default function ProductDetails() {
                   ))}
                 </div>
                 {photoCount > 1 && (
-                  <span className="absolute left-3 top-3 flex items-center gap-1.5 rounded-md bg-neutral-950 px-2 py-1 text-xs font-bold leading-none text-white">
+                  <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-[#111111] px-2.5 py-1 text-xs font-bold leading-none text-white">
                     <Images className="h-3.5 w-3.5" aria-hidden="true" />
                     {Math.min(activeIndex + 1, photoCount)} / {photoCount}
                   </span>
                 )}
               </div>
 
+              {photoCount > 1 && (
+                <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Photos du produit">
+                  {images.map((img, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      role="tab"
+                      aria-selected={index === activeIndex}
+                      aria-label={`Photo ${index + 1}`}
+                      onClick={() => goToPhoto(index)}
+                      className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border-2 bg-[#F2F4F7] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] sm:h-20 sm:w-20 ${index === activeIndex ? 'border-[#FF6B00]' : 'border-transparent hover:border-[#D0D5DD]'}`}
+                    >
+                      <img src={getMediaUrl(img)} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {product.videoUrl && (
-                <div data-tour="product-video">
+                <div data-tour="product-video" className="pt-2">
                   <h2 className="mb-2 text-sm font-bold">Vidéo du produit</h2>
                   <video
                     src={getMediaUrl(product.videoUrl)}
@@ -325,29 +330,42 @@ export default function ProductDetails() {
             </div>
 
             {/* --------------------- Informations ---------------------- */}
-            <div className="space-y-5 lg:sticky lg:top-24">
-              <div data-tour="product-price" className="rounded-2xl border border-[#EAECF0] bg-white p-4 shadow-[0_8px_24px_rgba(16,24,40,0.04)] sm:p-6">
-                <h2 className="text-xl font-bold tracking-tight sm:text-2xl">{product.title}</h2>
-                <p className="mt-2 text-2xl font-bold text-orange-600">{product.priceUSD} $</p>
-                {product.priceCDF > 0 && (
-                  <p className={`text-sm ${t.muted}`}>{product.priceCDF.toLocaleString('fr-FR')} FC</p>
-                )}
+            <div className="space-y-4 lg:sticky lg:top-20">
+              <div data-tour="product-price" className={`${card} p-4 sm:p-5`}>
+                <h2 className="text-xl font-bold leading-snug tracking-tight sm:text-2xl">{product.title}</h2>
+                <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <p className="text-3xl font-extrabold text-[#FF6B00]">{product.priceUSD} $</p>
+                  {product.priceCDF > 0 && (
+                    <p className={`text-sm font-medium ${muted}`}>≈ {product.priceCDF.toLocaleString('fr-FR')} FC</p>
+                  )}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {product.state && (
+                    <span className="rounded-full bg-[#F2F4F7] px-3 py-1 text-xs font-semibold text-[#344054]">{product.state}</span>
+                  )}
+                  {product.category?.name && (
+                    <span className="rounded-full bg-[#F2F4F7] px-3 py-1 text-xs font-semibold text-[#344054]">{product.category.name}</span>
+                  )}
+                  {isRequest && (
+                    <span className="rounded-full bg-[#FFF1E7] px-3 py-1 text-xs font-bold text-[#C94F00]">Demande</span>
+                  )}
+                </div>
               </div>
 
               {!isRequest && (
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="hidden gap-2 lg:flex">
                   <button
                     type="button"
                     onClick={scrollToDelivery}
                     data-tour="product-deliver"
-                    className="flex-1 rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    className="h-12 flex-1 rounded-full bg-[#FF6B00] px-4 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
                   >
                     Me faire livrer
                   </button>
                   <Link
                     to={`/products/${product.id}/renseignement`}
                     data-tour="product-info"
-                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-4 py-3 text-sm font-bold transition-colors hover:border-orange-500 ${t.border} ${t.surface}`}
+                    className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-full border border-[#D0D5DD] bg-white px-4 text-sm font-bold text-[#111111] transition-colors hover:border-[#FF6B00]"
                   >
                     <Info className="h-4 w-4" />
                     Se renseigner
@@ -355,45 +373,48 @@ export default function ProductDetails() {
                 </div>
               )}
 
-              <dl className={`divide-y rounded-2xl ${darkMode ? 'divide-neutral-800' : 'divide-neutral-200'} ${t.border} ${t.surface}`}>
+              <dl className={`${card} divide-y divide-[#EAECF0]`}>
                 {product.category?.name && (
                   <div className="flex justify-between gap-4 px-4 py-3 text-sm">
-                    <dt className={t.muted}>Catégorie</dt>
-                    <dd className="font-semibold">{product.category.name}</dd>
+                    <dt className={muted}>Catégorie</dt>
+                    <dd className="text-right font-semibold">{product.category.name}</dd>
                   </div>
                 )}
                 {product.state && (
                   <div className="flex justify-between gap-4 px-4 py-3 text-sm">
-                    <dt className={t.muted}>État</dt>
-                    <dd className="font-semibold">{product.state}</dd>
+                    <dt className={muted}>État</dt>
+                    <dd className="text-right font-semibold">{product.state}</dd>
                   </div>
                 )}
                 {typeof product.quantity === 'number' && (
                   <div className="flex justify-between gap-4 px-4 py-3 text-sm">
-                    <dt className={t.muted}>Quantité disponible</dt>
-                    <dd className="font-semibold">{product.quantity}</dd>
+                    <dt className={muted}>Quantité disponible</dt>
+                    <dd className="text-right font-semibold">{product.quantity}</dd>
                   </div>
                 )}
                 {product.location && (
                   <div className="flex justify-between gap-4 px-4 py-3 text-sm">
-                    <dt className={t.muted}>Localisation</dt>
-                    <dd className="flex items-center gap-1 font-semibold"><MapPin className="h-3.5 w-3.5 text-orange-600" />{product.location}</dd>
+                    <dt className={muted}>Localisation</dt>
+                    <dd className="flex items-center gap-1 text-right font-semibold"><MapPin className="h-3.5 w-3.5 text-[#FF6B00]" />{product.location}</dd>
                   </div>
                 )}
               </dl>
 
               {product.description && (
-                <div>
+                <div className={`${card} p-4`}>
                   <h3 className="mb-1.5 text-sm font-bold">Description</h3>
-                  <p className={`whitespace-pre-line text-sm leading-relaxed ${t.muted}`}>{product.description}</p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-[#344054]">{product.description}</p>
                 </div>
               )}
 
               {product.seller && (
-                <div data-tour="product-seller" className={`space-y-3 rounded-2xl p-4 ${t.border} ${t.surface}`}>
-                  <h3 className={`text-xs font-bold uppercase tracking-wide ${t.muted}`}>Identité du vendeur</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-orange-500 text-white">
+                <div data-tour="product-seller" className={`${card} space-y-3 p-4`}>
+                  <h3 className={`text-xs font-bold uppercase tracking-wide ${muted}`}>Identité du vendeur</h3>
+                  <Link
+                    to={`/users/${product.seller.id}`}
+                    className="flex items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                  >
+                    <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#FF6B00] text-white">
                       {product.seller.avatar ? (
                         <img src={getMediaUrl(product.seller.avatar)} alt={product.seller.name} className="h-full w-full object-cover" />
                       ) : (
@@ -403,19 +424,20 @@ export default function ProductDetails() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold">{product.seller.name}</p>
                       {product.location && (
-                        <p className={`flex items-center gap-1 text-xs ${t.muted}`}>
+                        <p className={`flex items-center gap-1 text-xs ${muted}`}>
                           <MapPin className="h-3 w-3" />
                           {product.location}
                         </p>
                       )}
                       <SellerStars avg={product.seller.ratingAvg ?? 0} count={product.seller.ratingCount ?? 0} />
                     </div>
-                  </div>
+                    <ChevronRight className={`h-5 w-5 flex-shrink-0 ${muted}`} aria-hidden="true" />
+                  </Link>
                   {/* Contact uniquement par message : pas d'appel, sur demande explicite */}
                   <Link
                     to={`/messages/${product.seller.id}`}
                     data-tour="product-contact"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#D0D5DD] bg-white px-4 text-sm font-bold text-[#111111] transition-colors hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                   >
                     <MessageCircle className="h-4 w-4" />
                     Contacter le vendeur
@@ -423,42 +445,19 @@ export default function ProductDetails() {
                 </div>
               )}
 
-              {product.similar && product.similar.length > 0 && (
-                <div data-tour="product-similar">
-                  <h3 className="mb-2 text-sm font-bold">Produits similaires</h3>
-                  <div className="scrollbar-hide -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-                    {product.similar.map((p) => (
-                      <Link
-                        key={p.id}
-                        to={`/products/${p.id}`}
-                        className={`w-32 flex-shrink-0 overflow-hidden rounded-xl ${t.border} ${t.surface}`}
-                      >
-                        <div className="aspect-square w-full overflow-hidden bg-neutral-100">
-                          <img src={getMediaUrl(p.images?.[0])} alt={p.title} className="h-full w-full object-cover" />
-                        </div>
-                        <div className="p-2">
-                          <p className="truncate text-xs font-semibold">{p.title}</p>
-                          <p className="text-xs font-bold text-orange-600">{p.priceCDF > 0 ? `${p.priceCDF.toLocaleString('fr-FR')} FC` : `${p.priceUSD} $`}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* ------------------------ Livraison ------------------------ */}
               {!isRequest && (
-                <div ref={deliveryRef} id="livraison" className={`scroll-mt-20 space-y-4 rounded-2xl border-2 border-orange-500 p-4 ${t.surface}`}>
+                <div ref={deliveryRef} id="livraison" className="scroll-mt-20 space-y-4 rounded-2xl border-2 border-[#FF6B00] bg-white p-4 sm:p-5">
                   <h3 className="text-base font-bold">Me faire livrer</h3>
 
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-semibold">Quantité</span>
-                    <div data-tour="product-quantity" className={`flex items-center rounded-lg ${t.border}`}>
+                    <div data-tour="product-quantity" className="flex items-center rounded-full border border-[#D0D5DD]">
                       <button
                         type="button"
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                         disabled={quantity <= 1}
-                        className="flex h-9 w-9 items-center justify-center disabled:opacity-40"
+                        className="flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-40"
                         aria-label="Diminuer la quantité"
                       >
                         <Minus className="h-4 w-4" />
@@ -468,7 +467,7 @@ export default function ProductDetails() {
                         type="button"
                         onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
                         disabled={quantity >= maxQuantity}
-                        className="flex h-9 w-9 items-center justify-center disabled:opacity-40"
+                        className="flex h-10 w-10 items-center justify-center rounded-full disabled:opacity-40"
                         aria-label="Augmenter la quantité"
                       >
                         <Plus className="h-4 w-4" />
@@ -487,17 +486,17 @@ export default function ProductDetails() {
                       aria-describedby={deliveryError ? 'delivery-error' : undefined}
                       rows={2}
                       placeholder="Commune, quartier, avenue, numéro"
-                      className={`w-full resize-none rounded-lg px-3 py-2 text-sm outline-none focus:border-orange-500 ${t.border} ${t.soft}`}
+                      className="w-full resize-none rounded-xl border border-[#D0D5DD] bg-[#F9FAFB] px-3 py-2.5 text-sm text-[#111111] outline-none focus:border-[#FF6B00]"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between border-t border-[#EAECF0] pt-3">
                     <span className="text-sm font-semibold">Total</span>
-                    <span className="text-lg font-bold text-orange-600">{total} $</span>
+                    <span className="text-xl font-extrabold text-[#FF6B00]">{total} $</span>
                   </div>
 
                   {deliveryError && (
-                    <p id="delivery-error" role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                    <p id="delivery-error" role="alert" className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
                       {deliveryError}
                     </p>
                   )}
@@ -506,11 +505,34 @@ export default function ProductDetails() {
                     onClick={handleConfirmDelivery}
                     disabled={deliveryBusy}
                     data-tour="product-confirm"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-60"
+                    className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#FF6B00] px-4 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 disabled:opacity-60"
                   >
                     {deliveryBusy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                     {deliveryBusy ? 'Envoi en cours…' : 'Confirmer la livraison'}
                   </button>
+                </div>
+              )}
+
+              {product.similar && product.similar.length > 0 && (
+                <div data-tour="product-similar">
+                  <h3 className="mb-2 text-sm font-bold">Produits similaires</h3>
+                  <div className="no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+                    {product.similar.map((p) => (
+                      <Link
+                        key={p.id}
+                        to={`/products/${p.id}`}
+                        className="w-36 flex-shrink-0 overflow-hidden rounded-xl border border-[#EAECF0] bg-white transition-colors hover:border-[#D0D5DD]"
+                      >
+                        <div className="aspect-square w-full overflow-hidden bg-[#F2F4F7]">
+                          <img src={getMediaUrl(p.images?.[0])} alt={p.title} className="h-full w-full object-cover" />
+                        </div>
+                        <div className="p-2.5">
+                          <p className="truncate text-xs font-semibold">{p.title}</p>
+                          <p className="text-sm font-bold text-[#FF6B00]">{p.priceCDF > 0 ? `${p.priceCDF.toLocaleString('fr-FR')} FC` : `${p.priceUSD} $`}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -518,8 +540,34 @@ export default function ProductDetails() {
         )}
       </main>
 
+      {/* BARRE D'ACTION (mobile) : prix + action principale, la navigation globale est masquée sur cette page */}
+      {!loading && !error && product && !isRequest && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 lg:hidden">
+          <div className="mx-auto flex max-w-xl items-center gap-3">
+            <div className="min-w-0">
+              <p className="text-lg font-extrabold leading-tight text-[#FF6B00]">{product.priceUSD} $</p>
+              {product.priceCDF > 0 && <p className={`truncate text-xs ${muted}`}>{product.priceCDF.toLocaleString('fr-FR')} FC</p>}
+            </div>
+            <Link
+              to={`/products/${product.id}/renseignement`}
+              aria-label="Se renseigner"
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-[#D0D5DD] bg-white text-[#111111]"
+            >
+              <Info className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              onClick={scrollToDelivery}
+              className="h-12 flex-1 rounded-full bg-[#FF6B00] px-4 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2"
+            >
+              Me faire livrer
+            </button>
+          </div>
+        </div>
+      )}
+
       {notice && (
-        <div role="status" aria-live="polite" className="fixed inset-x-0 bottom-20 z-50 mx-auto w-fit max-w-[90vw] rounded-full bg-white px-4 py-2.5 text-xs font-semibold text-neutral-950 shadow-lg">
+        <div role="status" aria-live="polite" className="fixed inset-x-0 bottom-24 z-50 mx-auto w-fit max-w-[90vw] rounded-full bg-[#111111] px-4 py-2.5 text-xs font-semibold text-white shadow-lg">
           {notice}
         </div>
       )}

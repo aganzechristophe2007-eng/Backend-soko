@@ -103,9 +103,9 @@ function withdrawalFailure(code: string | null): string {
 }
 
 const INPUT =
-  'w-full rounded-xl bg-[#F2F4F7] px-4 py-3 text-sm text-[#111111] placeholder:text-[#98A2B3] focus:bg-white focus:outline-none';
+  'w-full rounded-xl border border-transparent bg-[#F2F4F7] px-4 py-3 text-base text-[#111111] placeholder:text-[#98A2B3] transition-colors focus:border-[#FF6B00] focus:outline-none sm:text-sm';
 const BTN_PRIMARY =
-  'w-full rounded-xl bg-[#FF6B00] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] disabled:cursor-not-allowed disabled:opacity-40';
+  'w-full rounded-xl bg-[#FF6B00] px-4 py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40';
 
 function Field({ label, htmlFor, hint, children }: { label: string; htmlFor?: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -620,10 +620,10 @@ function TxRow({ tx }: { tx: TxDto }) {
           {TX_LABEL[tx.type]}
           {who}
         </p>
-        <p className="text-[11px] text-[#667085]">
-          {date}
-          {pending && ' · En cours'}
-          {failed && ' · Échoué, montant remis'}
+        <p className="flex flex-wrap items-center gap-1.5 text-xs text-[#667085]">
+          <span>{date}</span>
+          {pending && <span className="rounded-full bg-[#FFF1E7] px-2 py-0.5 text-[11px] font-semibold text-[#C94F00]">En cours</span>}
+          {failed && <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">Échoué, montant remis</span>}
         </p>
       </div>
       <p className={`shrink-0 text-sm font-bold ${amountColor}`}>
@@ -699,31 +699,34 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20 text-[#111111]">
-      <header className="sticky top-0 z-40 flex items-center gap-3 bg-[#F9FAFB] px-4 py-3.5">
+    <div className="min-h-screen bg-[#F9FAFB] pb-10 text-[#111111]">
+      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[#EAECF0] bg-white px-4 py-3 sm:px-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
           aria-label="Retour"
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#344054] transition-colors hover:bg-[#F2F4F7] hover:text-[#111111]"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-sm font-bold leading-tight">Mon portefeuille</h1>
-          <p className="text-[11px] text-[#667085]">Déposez, payez, retirez ou envoyez de l'argent</p>
+          <h1 className="text-base font-bold leading-tight">Mon portefeuille</h1>
+          <p className="text-xs text-[#667085]">Déposez, payez, retirez ou envoyez de l'argent</p>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-4xl space-y-5 px-4 pt-4 sm:px-6 lg:px-8 lg:pt-8" aria-live="polite">
         {loading && (
-          <div className="py-20 text-center">
-            <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#FF6B00]" />
+          <div className="space-y-3" role="status" aria-label="Chargement du portefeuille">
+            <div className="skeleton h-20" />
+            <div className="grid grid-cols-2 gap-3"><div className="skeleton h-24" /><div className="skeleton h-24" /></div>
+            <div className="grid grid-cols-3 gap-2.5"><div className="skeleton h-20" /><div className="skeleton h-20" /><div className="skeleton h-20" /></div>
+            <div className="skeleton h-48" />
           </div>
         )}
 
         {!loading && loadError && (
-          <div className="space-y-3 rounded-2xl bg-white p-5 text-center">
+          <div className="space-y-3 rounded-2xl border border-[#EAECF0] bg-white p-5 text-center">
             <p className="text-sm font-semibold text-red-600">{loadError}</p>
             <button type="button" onClick={refresh} className="rounded-xl bg-[#F2F4F7] px-4 py-2 text-xs font-bold text-[#FF6B00] transition-colors hover:bg-[#EAECF0]">
               Réessayer
@@ -733,7 +736,7 @@ export default function WalletPage() {
 
         {!loading && wallet && (
           <>
-            <section className="space-y-2 rounded-2xl bg-white p-4">
+            <section className="space-y-2 rounded-2xl border border-[#EAECF0] bg-white p-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-[#667085]">Numéro de portefeuille</p>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xl font-extrabold tracking-wide text-[#111111]">{wallet.number}</p>
@@ -749,14 +752,14 @@ export default function WalletPage() {
               <p className="text-[11px] text-[#667085]">Donnez ce numéro pour recevoir de l'argent d'un autre utilisateur.</p>
             </section>
 
-            <section className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-[11px] font-semibold text-[#667085]">Solde en francs</p>
-                <p className="mt-1 break-words text-lg font-extrabold text-[#FF6B00]">{formatMoney(wallet.balanceCDF, 'CDF')}</p>
+            <section className="grid grid-cols-2 divide-x divide-[#EAECF0] rounded-2xl border border-[#EAECF0] bg-white" aria-label="Soldes">
+              <div className="p-5">
+                <p className="text-xs font-semibold text-[#667085]">Solde en francs</p>
+                <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-[#111111] sm:text-3xl">{formatMoney(wallet.balanceCDF, 'CDF')}</p>
               </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-[11px] font-semibold text-[#667085]">Solde en dollars</p>
-                <p className="mt-1 break-words text-lg font-extrabold text-[#FF6B00]">{formatMoney(wallet.balanceUSD, 'USD')}</p>
+              <div className="p-5">
+                <p className="text-xs font-semibold text-[#667085]">Solde en dollars</p>
+                <p className="mt-1 break-words text-xl font-extrabold tracking-tight text-[#111111] sm:text-3xl">{formatMoney(wallet.balanceUSD, 'USD')}</p>
               </div>
             </section>
 
@@ -765,7 +768,7 @@ export default function WalletPage() {
                 type="button"
                 onClick={() => toggle('deposit')}
                 aria-pressed={panel === 'deposit'}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-white transition-colors ${panel === 'deposit' ? 'bg-[#E85F00]' : 'bg-[#FF6B00] hover:bg-[#E85F00]'}`}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-4 text-xs font-bold text-white transition-colors ${panel === 'deposit' ? 'bg-[#E85F00]' : 'bg-[#FF6B00] hover:bg-[#E85F00]'}`}
               >
                 <ArrowDownToLine className="h-5 w-5" />
                 Déposer
@@ -774,7 +777,7 @@ export default function WalletPage() {
                 type="button"
                 onClick={() => toggle('withdraw')}
                 aria-pressed={panel === 'withdraw'}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-white transition-colors ${panel === 'withdraw' ? 'bg-emerald-800' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-4 text-xs font-bold text-white transition-colors ${panel === 'withdraw' ? 'bg-emerald-800' : 'bg-emerald-600 hover:bg-emerald-700'}`}
               >
                 <ArrowUpFromLine className="h-5 w-5" />
                 Retirer
@@ -783,7 +786,7 @@ export default function WalletPage() {
                 type="button"
                 onClick={() => toggle('transfer')}
                 aria-pressed={panel === 'transfer'}
-                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3.5 text-xs font-bold text-[#111111] transition-colors ${panel === 'transfer' ? 'bg-[#D0D5DD]' : 'bg-[#F2F4F7] hover:bg-white'}`}
+                className={`flex flex-col items-center gap-1.5 rounded-2xl px-2 py-4 text-xs font-bold text-[#111111] transition-colors ${panel === 'transfer' ? 'border border-[#D0D5DD] bg-[#EAECF0]' : 'border border-[#EAECF0] bg-white hover:bg-[#F2F4F7]'}`}
               >
                 <Send className="h-5 w-5" />
                 Envoyer
@@ -791,7 +794,7 @@ export default function WalletPage() {
             </section>
 
             {panel && (
-              <section className="space-y-4 rounded-2xl bg-white p-4">
+              <section className="space-y-4 rounded-2xl border border-[#EAECF0] bg-white p-4">
                 <h2 className="text-sm font-bold text-[#111111]">{PANEL_TITLE[panel]}</h2>
                 {panel === 'deposit' && <DepositForm limits={wallet.limits} onChanged={refresh} />}
                 {panel === 'withdraw' && <WithdrawForm wallet={wallet} onChanged={refresh} />}
@@ -799,10 +802,13 @@ export default function WalletPage() {
               </section>
             )}
 
-            <section className="rounded-2xl bg-white p-4">
+            <section className="rounded-2xl border border-[#EAECF0] bg-white p-4">
               <h2 className="mb-1 text-sm font-bold text-[#111111]">Historique</h2>
               {txs.length === 0 ? (
-                <p className="py-6 text-center text-xs text-[#667085]">Aucune opération pour le moment.</p>
+                <div className="flex flex-col items-center gap-2 py-8 text-center">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F2F4F7] text-[#667085]"><ShoppingBag className="h-5 w-5" aria-hidden="true" /></span>
+                  <p className="text-sm text-[#667085]">Aucune opération pour le moment.</p>
+                </div>
               ) : (
                 <ul className="divide-y divide-[#EAECF0]">
                   {txs.map((tx) => (
@@ -815,7 +821,7 @@ export default function WalletPage() {
                   type="button"
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="mt-2 w-full rounded-xl bg-[#F2F4F7] py-2.5 text-xs font-bold text-[#344054] transition-colors hover:bg-[#EAECF0] disabled:opacity-50"
+                  className="mt-2 w-full rounded-xl border border-[#EAECF0] bg-white py-2.5 text-xs font-bold text-[#344054] transition-colors hover:bg-[#F2F4F7] disabled:opacity-50"
                 >
                   {loadingMore ? 'Chargement…' : 'Voir plus'}
                 </button>

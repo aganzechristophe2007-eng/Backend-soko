@@ -22,7 +22,7 @@ export default function About() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-7 sm:px-6 sm:py-10">
-        <section className="overflow-hidden rounded-3xl border border-[#EAECF0] bg-white shadow-sm">
+        <section className="overflow-hidden rounded-3xl border border-[#EAECF0] bg-white">
           <div className="border-b border-[#EAECF0] bg-white px-6 py-8 sm:px-10 sm:py-10">
             <img src="/logo-cbf-soko.png" alt="CBF SOKO" className="mb-6 h-12 w-auto object-contain object-left" />
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#E85F00]">La marketplace locale</p>
