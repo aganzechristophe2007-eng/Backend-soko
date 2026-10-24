@@ -1,0 +1,65 @@
+// =====================================================================
+// AJOUTS À FAIRE DANS prisma/schema.prisma  (je n'ai pas reçu votre schéma :
+// copiez ces blocs à la main, puis lancez la migration — voir LISEZMOI.md)
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// 1) Dans le model User : ajouter ces 3 champs (ne rien retirer)
+// ---------------------------------------------------------------------
+//   accountStatus        String    @default("ACTIVE")   // ACTIVE | PAUSED | PENDING_DELETION | DELETED
+//   pausedAt             DateTime?
+//   deletionScheduledAt  DateTime?
+//
+//   Conseil : ajouter aussi  @@index([accountStatus])  dans le model User.
+//   Les utilisateurs existants reçoivent automatiquement "ACTIVE".
+
+// ---------------------------------------------------------------------
+// 2) Dans le model Notification : ajouter ce champ (ne rien retirer)
+// ---------------------------------------------------------------------
+//   actorId   String?      // personne à l'origine de la notification (sa photo est affichée)
+
+// ---------------------------------------------------------------------
+// 2 bis) Dans le model Product : ajouter ce champ (ne rien retirer)
+// ---------------------------------------------------------------------
+//   negotiable   Boolean   @default(false)   // prix négociable, choisi par le vendeur à la publication
+//   Les produits existants reçoivent automatiquement "false" (prix fixe).
+
+// ---------------------------------------------------------------------
+// 3) Nouveaux models (à coller à la fin du fichier)
+// ---------------------------------------------------------------------
+
+// Préférences de l'utilisateur (confidentialité, notifications, mode vacances, adresse par défaut).
+model UserPreferences {
+  userId    String   @id
+  data      Json
+  updatedAt DateTime @updatedAt
+}
+
+// Utilisateurs bloqués.
+model BlockedUser {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+// Données de livraison d'une commande (fenêtre « Me faire livrer »).
+// orderId pointe vers Order.id (volontairement sans @relation : aucune modification du model Order).
+model OrderDelivery {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  recipientName String
+  phone         String
+  city          String   @default("")
+  commune       String   @default("")
+  quarter       String   @default("")
+  address       String   @default("")
+  landmark      String?
+  fulfillment   String   @default("DELIVERY")      // DELIVERY | PICKUP
+  paymentMethod String   @default("MOBILE_MONEY")  // WALLET | MOBILE_MONEY
+  note          String?
+  createdAt     DateTime @default(now())
+}
