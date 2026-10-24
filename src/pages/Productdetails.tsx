@@ -108,7 +108,7 @@ export default function ProductDetails() {
     setError(false);
     setActiveIndex(0);
     apiFetch(`/products/${id}`)
-      .then((data) => {
+      .then((data: any) => {
         if (cancelled) return;
         const item = (data?.product ?? data?.data ?? data) as ProductItem;
         setProduct(item && item.id ? item : null);

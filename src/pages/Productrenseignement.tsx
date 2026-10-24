@@ -77,7 +77,7 @@ export default function ProductRenseignement() {
     setLoading(true);
     setError(false);
     apiFetch(`/products/${id}`)
-      .then((data) => {
+      .then((data: any) => {
         if (cancelled) return;
         const item = (data?.product ?? data?.data ?? data) as ProductItem;
         setProduct(item && item.id ? item : null);
