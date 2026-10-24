@@ -13,9 +13,9 @@ const ROLE_LABELS: Record<string, { label: string; hint: string }> = {
 };
 
 const ADMIN_ROLES = ['ADMIN', 'SUPER_ADMIN'];
-const card = 'rounded-2xl border border-[#EAECF0] bg-white p-4';
+const card = 'rounded-2xl bg-[#F2F4F7] p-4';
 const input =
-  'h-12 w-full rounded-xl border border-[#D0D5DD] bg-white px-3 text-sm text-[#111111] outline-none placeholder:text-[#98A2B3] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 disabled:bg-[#F9FAFB]';
+  'h-12 w-full rounded-xl bg-white px-3 text-sm text-[#111111] outline-none placeholder:text-[#98A2B3] focus:bg-[#FFF8F3] disabled:opacity-60';
 const primaryBtn =
   'flex h-12 items-center justify-center gap-2 rounded-xl bg-[#FF6B00] px-5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00] disabled:opacity-60';
 
@@ -314,7 +314,7 @@ export function EvolutionDashboard() {
                 key={m.key}
                 type="button"
                 onClick={() => setMetric(m.key)}
-                className={`rounded-xl p-3 text-left transition-colors ${metric === m.key ? 'bg-[#FFF1E7] ring-1 ring-[#FF6B00]' : 'border border-[#EAECF0] bg-white hover:bg-[#F9FAFB]'}`}
+                className={`rounded-xl p-3 text-left transition-colors ${metric === m.key ? 'bg-[#FFE4D1]' : 'bg-white hover:bg-[#F9FAFB]'}`}
               >
                 <p className="text-[11px] font-semibold text-[#667085]">{m.label}</p>
                 <p className="mt-1 text-lg font-extrabold text-[#111111]">
@@ -379,7 +379,7 @@ export function LogoutButton() {
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-50 text-sm font-bold text-red-600 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-red-50 text-sm font-bold text-red-600 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:brightness-90"
       >
         <LogOut className="h-4 w-4" /> Se déconnecter
       </button>

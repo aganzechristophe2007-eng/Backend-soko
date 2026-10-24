@@ -11,6 +11,8 @@ import AuthSheet from './Authsheet';
 import { TourHelpButton, useGuidedTour } from '../components/guidedtour';
 import { getUnreadCount, setUnreadCount } from '../lib/notificationsStore';
 import { NOTIFICATIONS_TOUR } from '../components/guidedtour/tours';
+import NotificationAvatar, { NotificationActor } from '../components/NotificationAvatar';
+import { notificationKind, resolveNotificationTarget } from '../lib/notificationTarget';
 
 interface NotificationItem {
   id: string;
@@ -20,6 +22,7 @@ interface NotificationItem {
   link: string | null;
   isRead: boolean;
   createdAt: string;
+  actor?: NotificationActor | null;
 }
 
 type Filter = 'all' | 'unread';
@@ -47,13 +50,14 @@ function groupLabel(iso: string): string {
   return 'Plus ancien';
 }
 
-function TypeIcon({ type }: { type: string }) {
-  const cls = 'h-5 w-5';
-  if (type === 'ORDER') return <Package className={cls} aria-hidden="true" />;
-  if (type === 'MESSAGE' || type === 'COMMENT') return <MessageCircle className={cls} aria-hidden="true" />;
-  if (type === 'PAYMENT') return <Wallet className={cls} aria-hidden="true" />;
-  return <Bell className={cls} aria-hidden="true" />;
-}
+const KIND_LABEL: Record<string, string> = {
+  order: 'Commande',
+  message: 'Message',
+  product: 'Nouveau produit',
+  shop: 'Nouvelle boutique',
+  payment: 'Paiement',
+  system: 'CBF SOKO',
+};
 
 const PUSH_TEXT: Record<Exclude<PushUiState, 'on' | 'off'>, string> = {
   unsupported: 'Ce navigateur ne gère pas les notifications push. Sur iPhone, ajoutez d’abord CBF SOKO à l’écran d’accueil (Partager > Sur l’écran d’accueil), puis rouvrez cette page. Vos notifications restent visibles ici.',
@@ -122,8 +126,15 @@ export default function Notifications() {
   useEffect(() => {
     if (!loggedIn) return;
     const onVisible = () => { if (document.visibilityState === 'visible') load(filter, true); };
+    const onSwMessage = (event: MessageEvent) => { if (event.data?.type === 'cbfsoko:push') load(filter, true); };
+    const interval = window.setInterval(onVisible, 30_000); // les nouveautés apparaissent sans recharger la page
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    navigator.serviceWorker?.addEventListener('message', onSwMessage);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      navigator.serviceWorker?.removeEventListener('message', onSwMessage);
+    };
   }, [loggedIn, filter, load]);
 
   useEffect(() => {
@@ -165,7 +176,8 @@ export default function Notifications() {
         flash('Impossible de marquer comme lue. Vérifiez votre connexion.');
       });
     }
-    if (item.link && item.link.startsWith('/') && !item.link.startsWith('//')) navigate(item.link);
+    const target = resolveNotificationTarget(item);
+    if (target) navigate(target);
   };
 
   const markAll = async () => {
@@ -233,14 +245,14 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen bg-white pb-8 text-[#111111] antialiased selection:bg-[#FF6B00] selection:text-white">
-      <header className="sticky top-0 z-30 border-b border-[#EAECF0] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:px-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
             aria-label="Retour"
             data-tour="notif-back"
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] lg:hidden"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-[#111111] transition-colors hover:bg-[#F2F4F7] focus-visible:outline-none focus-visible:brightness-90 lg:hidden"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -251,7 +263,7 @@ export default function Notifications() {
               onClick={markAll}
               disabled={marking}
               data-tour="notif-readall"
-              className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[#FF6B00] transition-colors hover:bg-[#FFF1E7] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-[#FF6B00] transition-colors hover:bg-[#FFF1E7] disabled:opacity-60 focus-visible:outline-none focus-visible:brightness-90"
             >
               {marking ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" aria-hidden="true" />}
               <span className="hidden sm:inline">Tout marquer comme lu</span>
@@ -263,18 +275,18 @@ export default function Notifications() {
 
       <main className="mx-auto w-full max-w-2xl space-y-4 px-3 py-4 sm:px-4">
         {!user && !authLoading ? (
-          <div className="rounded-xl border border-dashed border-[#D0D5DD] px-6 py-14 text-center">
+          <div className="rounded-xl px-6 py-14 text-center">
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]"><LogIn className="h-7 w-7" aria-hidden="true" /></span>
             <p className="mt-5 text-sm font-bold">Connectez-vous pour voir vos notifications</p>
             <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-[#667085]">Commandes, messages et nouveautés de vos vendeurs suivis apparaîtront ici.</p>
-            <button type="button" onClick={() => setShowAuth(true)} className="mt-5 rounded-full bg-[#FF6B00] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2">
+            <button type="button" onClick={() => setShowAuth(true)} className="mt-5 rounded-full bg-[#FF6B00] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#E85F00] focus-visible:outline-none focus-visible:brightness-90">
               Se connecter
             </button>
           </div>
         ) : (
           <>
             {/* Notifications push : toujours facultatif */}
-            <section data-tour="notif-push" className="rounded-xl border border-[#EAECF0] bg-[#F9FAFB] p-4">
+            <section data-tour="notif-push" className="rounded-xl bg-[#F9FAFB] p-4">
               <div className="flex items-start gap-3">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]">
                   {push === 'on' ? <BellRing className="h-5 w-5" aria-hidden="true" /> : push === 'off' || push === 'checking' ? <Bell className="h-5 w-5" aria-hidden="true" /> : <BellOff className="h-5 w-5" aria-hidden="true" />}
@@ -300,13 +312,13 @@ export default function Notifications() {
                         type="button"
                         onClick={togglePush}
                         disabled={pushBusy}
-                        className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] focus-visible:ring-offset-2 disabled:opacity-60 ${push === 'on' ? 'border border-[#D0D5DD] bg-white text-[#344054]' : 'bg-[#FF6B00] text-white hover:bg-[#E85F00]'}`}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:brightness-90 disabled:opacity-60 ${push === 'on' ? 'bg-white text-[#344054]' : 'bg-[#FF6B00] text-white hover:bg-[#E85F00]'}`}
                       >
                         {pushBusy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                         {push === 'on' ? 'Désactiver' : 'Activer'}
                       </button>
                       {push === 'on' && (
-                        <button type="button" onClick={sendTest} className="rounded-full border border-[#D0D5DD] bg-white px-4 py-2 text-xs font-semibold text-[#344054] hover:border-[#FF6B00] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]">
+                        <button type="button" onClick={sendTest} className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#344054] hover:bg-[#FFF1E7] hover:text-[#FF6B00] focus-visible:outline-none focus-visible:brightness-90">
                           Envoyer un test
                         </button>
                       )}
@@ -316,7 +328,11 @@ export default function Notifications() {
               </div>
             </section>
 
-            <div role="tablist" aria-label="Filtrer les notifications" data-tour="notif-filters" className="flex gap-2 border-b border-[#EAECF0] pb-3">
+            <div className="flex justify-end">
+              <button type="button" onClick={() => navigate('/settings/notifications')} className="text-xs font-bold text-[#FF6B00] hover:underline">Choisir les notifications à recevoir</button>
+            </div>
+
+            <div role="tablist" aria-label="Filtrer les notifications" data-tour="notif-filters" className="flex gap-2 pb-3">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
@@ -324,7 +340,7 @@ export default function Notifications() {
                   role="tab"
                   aria-selected={filter === tab.key}
                   onClick={() => setFilter(tab.key)}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${filter === tab.key ? 'bg-[#111111] text-white' : 'bg-[#F2F4F7] text-[#344054] hover:bg-[#EAECF0]'}`}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:brightness-90 ${filter === tab.key ? 'bg-[#111111] text-white' : 'bg-[#F2F4F7] text-[#344054] hover:bg-[#EAECF0]'}`}
                 >
                   {tab.label}
                 </button>
@@ -341,14 +357,14 @@ export default function Notifications() {
                 ))}
               </ul>
             ) : error ? (
-              <div role="alert" className="rounded-2xl border border-[#FDA29B] bg-[#FEF3F2] px-5 py-8 text-center">
+              <div role="alert" className="rounded-2xl bg-[#FEF3F2] px-5 py-8 text-center">
                 <p className="text-sm font-bold text-[#B42318]">{error}</p>
                 <button type="button" onClick={() => load(filter)} className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#111111] px-4 py-2 text-xs font-semibold text-white hover:bg-[#333]">
                   <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Réessayer
                 </button>
               </div>
             ) : items.length === 0 ? (
-              <div data-tour="notif-empty" className="rounded-2xl border border-dashed border-[#D0D5DD] bg-white px-6 py-14 text-center">
+              <div data-tour="notif-empty" className="rounded-2xl bg-white px-6 py-14 text-center">
                 <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-[#FF6B00]"><Bell className="h-7 w-7" aria-hidden="true" /></span>
                 <p className="mt-5 text-sm font-bold">{filter === 'unread' ? 'Tout est lu, bravo !' : 'Aucune notification pour le moment'}</p>
                 <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-[#667085]">
@@ -371,19 +387,18 @@ export default function Notifications() {
                               onClick={() => openItem(item)}
                               data-tour={items[0]?.id === item.id ? 'notif-item' : undefined}
                               aria-label={`${item.isRead ? '' : 'Non lue. '}${item.title}. ${item.message}`}
-                              className={`relative flex min-h-[64px] w-full items-start gap-3 py-3 pl-4 pr-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF6B00] ${item.isRead ? 'bg-white hover:bg-[#F9FAFB]' : 'bg-[#FFF8F3] hover:bg-[#FFF1E7]'}`}
+                              className={`flex min-h-[72px] w-full items-center gap-3 px-3 py-3 text-left transition-colors focus-visible:bg-[#EAECF0] focus-visible:outline-none ${item.isRead ? 'bg-white hover:bg-[#F9FAFB]' : 'bg-[#FFF8F3] hover:bg-[#FFF1E7]'}`}
                             >
-                              {!item.isRead && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[#FF6B00]" />}
-                              <span className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${item.isRead ? 'bg-[#F2F4F7] text-[#667085]' : 'bg-[#FFF1E7] text-[#FF6B00]'}`}>
-                                <TypeIcon type={item.type} />
-                              </span>
+                              <NotificationAvatar actor={item.actor} size={52} />
                               <span className="min-w-0 flex-1">
-                                <span className="flex items-start justify-between gap-2">
-                                  <span className={`text-sm ${item.isRead ? 'font-medium' : 'font-bold'}`}>{item.title}</span>
-                                  <time dateTime={item.createdAt} className="flex-shrink-0 text-[11px] text-[#667085]">{timeAgo(item.createdAt)}</time>
-                                </span>
+                                <span className={`block text-sm leading-snug ${item.isRead ? 'font-medium' : 'font-bold'}`}>{item.title}</span>
                                 <span className="mt-0.5 line-clamp-2 block text-[13px] leading-snug text-[#667085]">{item.message}</span>
+                                <span className="mt-1 flex items-center gap-2 text-[11px]">
+                                  <span className={`rounded-full px-2 py-0.5 font-semibold ${item.isRead ? 'bg-[#F2F4F7] text-[#667085]' : 'bg-[#FFE4D1] text-[#C94F00]'}`}>{KIND_LABEL[notificationKind(item)]}</span>
+                                  <time dateTime={item.createdAt} className={item.isRead ? 'text-[#667085]' : 'font-semibold text-[#FF6B00]'}>{timeAgo(item.createdAt)}</time>
+                                </span>
                               </span>
+                              {!item.isRead && <span aria-hidden="true" className="h-3 w-3 flex-shrink-0 rounded-full bg-[#FF6B00]" />}
                             </button>
                           </li>
                         ))}
@@ -392,7 +407,7 @@ export default function Notifications() {
                   );
                 })}
                 {nextCursor && (
-                  <button type="button" onClick={loadMore} disabled={loadingMore} className="mx-auto flex items-center gap-2 rounded-full border border-[#D0D5DD] px-5 py-2.5 text-xs font-semibold text-[#344054] hover:border-[#FF6B00] hover:text-[#FF6B00] disabled:opacity-60">
+                  <button type="button" onClick={loadMore} disabled={loadingMore} className="mx-auto flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold text-[#344054] hover:bg-[#FFF1E7] hover:text-[#FF6B00] disabled:opacity-60">
                     {loadingMore && <Loader2 className="h-4 w-4 animate-spin" />} Voir plus
                   </button>
                 )}
