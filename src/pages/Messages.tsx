@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getMediaUrl } from '../lib/media';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, Send, Image as ImageIcon, Mic, Trash2, Phone, Video, Play, Pause, Check, CheckCheck } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, Image as ImageIcon, Mic, Trash2, Phone, Video, Play, Pause, Check, CheckCheck, Ban } from 'lucide-react';
 import { getSocket } from '../lib/socket';
 import { useCallContext } from '../context/CallContext';
 
@@ -59,6 +60,15 @@ function formatDuration(seconds: number | null) {
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// Photo de profil (ou initiale si la personne n'a pas de photo), comme sur Facebook.
+function Avatar({ person, className }: { person: Sender; className: string }) {
+  return (
+    <div className={`flex items-center justify-center overflow-hidden rounded-full bg-[#FFF1E7] font-bold text-[#FF6B00] ${className}`}>
+      {person.avatar ? <img src={getMediaUrl(person.avatar)} alt="" className="h-full w-full object-cover" /> : person.name.charAt(0).toUpperCase()}
+    </div>
+  );
 }
 
 type TickState = 'sent' | 'delivered' | 'read';
@@ -134,6 +144,25 @@ export default function MessagingPage() {
     );
   }, []);
 
+  // Bloquer la personne : plus de messages, de commandes ni de notifications entre vous (modifiable dans Paramètres).
+  const blockPartner = async () => {
+    if (!selectedPartner) return;
+    if (!window.confirm(`Bloquer ${selectedPartner.name} ? Cette personne ne pourra plus vous écrire. Vous pourrez la débloquer dans Paramètres > Confidentialité.`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/settings/blocks`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedPartner.id }),
+      });
+      if (!res.ok) throw new Error();
+      closeConversation();
+      loadConversations();
+    } catch {
+      window.alert('Blocage impossible pour le moment. Réessayez.');
+    }
+  };
+
   const closeConversation = useCallback(() => {
     getSocket().emit('conversation:close');
     setSelectedPartner(null);
@@ -149,6 +178,25 @@ export default function MessagingPage() {
       window.history.replaceState({}, document.title); // évite de rouvrir au retour arrière
     }
   }, [location.state, openConversation]);
+
+  // Arrivée depuis une notification (/messages?with=<id>) : ouvre directement la conversation avec cette personne.
+  const withId = new URLSearchParams(location.search).get('with') || new URLSearchParams(location.search).get('to');
+  useEffect(() => {
+    if (!withId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/users/${encodeURIComponent(withId)}/profile`, { credentials: 'include' });
+        if (!res.ok) return;
+        const { data } = await res.json();
+        if (cancelled || !data?.id) return;
+        openConversation({ id: data.id, name: data.name, avatar: data.avatar ?? null });
+      } finally {
+        if (!cancelled) navigate('/messages', { replace: true }); // retire ?with= de l'adresse
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [withId, openConversation, navigate]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -371,7 +419,7 @@ export default function MessagingPage() {
 
     try {
       const form = new FormData();
-      form.append('file', file, type === 'IMAGE' ? 'image.jpg' : 'audio.webm');
+      form.append('file', file, type === 'IMAGE' ? 'image.jpg' : type === 'VIDEO' ? 'video.mp4' : 'audio.webm');
       form.append('receiverId', selectedPartner.id);
       form.append('type', type);
       if (duration) form.append('duration', String(duration));
@@ -400,10 +448,18 @@ export default function MessagingPage() {
     sendMedia(pending.file, pending.type, pending.duration);
   };
 
+  const MAX_MEDIA_BYTES = 25 * 1024 * 1024; // même limite que le serveur
   const handleImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) sendMedia(file, 'IMAGE');
     e.target.value = '';
+    if (!file) return;
+    if (file.size > MAX_MEDIA_BYTES) {
+      window.alert('Ce fichier est trop volumineux (25 Mo maximum).');
+      return;
+    }
+    if (file.type.startsWith('video/')) sendMedia(file, 'VIDEO');
+    else if (file.type.startsWith('image/')) sendMedia(file, 'IMAGE');
+    else window.alert('Format non pris en charge : choisissez une photo ou une vidéo.');
   };
 
   // Enregistrement vocal façon WhatsApp : chrono + barres d'amplitude en direct, calculées
@@ -506,9 +562,7 @@ export default function MessagingPage() {
                 >
                   <div className="flex min-w-0 flex-1 items-center gap-3">
                     <div className="relative shrink-0">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF1E7] text-lg font-bold text-[#FF6B00]">
-                        {conv.partner.name.charAt(0)}
-                      </div>
+                      <Avatar person={conv.partner} className="h-14 w-14 text-lg" />
                       {conv.online && <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#10B981]" />}
                     </div>
                     <div className="min-w-0">
@@ -550,9 +604,7 @@ export default function MessagingPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="relative shrink-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FFF1E7] text-sm font-bold text-[#FF6B00]">
-              {selectedPartner.name.charAt(0)}
-            </div>
+            <Avatar person={selectedPartner} className="h-9 w-9 text-sm" />
             {isPartnerOnline && <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[#10B981]" />}
           </div>
           <div className="min-w-0">
@@ -567,14 +619,19 @@ export default function MessagingPage() {
           <button onClick={() => startCall(selectedPartner.id, 'VIDEO')} aria-label="Appel vidéo" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7] hover:text-[#E85F00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]">
             <Video className="w-5 h-5" />
           </button>
+          <button onClick={blockPartner} aria-label="Bloquer cet utilisateur" title="Bloquer" className="flex h-10 w-10 items-center justify-center rounded-full text-[#344054] transition hover:bg-[#F2F4F7]">
+            <Ban className="h-5 w-5" />
+          </button>
         </div>
       </header>
 
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-4">
-        {messages.map((m) => {
+        {messages.map((m, index) => {
           const mine = m.senderId !== selectedPartner.id;
+          const startsGroup = index === 0 || messages[index - 1].senderId !== m.senderId;
           return (
-            <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
+            <div key={m.id} className={`flex items-end gap-2 ${mine ? 'justify-end' : 'justify-start'}`}>
+              {!mine && (startsGroup ? <Avatar person={selectedPartner} className="h-7 w-7 shrink-0 text-xs" /> : <span className="w-7 shrink-0" aria-hidden="true" />)}
               <div className={`max-w-[80%] rounded-2xl px-3 py-2 sm:max-w-[70%] ${mine ? 'rounded-br-md bg-[#FF6B00] text-white' : 'rounded-bl-md bg-[#F2F4F7] text-[#111111]'}`}>
                 {m.type === 'TEXT' && <p className="text-sm whitespace-pre-wrap break-words">{m.content}</p>}
                 {m.type === 'IMAGE' && m.mediaUrl && <img src={m.mediaUrl} alt="Image envoyée" className="rounded-lg max-w-full max-h-64 object-cover" />}
@@ -642,8 +699,8 @@ export default function MessagingPage() {
           </>
         ) : (
           <>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
-            <button onClick={() => fileInputRef.current?.click()} aria-label="Envoyer une image" className="p-2.5 rounded-full hover:bg-[#F2F4F7] transition text-[#344054]">
+            <input ref={fileInputRef} type="file" accept="image/*,video/mp4,video/quicktime,video/webm" className="hidden" onChange={handleImagePick} />
+            <button onClick={() => fileInputRef.current?.click()} aria-label="Envoyer une photo ou une vidéo" className="p-2.5 rounded-full hover:bg-[#F2F4F7] transition text-[#344054]">
               <ImageIcon className="w-5 h-5" />
             </button>
 

@@ -19,7 +19,7 @@ export const NOTIFICATIONS_TOUR: TourStep[] = [
     id: 'item',
     target: 'notif-item',
     title: 'Ouvrir une notification',
-    body: 'Touchez une notification : elle est marquée comme lue et vous êtes emmené directement sur le produit ou la commande concernée. Exemple : « Commande confirmée ».',
+    body: 'Touchez une notification : elle est marquée comme lue et vous êtes emmené directement au bon endroit : la conversation de l’acheteur pour une commande, le produit pour une nouveauté, la boutique pour une nouvelle boutique.',
   },
   {
     id: 'empty',
@@ -131,28 +131,7 @@ export const PRODUCT_TOUR: TourStep[] = [
     id: 'deliver',
     target: 'product-deliver',
     title: 'Se faire livrer',
-    body: 'Ce bouton vous amène directement au formulaire de livraison, plus bas dans la page.',
-    action: { type: 'click', hint: 'touchez « Me faire livrer ».' },
-  },
-  {
-    id: 'quantity',
-    target: 'product-quantity',
-    title: 'Choisir la quantité',
-    body: 'Utilisez + et − . Le total se recalcule tout seul et ne dépasse jamais le stock disponible.',
-    action: { type: 'click', hint: 'touchez + ou −.' },
-  },
-  {
-    id: 'address',
-    target: 'product-address',
-    title: 'Indiquer où vous livrer',
-    body: 'Écrivez la commune, le quartier, l’avenue et le numéro. Exemple : « Bagira, Camp TV, avenue Kasali n°12 ».',
-    action: { type: 'input', hint: 'écrivez votre adresse.' },
-  },
-  {
-    id: 'confirm',
-    target: 'product-confirm',
-    title: 'Confirmer la livraison',
-    body: 'Ce bouton envoie votre demande au vendeur, qui doit la confirmer. Si vous n’êtes pas connecté, on vous le demandera d’abord. Vous suivrez ensuite la commande dans « Mes commandes ».',
+    body: 'Ce bouton ouvre la fenêtre de livraison : quantité, adresse complète, mode de paiement et note pour le vendeur. Rien n’est débité à ce moment-là.',
   },
   {
     id: 'seller',

@@ -10,6 +10,7 @@ import { useUnreadNotifications } from '../lib/notificationsStore';
 import { useNewShopsCount } from '../lib/newShops';
 import { applyThemeMode, readThemeMode, resolveDark, setThemeMode, THEME_MODE_EVENT } from '../lib/themeMode';
 import NotificationBadge from './NotificationBadge';
+import AccountStatusBanner from './AccountStatusBanner';
 
 /**
  * Coque de navigation globale, inspirée d'Instagram :
@@ -177,7 +178,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* CONTENU */}
-      <div className={`app-content has-sidebar ${hideBottom ? '' : 'has-bottom-nav'}`}>{children}</div>
+      <div className={`app-content has-sidebar ${hideBottom ? '' : 'has-bottom-nav'}`}><AccountStatusBanner />{children}</div>
 
       {/* BARRE DU BAS (mobile) */}
       {!hideBottom && (
