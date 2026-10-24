@@ -77,7 +77,6 @@ export default function App() {
               <Route path="/boutique" element={<Boutique />} />
               <Route path="/shops/:slug" element={<Boutique />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/:section" element={<Settings />} />
               <Route path="/users/:id" element={<UserPage />} />
               <Route path="/a-propos" element={<About />} />
 

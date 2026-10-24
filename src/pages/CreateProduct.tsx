@@ -17,10 +17,7 @@ import {
   Package,
   Check,
   Sparkles,
-  Images,
 } from 'lucide-react';
-import CategoryPicker from '../components/CategoryPicker';
-import VideoStudio from '../components/VideoStudio';
 
 interface Category {
   id: string;
@@ -104,10 +101,8 @@ export default function CreateProduct() {
     state: 'NEUF',
     type: 'SALE',
     location: '',
-    categoryId: '',
-    negotiable: 'false'
+    categoryId: ''
   });
-  const [studioTab, setStudioTab] = useState<'video' | 'photos'>('video');
 
   // Nettoyage des objets en mémoire (revokeObjectURL) pour éviter les fuites RAM.
   // Corrigé pour ne révoquer qu'au démontage réel du composant : avec [photoPreviews, videoPreview]
@@ -401,8 +396,7 @@ export default function CreateProduct() {
       if (videoFile) data.append('video', videoFile);
 
       Object.entries(formData).forEach(([key, value]) => {
-        // Le serveur n'accepte que SALE ou REQUEST : « détail / gros » ne sert qu'à limiter la quantité à l'écran.
-        data.append(key, key === 'type' ? 'SALE' : value);
+        data.append(key, value);
       });
 
       const response = await fetch(`${API_URL}/products`, {
@@ -442,7 +436,7 @@ export default function CreateProduct() {
   return (
     <div className="min-h-screen bg-white text-[#111111] pb-28">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white py-3">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#EAECF0] py-3">
         <div className="max-w-3xl mx-auto flex items-center gap-3 px-4 sm:px-6">
           <button
             type="button"
@@ -491,7 +485,7 @@ export default function CreateProduct() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:py-8">
         {error && (
-          <div className="mb-5 p-3.5 rounded-xl bg-[#FFF1E7] text-[#111111] text-sm flex items-start gap-2.5">
+          <div className="mb-5 p-3.5 rounded-xl bg-[#FFF1E7] border border-[#FFD7B5] text-[#111111] text-sm flex items-start gap-2.5">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-[#FF6B00]" />
             <span>{error}</span>
           </div>
@@ -499,7 +493,7 @@ export default function CreateProduct() {
 
         {createdProduct ? (
           <div className="space-y-5">
-            <div className="bg-[#F2F4F7] rounded-2xl p-6 text-center space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-6 text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-[#FF6B00] flex items-center justify-center mx-auto">
                 <Check className="w-6 h-6 text-white" />
               </div>
@@ -523,18 +517,18 @@ export default function CreateProduct() {
               )}
             </div>
 
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
               <h2 className="font-bold text-[#111111] mb-3">Photos publiées ({photoPreviews.length})</h2>
               <div className="grid grid-cols-3 gap-2.5">
                 {photoPreviews.map((url, idx) => (
-                  <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-[#F2F4F7]">
+                  <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-[#F2F4F7] border border-[#EAECF0]">
                     <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-30 -mx-4 bg-white shadow-[0_-6px_20px_rgba(0,0,0,0.06)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={() => navigate('/')}
@@ -546,113 +540,94 @@ export default function CreateProduct() {
           </div>
         ) : (
         <>
-        {/* ÉTAPE 1 : MÉDIAS — studio plein écran façon TikTok */}
+        {/* ÉTAPE 1 : MÉDIAS */}
         {step === 'media' && (
-          <div className="fixed inset-0 z-[80] flex flex-col bg-black text-white">
-            <div className="flex h-14 flex-shrink-0 items-center gap-3 px-3">
-              <button type="button" onClick={() => navigate('/')} aria-label="Fermer" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-                <X className="h-5 w-5" />
-              </button>
-              <p className="min-w-0 flex-1 text-center text-sm font-bold">Nouvelle publication</p>
-              <button
-                type="button"
-                onClick={handleValidateMedia}
-                className={`flex h-10 items-center rounded-full px-5 text-sm font-bold transition-colors ${photoFiles.length >= 3 ? 'bg-[#FF6B00] text-white hover:bg-[#E85F00]' : 'bg-white/15 text-white/70'}`}
-              >
-                {photoFiles.length >= 3 ? 'Suivant' : `Photos ${photoFiles.length}/3`}
-              </button>
+          <div className="space-y-5">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-[#111111]">Photos de l'article</h2>
+                  <p className="text-xs text-[#344054]">3 photos minimum, 7 maximum (JPG, PNG, WEBP).</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5">
+                {photoPreviews.map((url, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-[#F2F4F7] border border-[#EAECF0]">
+                    <img src={url} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(idx)}
+                      aria-label="Retirer la photo" className="absolute top-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[#111111] text-white hover:bg-[#E85F00] transition"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+
+                {photoFiles.length < 7 && (
+                  <label className={`${photoFiles.length === 0 ? 'col-span-3 aspect-[3/1] sm:aspect-[4/1]' : 'aspect-square'} rounded-xl bg-[#F9FAFB] border-2 border-dashed border-[#D0D5DD] hover:border-[#FF6B00] transition flex flex-col items-center justify-center text-[#344054] hover:text-[#111111] cursor-pointer`}>
+                    <Plus className="w-6 h-6 mb-1 text-[#FF6B00]" />
+                    <span className="text-xs font-semibold">Ajouter</span>
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp"
+                      multiple
+                      onChange={handlePhotoSelection}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
             </div>
 
-            {error && (
-              <div role="alert" className="mx-3 mb-2 flex items-start gap-2 rounded-xl bg-[#FF6B00] px-3 py-2.5 text-sm font-semibold text-white">
-                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <span className="flex-1">{error}</span>
-                <button type="button" onClick={() => setError('')} aria-label="Fermer le message"><X className="h-4 w-4" /></button>
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
+                  <Video className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-[#111111]">Vidéo d'accueil (optionnel)</h2>
+                  <p className="text-xs text-[#344054]">Mise en avant dynamique dans les Reels.</p>
+                </div>
               </div>
-            )}
 
-            <div className="flex min-h-0 flex-1 justify-center">
-              {studioTab === 'video' ? (
-                <div className="relative h-full w-full overflow-hidden sm:aspect-[9/16] sm:w-auto sm:rounded-2xl">
-                  <VideoStudio
-                    videoPreview={videoPreview}
-                    onError={(m) => setError(m)}
-                    onRemove={() => {
-                      if (videoPreview) URL.revokeObjectURL(videoPreview);
+              {videoPreview ? (
+                <div className="relative rounded-xl overflow-hidden bg-[#111111] aspect-video">
+                  <video src={videoPreview} controls className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      URL.revokeObjectURL(videoPreview);
                       setVideoFile(null);
                       setVideoPreview(null);
                     }}
-                    onVideo={(file) => {
-                      if (videoPreview) URL.revokeObjectURL(videoPreview);
-                      setError('');
-                      setVideoFile(file);
-                      setVideoPreview(URL.createObjectURL(file));
-                      if (photoFiles.length < 3) setStudioTab('photos'); // il manque encore les photos obligatoires
-                    }}
-                  />
+                    aria-label="Retirer la vidéo" className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#111111] text-white hover:bg-[#E85F00] transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               ) : (
-                <div className="h-full w-full max-w-xl overflow-y-auto px-4 pb-6">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-base font-bold">Photos de l'article</h2>
-                      <p className="text-xs text-white/70">3 minimum, 7 maximum (JPG, PNG, WEBP).</p>
-                    </div>
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-bold">{photoFiles.length}/7</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    {photoPreviews.map((url, idx) => (
-                      <div key={idx} className="relative aspect-square overflow-hidden rounded-xl bg-[#1A1A1A]">
-                        <img src={url} alt={`Photo ${idx + 1}`} className="h-full w-full object-cover" />
-                        {idx === 0 && <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold">Couverture</span>}
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePhoto(idx)}
-                          aria-label="Retirer la photo"
-                          className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white hover:bg-[#FF6B00]"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
-                    {photoFiles.length < 7 && (
-                      <>
-                        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-[#1A1A1A] text-white hover:bg-[#262626]">
-                          <Images className="h-6 w-6 text-[#FF6B00]" aria-hidden="true" />
-                          <span className="text-xs font-semibold">Galerie</span>
-                          <input type="file" accept="image/png, image/jpeg, image/webp" multiple onChange={handlePhotoSelection} className="hidden" />
-                        </label>
-                        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-[#1A1A1A] text-white hover:bg-[#262626]">
-                          <Camera className="h-6 w-6 text-[#FF6B00]" aria-hidden="true" />
-                          <span className="text-xs font-semibold">Prendre une photo</span>
-                          <input type="file" accept="image/png, image/jpeg, image/webp" capture="environment" onChange={handlePhotoSelection} className="hidden" />
-                        </label>
-                      </>
-                    )}
-                  </div>
-                  {videoPreview && (
-                    <p className="mt-4 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2.5 text-sm font-semibold">
-                      <Check className="h-4 w-4 text-[#FF6B00]" strokeWidth={3} /> Votre vidéo est prête.
-                    </p>
-                  )}
-                </div>
+                <label className="w-full py-6 rounded-xl bg-[#F9FAFB] border-2 border-dashed border-[#D0D5DD] hover:border-[#FF6B00] transition text-sm font-semibold flex items-center justify-center gap-2 text-[#111111] cursor-pointer">
+                  <Video className="w-4 h-4 text-[#FF6B00]" />
+                  <span>Sélectionner une vidéo</span>
+                  <input type="file" accept="video/mp4, video/webm, video/quicktime" onChange={handleVideoSelection} className="hidden" />
+                </label>
               )}
             </div>
 
-            <div className="flex h-16 flex-shrink-0 items-center justify-center gap-8 pb-[env(safe-area-inset-bottom)]" role="tablist" aria-label="Type de média">
-              {([['video', 'VIDÉO'], ['photos', `PHOTOS (${photoFiles.length})`]] as const).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="tab"
-                  aria-selected={studioTab === key}
-                  onClick={() => { setError(''); setStudioTab(key); }}
-                  className={`flex flex-col items-center gap-1 text-sm font-extrabold tracking-wide transition-colors ${studioTab === key ? 'text-white' : 'text-white/50 hover:text-white/80'}`}
-                >
-                  {label}
-                  <span className={`h-1 w-1 rounded-full ${studioTab === key ? 'bg-[#FF6B00]' : 'bg-transparent'}`} />
-                </button>
-              ))}
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
+            <button
+              type="button"
+              disabled={photoFiles.length < 3}
+              onClick={handleValidateMedia}
+              className="w-full py-3.5 shadow-none bg-[#FF6B00] hover:bg-[#E85F00] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full font-bold text-sm transition"
+            >
+              Continuer ({photoFiles.length}/7 photos)
+            </button>
             </div>
           </div>
         )}
@@ -673,7 +648,7 @@ export default function CreateProduct() {
               </button>
             </div>
 
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <h2 className="font-bold text-[#111111]">Détails du produit</h2>
 
               <button
@@ -695,12 +670,12 @@ export default function CreateProduct() {
                 )}
               </button>
               {aiNotice && (
-                <p className="text-xs text-[#111111] bg-[#FFF1E7] rounded-xl p-3">{aiNotice}</p>
+                <p className="text-xs text-[#111111] bg-[#FFF1E7] border border-[#FFD7B5] rounded-xl p-3">{aiNotice}</p>
               )}
 
               <div>
                 <label className="block text-xs font-semibold text-[#344054] mb-1.5">Nom du produit</label>
-                <div className="flex items-center rounded-xl bg-white focus-within:bg-[#FFF8F3] px-3.5 py-3 transition-colors">
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                   <Tag className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
@@ -715,11 +690,26 @@ export default function CreateProduct() {
                 </div>
               </div>
 
-              <CategoryPicker
-                categories={categories}
-                value={formData.categoryId}
-                onChange={(id) => { setError(''); setFormData(prev => ({ ...prev, categoryId: id })); }}
-              />
+              <div>
+                <label className="block text-xs font-semibold text-[#344054] mb-1.5">Catégorie</label>
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
+                  <Layers className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
+                  <select
+                    name="categoryId"
+                    required
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="bg-transparent border-none outline-none w-full text-sm text-[#111111] cursor-pointer"
+                  >
+                    <option value="" className="bg-white border border-[#EAECF0] text-[#344054]">Sélectionnez une catégorie</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id} className="bg-white border border-[#EAECF0] text-[#111111]">
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#344054] mb-1.5">Description</label>
@@ -730,12 +720,12 @@ export default function CreateProduct() {
                   placeholder="Description détaillée..."
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full rounded-xl bg-white focus:bg-[#FFF8F3] p-3.5 text-sm text-[#111111] placeholder:text-[#98A2B3] resize-none outline-none transition-colors"
+                  className="w-full rounded-xl bg-white border border-[#D0D5DD] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 p-3.5 text-sm text-[#111111] placeholder:text-[#98A2B3] resize-none outline-none transition-colors"
                 />
               </div>
             </div>
 
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5 space-y-3">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-3">
               <h2 className="font-bold text-[#111111]">Options de vente</h2>
               <div>
                 <label className="block text-xs font-semibold text-[#344054] mb-1.5">Type de vente</label>
@@ -751,7 +741,7 @@ export default function CreateProduct() {
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
                         formData.type === opt.value
                           ? 'bg-[#FF6B00] text-white'
-                          : 'bg-white text-[#344054] hover:bg-[#FFF1E7]'
+                          : 'bg-white border border-[#EAECF0] text-[#344054] hover:border-[#FF6B00]'
                       }`}
                     >
                       {opt.label}
@@ -766,7 +756,7 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5 space-y-3">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-3">
               <h2 className="font-bold text-[#111111]">Prix et devises</h2>
               {exchangeRate && (
                 <p className="text-[11px] text-[#667085]">
@@ -776,7 +766,7 @@ export default function CreateProduct() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-[#344054] mb-1.5">Prix (USD)</label>
-                  <div className="flex items-center rounded-xl bg-white focus-within:bg-[#FFF8F3] px-3.5 py-3 transition-colors">
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <DollarSign className="w-4 h-4 mr-2 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
@@ -792,7 +782,7 @@ export default function CreateProduct() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#344054] mb-1.5">Prix (CDF)</label>
-                  <div className="flex items-center rounded-xl bg-white focus-within:bg-[#FFF8F3] px-3.5 py-3 transition-colors">
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <span className="mr-2 text-xs font-bold text-[#FF6B00] flex-shrink-0">Fc</span>
                     <input
                       type="number"
@@ -809,30 +799,7 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5">
-              <div className="flex items-center gap-4">
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-bold text-[#111111]">Prix négociable</h2>
-                  <p className="mt-0.5 text-xs text-[#344054]">
-                    {formData.negotiable === 'true'
-                      ? 'Les acheteurs verront « Prix négociable » et pourront vous proposer leur prix.'
-                      : 'Les acheteurs verront « Prix fixe » : le prix affiché n’est pas discutable.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={formData.negotiable === 'true'}
-                  aria-label="Prix négociable"
-                  onClick={() => setFormData(prev => ({ ...prev, negotiable: prev.negotiable === 'true' ? 'false' : 'true' }))}
-                  className={`relative h-7 w-12 flex-shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:brightness-90 ${formData.negotiable === 'true' ? 'bg-[#FF6B00]' : 'bg-[#D0D5DD]'}`}
-                >
-                  <span className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white transition-transform ${formData.negotiable === 'true' ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 z-30 -mx-4 bg-white shadow-[0_-6px_20px_rgba(0,0,0,0.06)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={handleValidateDetails}
@@ -847,9 +814,9 @@ export default function CreateProduct() {
         {/* ÉTAPE 3 : STOCK & LIEU */}
         {step === 'stock' && (
           <div className="space-y-5">
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-[#FF6B00] flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-white border border-[#EAECF0] flex items-center justify-center text-[#FF6B00] flex-shrink-0">
                   <Package className="w-5 h-5" />
                 </div>
                 <h2 className="font-bold text-[#111111]">Stock et lieu</h2>
@@ -868,12 +835,12 @@ export default function CreateProduct() {
                     required
                     value={formData.quantity}
                     onChange={handleChange}
-                    className="w-full rounded-xl bg-white focus:bg-[#FFF8F3] px-3.5 py-3 text-sm text-[#111111] outline-none transition-colors"
+                    className="w-full rounded-xl bg-white border border-[#D0D5DD] focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/20 px-3.5 py-3 text-sm text-[#111111] outline-none transition-colors"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#344054] mb-1.5">Poids (kg) *</label>
-                  <div className="flex items-center rounded-xl bg-white focus-within:bg-[#FFF8F3] px-3.5 py-3 transition-colors">
+                  <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                     <Scale className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                     <input
                       type="number"
@@ -906,7 +873,7 @@ export default function CreateProduct() {
                       className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${
                         formData.state === opt.value
                           ? 'bg-[#FF6B00] text-white'
-                          : 'bg-white text-[#344054] hover:bg-[#FFF1E7]'
+                          : 'bg-white border border-[#EAECF0] text-[#344054] hover:border-[#FF6B00]'
                       }`}
                     >
                       {opt.label}
@@ -917,7 +884,7 @@ export default function CreateProduct() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#344054] mb-1.5">Localisation</label>
-                <div className="flex items-center rounded-xl bg-white focus-within:bg-[#FFF8F3] px-3.5 py-3 transition-colors">
+                <div className="flex items-center rounded-xl bg-white border border-[#D0D5DD] focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/20 px-3.5 py-3 transition-colors">
                   <MapPin className="w-4 h-4 mr-2.5 text-[#FF6B00] flex-shrink-0" />
                   <input
                     type="text"
@@ -932,7 +899,7 @@ export default function CreateProduct() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-30 -mx-4 bg-white shadow-[0_-6px_20px_rgba(0,0,0,0.06)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="button"
               onClick={handleValidateStock}
@@ -947,28 +914,7 @@ export default function CreateProduct() {
         {/* ÉTAPE 4 : PUBLIER */}
         {step === 'publish' && (
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="flex gap-3 rounded-2xl bg-[#F2F4F7] p-3">
-              <div className="relative h-40 w-[90px] flex-shrink-0 overflow-hidden rounded-xl bg-black">
-                {videoPreview ? (
-                  <video src={videoPreview} muted loop autoPlay playsInline className="h-full w-full object-cover" />
-                ) : (
-                  <img src={photoPreviews[0]} alt="Couverture" className="h-full w-full object-cover" />
-                )}
-                <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                  {videoPreview ? 'Vidéo' : 'Photo'}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-[#111111] line-clamp-2">{formData.title || 'Sans titre'}</p>
-                <p className="mt-1 text-xs text-[#344054] line-clamp-4">{formData.description || 'Aucune description.'}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {selectedCategoryName && <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#344054]">{selectedCategoryName}</span>}
-                  <span className="rounded-full bg-[#FFF1E7] px-2.5 py-1 text-[11px] font-bold text-[#C94F00]">{formData.negotiable === 'true' ? 'Prix négociable' : 'Prix fixe'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#F2F4F7] rounded-2xl p-4 sm:p-5 space-y-4">
+            <div className="bg-white border border-[#EAECF0] rounded-2xl p-4 sm:p-5 space-y-4">
               <h2 className="font-bold text-[#111111]">Résumé de l'article</h2>
 
               <div>
@@ -982,26 +928,22 @@ export default function CreateProduct() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
                   <p className="text-xs text-[#344054] mb-0.5">Prix</p>
                   <p className="font-bold text-[#FF6B00]">
                     {formData.priceUSD ? `$${formData.priceUSD}` : '—'}
                     {formData.priceCDF ? ` / Fc ${formData.priceCDF}` : ''}
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
                   <p className="text-xs text-[#344054] mb-0.5">Stock</p>
                   <p className="font-bold text-[#111111]">{formData.quantity} unité(s) · {formData.weight || '—'} kg</p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
                   <p className="text-xs text-[#344054] mb-0.5">État</p>
                   <p className="font-bold text-[#111111]">{formData.state.replace(/_/g, ' ')}</p>
                 </div>
-                <div className="bg-white rounded-lg p-3">
-                  <p className="text-xs text-[#344054] mb-0.5">Négociation</p>
-                  <p className="font-bold text-[#111111]">{formData.negotiable === 'true' ? 'Prix négociable' : 'Prix fixe'}</p>
-                </div>
-                <div className="bg-white rounded-lg p-3">
+                <div className="bg-white border border-[#EAECF0] rounded-lg p-3">
                   <p className="text-xs text-[#344054] mb-0.5">Localisation</p>
                   <p className="font-bold text-[#111111] truncate">{formData.location || '—'}</p>
                 </div>
@@ -1015,7 +957,7 @@ export default function CreateProduct() {
               )}
             </div>
 
-            <div className="sticky bottom-0 z-30 -mx-4 bg-white shadow-[0_-6px_20px_rgba(0,0,0,0.06)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
+            <div className="sticky bottom-0 z-30 -mx-4 border-t border-[#EAECF0] bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:-mx-6 sm:px-6">
             <button
               type="submit"
               disabled={loading}
